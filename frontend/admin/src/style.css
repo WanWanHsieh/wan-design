@@ -1,0 +1,37 @@
+@import "tailwindcss";
+
+@theme {
+  --color-cream: #fbf6ef;
+  --color-cream-dark: #f3e9db;
+  --color-terracotta: #c97b63;
+  --color-terracotta-dark: #b0604a;
+  --color-terracotta-light: #f0ddd4;
+  --color-brown: #4a3728;
+  --color-taupe: #8b7355;
+  --color-beige: #eae0d3;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Warm accent theme for Element Plus, layered on top of its defaults */
+:root {
+  --el-color-primary: #c97b63;
+  --el-color-primary-light-3: #d99f8c;
+  --el-color-primary-light-5: #e4bcae;
+  --el-color-primary-light-7: #efd8cf;
+  --el-color-primary-light-8: #f5e5df;
+  --el-color-primary-light-9: #faf1ee;
+  --el-color-primary-dark-2: #b0604a;
+}
+
+.el-menu-item.is-active {
+  color: #b0604a !important;
+  background-color: #faf1ee !important;
+}
+
+.el-menu-item:hover {
+  background-color: #faf1ee !important;
+}

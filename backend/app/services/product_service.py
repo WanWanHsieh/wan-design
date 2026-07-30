@@ -1,0 +1,182 @@
+from fastapi import HTTPException, status
+from sqlalchemy.orm import Session, selectinload
+
+from app.models.attribute import ProductAttributeValue
+from app.models.category import Category
+from app.models.product import Product
+from app.models.product_image import ProductImage
+from app.schemas.category import CategoryCreate, CategoryUpdate
+from app.schemas.product import AttributeValueIn, ProductCreate, ProductUpdate
+
+
+def _product_query(db: Session):
+    return db.query(Product).options(
+        selectinload(Product.images), selectinload(Product.attribute_values)
+    )
+
+
+def list_products(
+    db: Session, include_inactive: bool = True, track_stock: bool | None = None
+) -> list[Product]:
+    query = _product_query(db).filter(Product.deleted_at.is_(None))
+    if not include_inactive:
+        query = query.filter(Product.status == "active")
+    if track_stock is not None:
+        query = query.filter(Product.track_stock.is_(track_stock))
+    return query.order_by(Product.id.desc()).all()
+
+
+def get_product(db: Session, product_id: int) -> Product:
+    product = _product_query(db).filter(Product.id == product_id).first()
+    if product is None or product.deleted_at is not None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Product not found")
+    return product
+
+
+def get_product_by_slug(db: Session, slug: str) -> Product:
+    product = _product_query(db).filter(Product.slug == slug, Product.status == "active").first()
+    if product is None or product.deleted_at is not None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Product not found")
+    return product
+
+
+def _apply_attribute_values(
+    db: Session, product: Product, attribute_values: list[AttributeValueIn]
+) -> None:
+    db.query(ProductAttributeValue).filter(
+        ProductAttributeValue.product_id == product.id
+    ).delete()
+    for value in attribute_values:
+        db.add(
+            ProductAttributeValue(
+                product_id=product.id,
+                attribute_definition_id=value.attribute_definition_id,
+                value_text=value.value_text,
+                value_number=value.value_number,
+                value_boolean=value.value_boolean,
+            )
+        )
+
+
+def create_product(db: Session, data: ProductCreate, created_by: int) -> Product:
+    if db.query(Product).filter(Product.sku == data.sku).first() is not None:
+        raise HTTPException(status.HTTP_409_CONFLICT, "SKU already exists")
+    if db.query(Product).filter(Product.slug == data.slug).first() is not None:
+        raise HTTPException(status.HTTP_409_CONFLICT, "Slug already exists")
+    product = Product(
+        sku=data.sku,
+        name=data.name,
+        slug=data.slug,
+        description=data.description,
+        category_id=data.category_id,
+        base_price=data.base_price,
+        status=data.status,
+        custom_attributes=data.custom_attributes,
+        track_stock=data.track_stock,
+        stock_quantity=data.stock_quantity,
+        created_by=created_by,
+    )
+    db.add(product)
+    db.flush()
+    _apply_attribute_values(db, product, data.attribute_values)
+    db.commit()
+    return get_product(db, product.id)
+
+
+def update_product(db: Session, product_id: int, data: ProductUpdate) -> Product:
+    product = get_product(db, product_id)
+    updates = data.model_dump(exclude_unset=True, exclude={"attribute_values"})
+    for field, value in updates.items():
+        setattr(product, field, value)
+    if data.attribute_values is not None:
+        _apply_attribute_values(db, product, data.attribute_values)
+    db.commit()
+    return get_product(db, product_id)
+
+
+def delete_product(db: Session, product_id: int) -> None:
+    from datetime import datetime, timezone
+
+    product = get_product(db, product_id)
+    product.deleted_at = datetime.now(timezone.utc)
+    db.commit()
+
+
+def add_product_image(
+    db: Session,
+    product_id: int,
+    storage_key: str,
+    thumbnail_key: str,
+    is_primary: bool,
+    sort_order: int,
+) -> ProductImage:
+    product = get_product(db, product_id)
+    if is_primary:
+        db.query(ProductImage).filter(ProductImage.product_id == product.id).update(
+            {"is_primary": False}
+        )
+    image = ProductImage(
+        product_id=product.id,
+        storage_key=storage_key,
+        thumbnail_key=thumbnail_key,
+        is_primary=is_primary,
+        sort_order=sort_order,
+    )
+    db.add(image)
+    db.commit()
+    db.refresh(image)
+    return image
+
+
+def delete_product_image(db: Session, product_id: int, image_id: int) -> None:
+    image = (
+        db.query(ProductImage)
+        .filter(ProductImage.id == image_id, ProductImage.product_id == product_id)
+        .first()
+    )
+    if image is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Image not found")
+    db.delete(image)
+    db.commit()
+
+
+def list_categories(db: Session) -> list[Category]:
+    return (
+        db.query(Category)
+        .filter(Category.deleted_at.is_(None))
+        .order_by(Category.sort_order, Category.id)
+        .all()
+    )
+
+
+def get_category(db: Session, category_id: int) -> Category:
+    category = db.get(Category, category_id)
+    if category is None or category.deleted_at is not None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Category not found")
+    return category
+
+
+def create_category(db: Session, data: CategoryCreate) -> Category:
+    if db.query(Category).filter(Category.slug == data.slug).first() is not None:
+        raise HTTPException(status.HTTP_409_CONFLICT, "Slug already exists")
+    category = Category(**data.model_dump())
+    db.add(category)
+    db.commit()
+    db.refresh(category)
+    return category
+
+
+def update_category(db: Session, category_id: int, data: CategoryUpdate) -> Category:
+    category = get_category(db, category_id)
+    for field, value in data.model_dump(exclude_unset=True).items():
+        setattr(category, field, value)
+    db.commit()
+    return category
+
+
+def delete_category(db: Session, category_id: int) -> None:
+    from datetime import datetime, timezone
+
+    category = get_category(db, category_id)
+    category.deleted_at = datetime.now(timezone.utc)
+    db.commit()

@@ -1,0 +1,24 @@
+@import "tailwindcss";
+@import url("https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;600&display=swap");
+
+@theme {
+  --color-cream: #fbf6ef;
+  --color-cream-dark: #f3e9db;
+  --color-terracotta: #c97b63;
+  --color-terracotta-dark: #b0604a;
+  --color-terracotta-light: #f0ddd4;
+  --color-sage: #93a382;
+  --color-sage-dark: #6f8060;
+  --color-brown: #4a3728;
+  --color-taupe: #8b7355;
+  --color-beige: #eae0d3;
+
+  --font-display: "Zen Maru Gothic", "Noto Sans TC", sans-serif;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-display);
+  background-color: var(--color-cream);
+  color: var(--color-brown);
+}

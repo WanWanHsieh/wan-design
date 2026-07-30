@@ -1,0 +1,147 @@
+<script setup lang="ts">
+import { onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
+import { apiClient, imageUrl } from '../../api/client'
+import type { OrderItem, OrderListItem } from '../../types'
+
+const orders = ref<OrderListItem[]>([])
+const loading = ref(true)
+const router = useRouter()
+
+const SHIPPING_LABELS: Record<string, string> = {
+  family_mart: '好賣家(全家)',
+  seven_eleven: '賣貨便(7-11)',
+  address: '地址配送',
+}
+
+async function loadOrders() {
+  loading.value = true
+  try {
+    const { data } = await apiClient.get<OrderListItem[]>('/api/v1/admin/orders')
+    orders.value = data
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(loadOrders)
+
+const updatingIds = new Set<number>()
+
+async function toggleCompleted(order: OrderListItem) {
+  if (updatingIds.has(order.id)) return
+  updatingIds.add(order.id)
+
+  const previousStatus = order.status
+  const nextStatus = previousStatus === 'completed' ? 'pending' : 'completed'
+  order.status = nextStatus
+  try {
+    await apiClient.put(`/api/v1/admin/orders/${order.id}`, { status: nextStatus })
+    ElMessage.success(nextStatus === 'completed' ? '已標記為完成' : '已取消完成標記')
+  } catch {
+    order.status = previousStatus
+    ElMessage.error('更新失敗,請稍後再試')
+  } finally {
+    updatingIds.delete(order.id)
+  }
+}
+
+const updatingItemIds = new Set<number>()
+
+async function toggleItemCompleted(orderId: number, item: OrderItem) {
+  if (updatingItemIds.has(item.id)) return
+  updatingItemIds.add(item.id)
+
+  const previous = item.is_completed
+  item.is_completed = !previous
+  try {
+    await apiClient.put(`/api/v1/admin/orders/${orderId}/items/${item.id}/completion`, {
+      is_completed: item.is_completed,
+    })
+  } catch {
+    item.is_completed = previous
+    ElMessage.error('更新失敗,請稍後再試')
+  } finally {
+    updatingItemIds.delete(item.id)
+  }
+}
+</script>
+
+<template>
+  <div>
+    <h1 class="mb-4 text-xl font-semibold">訂單管理</h1>
+
+    <el-table :data="orders" v-loading="loading" stripe row-key="id">
+      <el-table-column type="expand">
+        <template #default="{ row }">
+          <div class="bg-gray-50 px-6 py-3">
+            <div class="mb-2 text-sm font-medium text-gray-700">訂購項目</div>
+            <div class="flex flex-wrap gap-4">
+              <div
+                v-for="item in row.items"
+                :key="item.id"
+                class="flex items-center gap-2 rounded border border-gray-200 bg-white px-3 py-2"
+              >
+                <el-checkbox
+                  :model-value="item.is_completed"
+                  @click.prevent="toggleItemCompleted(row.id, item)"
+                />
+                <img
+                  v-if="item.product_thumbnail"
+                  :src="imageUrl(item.product_thumbnail)"
+                  class="h-10 w-10 rounded object-cover"
+                  :title="item.product_name_snapshot"
+                />
+                <img
+                  v-if="item.material_thumbnail"
+                  :src="imageUrl(item.material_thumbnail)"
+                  class="h-10 w-10 rounded object-cover"
+                  :title="item.material_name_snapshot"
+                />
+                <div class="text-sm" :class="{ 'text-gray-400 line-through': item.is_completed }">
+                  <div :class="item.is_completed ? '' : 'text-gray-900'">{{ item.product_name_snapshot }}</div>
+                  <div class="text-gray-500">
+                    <template v-if="item.material_name_snapshot">{{ item.material_name_snapshot }} × </template
+                    >{{ item.quantity }}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div v-if="row.notes" class="mt-3 rounded border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+              <span class="font-medium">客人備註:</span>{{ row.notes }}
+            </div>
+          </div>
+        </template>
+      </el-table-column>
+      <el-table-column label="已完成" width="80" align="center">
+        <template #default="{ row }">
+          <el-checkbox
+            :model-value="row.status === 'completed'"
+            @click.prevent="toggleCompleted(row)"
+          />
+        </template>
+      </el-table-column>
+      <el-table-column prop="order_no" label="訂單編號" width="180" />
+      <el-table-column prop="customer_name" label="收件人" width="120" />
+      <el-table-column prop="phone" label="電話" width="140" />
+      <el-table-column label="寄送方式" width="140">
+        <template #default="{ row }">{{ SHIPPING_LABELS[row.shipping_method] ?? row.shipping_method }}</template>
+      </el-table-column>
+      <el-table-column prop="expected_delivery_date" label="預期收到日期" width="140" />
+      <el-table-column label="總價" width="100">
+        <template #default="{ row }">NT$ {{ row.total_amount }}</template>
+      </el-table-column>
+      <el-table-column label="建立時間">
+        <template #default="{ row }">{{ new Date(row.created_at).toLocaleString('zh-TW') }}</template>
+      </el-table-column>
+      <el-table-column label="操作" width="100">
+        <template #default="{ row }">
+          <el-button size="small" @click="router.push({ name: 'order-detail', params: { id: row.id } })">
+            查看
+          </el-button>
+        </template>
+      </el-table-column>
+    </el-table>
+  </div>
+</template>
