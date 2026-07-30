@@ -210,7 +210,7 @@ async function handleSubmit() {
             v-if="item.material_thumbnail"
             :src="imageUrl(item.material_thumbnail)"
             class="h-12 w-12 flex-none cursor-zoom-in rounded-lg border border-beige object-cover"
-            @click="openLightbox(item.material_image ?? item.material_thumbnail!, item.material_name_snapshot)"
+            @click="openLightbox(item.material_image ?? item.material_thumbnail!, item.material_name_snapshot ?? '')"
           />
           <span class="text-brown">
             {{ item.product_name_snapshot }} × {{ item.material_name_snapshot }} × {{ item.quantity }}
