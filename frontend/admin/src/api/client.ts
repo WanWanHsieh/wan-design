@@ -39,6 +39,8 @@ apiClient.interceptors.response.use(
 )
 
 export function imageUrl(storageKey: string): string {
+  const uploadsBase = import.meta.env.VITE_UPLOADS_BASE_URL
+  if (uploadsBase) return `${uploadsBase}/${storageKey}`
   const base = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'
   return `${base}/uploads/${storageKey}`
 }

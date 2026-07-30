@@ -6,6 +6,7 @@ import MaterialDetailView from '../views/MaterialDetailView.vue'
 import OrderCreateView from '../views/OrderCreateView.vue'
 import InStockProductListView from '../views/InStockProductListView.vue'
 import CartView from '../views/CartView.vue'
+import OrderLookupView from '../views/OrderLookupView.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -17,6 +18,7 @@ const router = createRouter({
     { path: '/order', name: 'order-create', component: OrderCreateView },
     { path: '/instock', name: 'instock-products', component: InStockProductListView },
     { path: '/cart', name: 'cart', component: CartView },
+    { path: '/order-lookup', name: 'order-lookup', component: OrderLookupView },
   ],
 })
 

@@ -15,6 +15,20 @@ const SHIPPING_LABELS: Record<string, string> = {
   address: '地址配送',
 }
 
+const STATUS_LABELS: Record<string, string> = {
+  pending: '待處理',
+  shipped: '已出貨',
+  completed: '已完成',
+  cancelled: '已取消',
+}
+
+const STATUS_DOT_COLORS: Record<string, string> = {
+  pending: '#909399',
+  shipped: '#E6A23C',
+  completed: '#67C23A',
+  cancelled: '#F56C6C',
+}
+
 async function loadOrders() {
   loading.value = true
   try {
@@ -27,23 +41,22 @@ async function loadOrders() {
 
 onMounted(loadOrders)
 
-const updatingIds = new Set<number>()
+const updatingIds = ref(new Set<number>())
 
-async function toggleCompleted(order: OrderListItem) {
-  if (updatingIds.has(order.id)) return
-  updatingIds.add(order.id)
+async function updateStatus(order: OrderListItem, nextStatus: string) {
+  if (updatingIds.value.has(order.id) || order.status === nextStatus) return
+  updatingIds.value.add(order.id)
 
   const previousStatus = order.status
-  const nextStatus = previousStatus === 'completed' ? 'pending' : 'completed'
   order.status = nextStatus
   try {
     await apiClient.put(`/api/v1/admin/orders/${order.id}`, { status: nextStatus })
-    ElMessage.success(nextStatus === 'completed' ? '已標記為完成' : '已取消完成標記')
-  } catch {
+    ElMessage.success(`已更新為「${STATUS_LABELS[nextStatus]}」`)
+  } catch (err: any) {
     order.status = previousStatus
-    ElMessage.error('更新失敗,請稍後再試')
+    ElMessage.error(err?.response?.data?.detail ?? '更新失敗,請稍後再試')
   } finally {
-    updatingIds.delete(order.id)
+    updatingIds.value.delete(order.id)
   }
 }
 
@@ -114,12 +127,22 @@ async function toggleItemCompleted(orderId: number, item: OrderItem) {
           </div>
         </template>
       </el-table-column>
-      <el-table-column label="已完成" width="80" align="center">
+      <el-table-column label="狀態" width="120">
         <template #default="{ row }">
-          <el-checkbox
-            :model-value="row.status === 'completed'"
-            @click.prevent="toggleCompleted(row)"
-          />
+          <el-select
+            :model-value="row.status"
+            size="small"
+            :disabled="updatingIds.has(row.id)"
+            @change="(val: string) => updateStatus(row, val)"
+          >
+            <template #prefix>
+              <span
+                class="inline-block h-2 w-2 rounded-full"
+                :style="{ backgroundColor: STATUS_DOT_COLORS[row.status] ?? '#909399' }"
+              />
+            </template>
+            <el-option v-for="(label, value) in STATUS_LABELS" :key="value" :label="label" :value="value" />
+          </el-select>
         </template>
       </el-table-column>
       <el-table-column prop="order_no" label="訂單編號" width="180" />

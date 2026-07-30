@@ -3,13 +3,20 @@ import { computed, onMounted, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { apiClient } from '../../api/client'
 import { generateSlug } from '../../utils/codegen'
-import type { Category } from '../../types'
+import type { Category, Product } from '../../types'
 
 interface CategoryNode extends Category {
   children: CategoryNode[]
 }
 
 const categories = ref<Category[]>([])
+const products = ref<Product[]>([])
+
+function categoryPrices(categoryId: number): string {
+  const prices = products.value.filter((p) => p.category_id === categoryId).map((p) => p.base_price)
+  if (prices.length === 0) return '-'
+  return prices.map((price) => `NT$ ${price}`).join('、')
+}
 
 const categoryTree = computed<CategoryNode[]>(() => {
   const nodes = categories.value.map((c) => ({ ...c, children: [] as CategoryNode[] }))
@@ -29,8 +36,12 @@ const editing = ref<Category | null>(null)
 const form = ref({ name: '', slug: '', description: '', parent_id: null as number | null, sort_order: 0 })
 
 async function loadCategories() {
-  const { data } = await apiClient.get<Category[]>('/api/v1/admin/categories')
-  categories.value = data
+  const [categoriesRes, productsRes] = await Promise.all([
+    apiClient.get<Category[]>('/api/v1/admin/categories'),
+    apiClient.get<Product[]>('/api/v1/admin/products', { params: { track_stock: false } }),
+  ])
+  categories.value = categoriesRes.data
+  products.value = productsRes.data
 }
 
 function regenerateSlug() {
@@ -102,6 +113,9 @@ onMounted(loadCategories)
 
     <el-table :data="categoryTree" row-key="id" default-expand-all :tree-props="{ children: 'children' }" stripe>
       <el-table-column prop="name" label="名稱" />
+      <el-table-column label="價格" width="140">
+        <template #default="{ row }">{{ categoryPrices(row.id) }}</template>
+      </el-table-column>
       <el-table-column prop="slug" label="Slug" />
       <el-table-column prop="is_active" label="啟用" width="80">
         <template #default="{ row }">{{ row.is_active ? '是' : '否' }}</template>

@@ -1,11 +1,27 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
+import { apiClient } from '../api/client'
+import type { Product } from '../types'
 import logo from '../images/logo.png'
+
+const LOW_STOCK_THRESHOLD = 2
 
 const auth = useAuthStore()
 const router = useRouter()
+const lowStockCount = ref(0)
+
+async function loadLowStockCount() {
+  try {
+    const { data } = await apiClient.get<Product[]>('/api/v1/admin/products', {
+      params: { track_stock: true },
+    })
+    lowStockCount.value = data.filter((p) => p.stock_quantity <= LOW_STOCK_THRESHOLD).length
+  } catch {
+    lowStockCount.value = 0
+  }
+}
 
 onMounted(async () => {
   if (!auth.user) {
@@ -16,6 +32,7 @@ onMounted(async () => {
       router.push({ name: 'login' })
     }
   }
+  await loadLowStockCount()
 })
 
 function handleLogout() {
@@ -33,7 +50,12 @@ function handleLogout() {
       </div>
       <el-menu :default-active="$route.name as string" router background-color="transparent">
         <el-menu-item index="product-list" :route="{ name: 'product-list' }">商品管理</el-menu-item>
-        <el-menu-item index="ready-stock-list" :route="{ name: 'ready-stock-list' }">現貨管理</el-menu-item>
+        <el-menu-item index="ready-stock-list" :route="{ name: 'ready-stock-list' }">
+          <span class="flex w-full items-center justify-between">
+            現貨管理
+            <el-tag v-if="lowStockCount > 0" type="warning" size="small" round>{{ lowStockCount }}</el-tag>
+          </span>
+        </el-menu-item>
         <el-menu-item index="category-list" :route="{ name: 'category-list' }">分類管理</el-menu-item>
         <el-menu-item index="material-list" :route="{ name: 'material-list' }">原材料管理</el-menu-item>
         <el-menu-item index="order-list" :route="{ name: 'order-list' }">訂單管理</el-menu-item>

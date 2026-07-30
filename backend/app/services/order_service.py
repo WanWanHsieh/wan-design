@@ -2,12 +2,14 @@ import uuid
 from datetime import datetime, timezone
 
 from fastapi import HTTPException, status
+from sqlalchemy import func
 from sqlalchemy.orm import Session, selectinload
 
 from app.models.material import Material
 from app.models.order import Order, OrderItem
 from app.models.product import Product
 from app.schemas.order import ORDER_STATUSES, OrderCreate, OrderItemIn, OrderUpdate, check_shipping_fields
+from app.services import notification_service
 
 
 def _order_query(db: Session):
@@ -32,7 +34,22 @@ def _restore_stock_for_items(db: Session, items: list[OrderItem]) -> None:
             product.stock_quantity += item.quantity
 
 
-def _build_order_items(db: Session, items: list[OrderItemIn]) -> tuple[list[OrderItem], float]:
+def _decrement_stock_for_items(db: Session, items: list[OrderItem]) -> None:
+    for item in items:
+        if item.material_id is not None or item.product_id is None:
+            continue
+        product = db.query(Product).filter(Product.id == item.product_id).with_for_update().first()
+        if product is not None and product.track_stock:
+            if product.stock_quantity < item.quantity:
+                raise HTTPException(
+                    status.HTTP_400_BAD_REQUEST, f"商品「{product.name}」庫存不足,無法恢復此訂單"
+                )
+            product.stock_quantity -= item.quantity
+
+
+def _build_order_items(
+    db: Session, items: list[OrderItemIn], adjust_stock: bool = True
+) -> tuple[list[OrderItem], float]:
     order_items = []
     total_amount = 0.0
 
@@ -51,11 +68,12 @@ def _build_order_items(db: Session, items: list[OrderItemIn]) -> tuple[list[Orde
                 raise HTTPException(
                     status.HTTP_400_BAD_REQUEST, f"商品「{product.name}」非現貨販售商品"
                 )
-            if product.stock_quantity < item.quantity:
-                raise HTTPException(
-                    status.HTTP_400_BAD_REQUEST, f"商品「{product.name}」庫存不足"
-                )
-            product.stock_quantity -= item.quantity
+            if adjust_stock:
+                if product.stock_quantity < item.quantity:
+                    raise HTTPException(
+                        status.HTTP_400_BAD_REQUEST, f"商品「{product.name}」庫存不足"
+                    )
+                product.stock_quantity -= item.quantity
 
             unit_price = float(product.base_price)
             subtotal = round(unit_price * item.quantity, 2)
@@ -122,7 +140,9 @@ def create_order(db: Session, data: OrderCreate) -> Order:
     )
     db.add(order)
     db.commit()
-    return get_order(db, order.id)
+    created_order = get_order(db, order.id)
+    notification_service.notify_new_order(created_order)
+    return created_order
 
 
 def list_orders(db: Session) -> list[Order]:
@@ -138,6 +158,8 @@ def get_order(db: Session, order_id: int) -> Order:
 
 def update_order(db: Session, order_id: int, data: OrderUpdate) -> Order:
     order = get_order(db, order_id)
+    previous_status = order.status
+    stock_was_reserved = previous_status != "cancelled"
 
     if data.status is not None and data.status not in ORDER_STATUSES:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Invalid status")
@@ -152,11 +174,18 @@ def update_order(db: Session, order_id: int, data: OrderUpdate) -> Order:
         else:
             order.shipping_address = None
 
+    will_reserve = order.status != "cancelled"
+
     if data.items is not None:
-        _restore_stock_for_items(db, order.items)
-        order_items, total_amount = _build_order_items(db, data.items)
+        if stock_was_reserved:
+            _restore_stock_for_items(db, order.items)
+        order_items, total_amount = _build_order_items(db, data.items, adjust_stock=will_reserve)
         order.items = order_items
         order.total_amount = total_amount
+    elif stock_was_reserved and not will_reserve:
+        _restore_stock_for_items(db, order.items)
+    elif not stock_was_reserved and will_reserve:
+        _decrement_stock_for_items(db, order.items)
 
     try:
         check_shipping_fields(order.shipping_method, order.shipping_store_code, order.shipping_address)
@@ -170,9 +199,25 @@ def update_order(db: Session, order_id: int, data: OrderUpdate) -> Order:
 
 def delete_order(db: Session, order_id: int) -> None:
     order = get_order(db, order_id)
-    _restore_stock_for_items(db, order.items)
+    if order.status != "cancelled":
+        _restore_stock_for_items(db, order.items)
     db.delete(order)
     db.commit()
+
+
+def lookup_orders(db: Session, phone: str, customer_name: str) -> list[Order]:
+    orders = (
+        _order_query(db)
+        .filter(
+            Order.phone == phone.strip(),
+            func.lower(Order.customer_name) == customer_name.strip().lower(),
+        )
+        .order_by(Order.id.desc())
+        .all()
+    )
+    if not orders:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "找不到符合的訂單,請確認姓名與電話是否正確")
+    return orders
 
 
 def set_item_completed(db: Session, order_id: int, item_id: int, is_completed: bool) -> OrderItem:

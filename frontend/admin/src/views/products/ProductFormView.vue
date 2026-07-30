@@ -34,6 +34,15 @@ const pendingImages = ref<PendingImage[]>([])
 const categories = ref<Category[]>([])
 const saving = ref(false)
 
+const selectableCategories = computed(() =>
+  categories.value.filter(
+    (c) =>
+      c.id === form.value.category_id ||
+      c.parent_id !== null ||
+      !categories.value.some((other) => other.parent_id === c.id),
+  ),
+)
+
 function regenerateSku() {
   form.value.sku = generateSku('PD')
 }
@@ -112,7 +121,7 @@ async function submitOnce() {
   })
   await flushPendingImages(data.id)
   ElMessage.success('已建立')
-  router.replace({ name: 'product-edit', params: { id: data.id } })
+  router.push({ name: 'product-list' })
 }
 
 async function handleSubmit() {
@@ -208,7 +217,7 @@ watch(productId, (newId) => {
       <div class="grid grid-cols-3 gap-4">
         <el-form-item label="分類">
           <el-select v-model="form.category_id" clearable placeholder="請選擇分類">
-            <el-option v-for="c in categories" :key="c.id" :label="c.name" :value="c.id" />
+            <el-option v-for="c in selectableCategories" :key="c.id" :label="c.name" :value="c.id" />
           </el-select>
         </el-form-item>
         <el-form-item label="價格">

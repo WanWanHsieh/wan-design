@@ -5,9 +5,8 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, s
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_admin_user, get_db, require_permission
-from app.core.config import settings
 from app.schemas.material import MaterialCreate, MaterialImageOut, MaterialOut, MaterialUpdate
-from app.services import image_service, material_service
+from app.services import image_service, material_service, storage_service
 
 router = APIRouter(prefix="/materials", tags=["admin-materials"])
 
@@ -87,17 +86,14 @@ def upload_material_image(
     except Exception as exc:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Could not process image file") from exc
 
-    upload_dir = Path(settings.UPLOAD_DIR) / "materials" / str(material_id)
-    upload_dir.mkdir(parents=True, exist_ok=True)
-
     file_id = uuid.uuid4().hex
     filename = f"{file_id}{out_extension}"
     thumbnail_filename = f"{file_id}_thumb{out_extension}"
-    (upload_dir / filename).write_bytes(resized_bytes)
-    (upload_dir / thumbnail_filename).write_bytes(thumbnail_bytes)
 
     storage_key = f"materials/{material_id}/{filename}"
     thumbnail_key = f"materials/{material_id}/{thumbnail_filename}"
+    storage_service.save_file(storage_key, resized_bytes)
+    storage_service.save_file(thumbnail_key, thumbnail_bytes)
     return material_service.add_material_image(
         db, material_id, storage_key, thumbnail_key, is_primary, sort_order, image_type
     )

@@ -23,13 +23,8 @@ services:
       - ./backend/alembic:/app/alembic
       - uploads:/app/uploads
     env_file: ./backend/.env
-    environment:
-      DATABASE_URL: postgresql+psycopg://app:app_dev_password@postgres:5432/ecommerce
     ports:
       - "8000:8000"
-    depends_on:
-      postgres:
-        condition: service_healthy
 
   storefront:
     build: ./frontend/storefront

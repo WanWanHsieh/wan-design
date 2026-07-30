@@ -3,19 +3,27 @@ import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { apiClient, imageUrl } from '../../api/client'
-import type { Product } from '../../types'
+import type { Category, Product } from '../../types'
 
 const products = ref<Product[]>([])
+const categories = ref<Category[]>([])
 const loading = ref(true)
 const router = useRouter()
+
+function categoryName(categoryId: number | null): string {
+  if (categoryId === null) return '-'
+  return categories.value.find((c) => c.id === categoryId)?.name ?? '-'
+}
 
 async function loadProducts() {
   loading.value = true
   try {
-    const { data } = await apiClient.get<Product[]>('/api/v1/admin/products', {
-      params: { track_stock: false },
-    })
-    products.value = data
+    const [productsRes, categoriesRes] = await Promise.all([
+      apiClient.get<Product[]>('/api/v1/admin/products', { params: { track_stock: false } }),
+      apiClient.get<Category[]>('/api/v1/admin/categories'),
+    ])
+    products.value = productsRes.data
+    categories.value = categoriesRes.data
   } finally {
     loading.value = false
   }
@@ -50,6 +58,9 @@ onMounted(loadProducts)
       </el-table-column>
       <el-table-column prop="sku" label="SKU" width="140" />
       <el-table-column prop="name" label="商品名稱" />
+      <el-table-column label="類別" width="120">
+        <template #default="{ row }">{{ categoryName(row.category_id) }}</template>
+      </el-table-column>
       <el-table-column prop="base_price" label="價格" width="100" />
       <el-table-column prop="status" label="狀態" width="100" />
       <el-table-column label="操作" width="160">

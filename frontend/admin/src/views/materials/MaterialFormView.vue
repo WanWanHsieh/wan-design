@@ -126,7 +126,7 @@ async function submitOnce() {
   const { data } = await apiClient.post<Material>('/api/v1/admin/materials', payload)
   await flushPendingImages(data.id)
   ElMessage.success('已建立')
-  router.replace({ name: 'material-edit', params: { id: data.id } })
+  router.push({ name: 'material-list' })
 }
 
 async function handleSubmit() {

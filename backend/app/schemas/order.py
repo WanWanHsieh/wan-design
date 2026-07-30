@@ -3,7 +3,7 @@ from datetime import date, datetime
 from pydantic import BaseModel, Field, model_validator
 
 SHIPPING_METHODS = {"family_mart", "seven_eleven", "address"}
-ORDER_STATUSES = {"pending", "completed"}
+ORDER_STATUSES = {"pending", "shipped", "completed", "cancelled"}
 
 
 class OrderItemIn(BaseModel):

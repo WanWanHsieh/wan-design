@@ -43,6 +43,13 @@ const cart = useCartStore()
             立即訂購
           </RouterLink>
           <RouterLink
+            to="/order-lookup"
+            class="text-taupe transition hover:text-terracotta"
+            active-class="font-medium text-terracotta"
+          >
+            查詢訂單
+          </RouterLink>
+          <RouterLink
             to="/cart"
             class="ml-auto flex items-center gap-1 text-taupe transition hover:text-terracotta"
             active-class="font-medium text-terracotta"

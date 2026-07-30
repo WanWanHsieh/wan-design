@@ -28,7 +28,15 @@ const shippingStoreCode = ref('')
 const shippingAddress = ref('')
 const expectedDeliveryDate = ref('')
 const notes = ref('')
+const orderStatus = ref('pending')
 const lineItems = ref<LineItem[]>([])
+
+const STATUS_LABELS: Record<string, string> = {
+  pending: '待處理',
+  shipped: '已出貨',
+  completed: '已完成',
+  cancelled: '已取消',
+}
 
 async function loadAll() {
   loading.value = true
@@ -50,6 +58,7 @@ async function loadAll() {
     shippingAddress.value = orderRes.data.shipping_address ?? ''
     expectedDeliveryDate.value = orderRes.data.expected_delivery_date
     notes.value = orderRes.data.notes ?? ''
+    orderStatus.value = orderRes.data.status
     lineItems.value = orderRes.data.items.map((item) => ({
       productId: item.product_id,
       materialId: item.material_id,
@@ -120,6 +129,7 @@ async function handleSave() {
       shipping_address: shippingMethod.value === 'address' ? shippingAddress.value : null,
       expected_delivery_date: expectedDeliveryDate.value,
       notes: notes.value.trim() || null,
+      status: orderStatus.value,
       items: lineItems.value.map((item) => ({
         product_id: item.productId,
         material_id: item.materialId,
@@ -128,8 +138,8 @@ async function handleSave() {
     })
     ElMessage.success('已儲存變更')
     await loadAll()
-  } catch {
-    ElMessage.error('儲存失敗,請確認資料填寫正確')
+  } catch (err: any) {
+    ElMessage.error(err?.response?.data?.detail ?? '儲存失敗,請確認資料填寫正確')
   } finally {
     saving.value = false
   }
@@ -168,6 +178,12 @@ async function handleDelete() {
       </h1>
 
       <el-form label-position="top">
+        <el-form-item label="訂單狀態">
+          <el-select v-model="orderStatus" class="w-40">
+            <el-option v-for="(label, value) in STATUS_LABELS" :key="value" :label="label" :value="value" />
+          </el-select>
+        </el-form-item>
+
         <div class="grid grid-cols-2 gap-4">
           <el-form-item label="收件人">
             <el-input v-model="customerName" />
