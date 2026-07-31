@@ -347,7 +347,7 @@ async function handleSubmit() {
                   v-if="productThumbnail(item.productId)"
                   :src="imageUrl(productThumbnail(item.productId)!)"
                   class="h-10 w-10 flex-none cursor-zoom-in rounded-lg border border-beige object-cover"
-                  @click="openLightbox(productFullImage(item.productId)!, '商品預覽')"
+                  @click.stop.prevent="openLightbox(productFullImage(item.productId)!, '商品預覽')"
                 />
                 <select
                   v-model="item.productId"
@@ -369,7 +369,7 @@ async function handleSubmit() {
                   v-if="materialThumbnail(item.materialId)"
                   :src="imageUrl(materialThumbnail(item.materialId)!)"
                   class="h-10 w-10 flex-none cursor-zoom-in rounded-lg border border-beige object-cover"
-                  @click="openLightbox(materialFullImage(item.materialId)!, '布料預覽')"
+                  @click.stop.prevent="openLightbox(materialFullImage(item.materialId)!, '布料預覽')"
                 />
                 <select
                   v-model="item.materialId"
