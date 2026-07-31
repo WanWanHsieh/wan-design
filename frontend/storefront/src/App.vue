@@ -3,6 +3,7 @@ import { useCartStore } from './stores/cart'
 import logo from './images/logo.png'
 
 const cart = useCartStore()
+const adminUrl = import.meta.env.VITE_ADMIN_URL ?? 'http://localhost:5174'
 </script>
 
 <template>
@@ -67,5 +68,15 @@ const cart = useCartStore()
       </div>
     </header>
     <RouterView />
+    <footer class="mt-8 border-t border-beige py-4 text-center">
+      <a
+        :href="adminUrl"
+        target="_blank"
+        rel="noopener"
+        class="text-xs text-taupe/60 transition hover:text-terracotta"
+      >
+        管理後台
+      </a>
+    </footer>
   </div>
 </template>
