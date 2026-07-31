@@ -201,17 +201,17 @@ function addToCart(product: ProductListItem) {
               <p v-if="isSoldOut(product)" class="text-xs font-medium text-red-500">已售完</p>
               <p v-else class="text-xs text-taupe">剩 {{ availableStock(product) }} 件</p>
 
-              <div v-if="!isSoldOut(product)" class="mt-auto flex items-center gap-2">
+              <div v-if="!isSoldOut(product)" class="mt-auto flex flex-col gap-2 sm:flex-row sm:items-center">
                 <input
                   v-model.number="quantities[product.id]"
                   type="number"
                   min="1"
                   :max="availableStock(product)"
-                  class="w-16 rounded-lg border border-beige px-2 py-1 text-sm focus:border-terracotta focus:outline-none focus:ring-1 focus:ring-terracotta"
+                  class="w-full rounded-lg border border-beige px-2 py-1 text-sm focus:border-terracotta focus:outline-none focus:ring-1 focus:ring-terracotta sm:w-16"
                 />
                 <button
                   type="button"
-                  class="flex-1 rounded-full bg-terracotta px-3 py-1.5 text-sm font-medium text-white transition hover:bg-terracotta-dark"
+                  class="w-full whitespace-nowrap rounded-full bg-terracotta px-3 py-1.5 text-sm font-medium text-white transition hover:bg-terracotta-dark sm:flex-1"
                   @click="addToCart(product)"
                 >
                   {{ addedFlash[product.id] ? '已加入!' : '加入購物車' }}

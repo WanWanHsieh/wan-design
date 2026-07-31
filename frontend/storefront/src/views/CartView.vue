@@ -153,32 +153,36 @@ async function handleSubmit() {
           <div
             v-for="row in cartRows"
             :key="row.product.id"
-            class="mb-3 flex items-center gap-3 rounded-xl border border-beige bg-cream/60 p-3"
+            class="mb-3 flex flex-col gap-3 rounded-xl border border-beige bg-cream/60 p-3 sm:flex-row sm:items-center"
           >
-            <img
-              v-if="row.product.primary_thumbnail ?? row.product.primary_image"
-              :src="imageUrl(row.product.primary_thumbnail ?? row.product.primary_image!)"
-              class="h-14 w-14 flex-none rounded-lg border border-beige object-cover"
-            />
-            <div class="flex-1">
-              <p class="text-sm font-medium text-brown">{{ row.product.name }}</p>
-              <p class="text-xs text-taupe">NT$ {{ row.product.base_price }} / 件・庫存 {{ row.product.stock_quantity }}</p>
-              <p v-if="row.item.quantity > row.product.stock_quantity" class="text-xs text-red-500">
-                數量超過現有庫存,請調整
-              </p>
+            <div class="flex items-center gap-3">
+              <img
+                v-if="row.product.primary_thumbnail ?? row.product.primary_image"
+                :src="imageUrl(row.product.primary_thumbnail ?? row.product.primary_image!)"
+                class="h-14 w-14 flex-none rounded-lg border border-beige object-cover"
+              />
+              <div class="flex-1 sm:w-40 sm:flex-none">
+                <p class="text-sm font-medium text-brown">{{ row.product.name }}</p>
+                <p class="text-xs text-taupe">NT$ {{ row.product.base_price }} / 件・庫存 {{ row.product.stock_quantity }}</p>
+                <p v-if="row.item.quantity > row.product.stock_quantity" class="text-xs text-red-500">
+                  數量超過現有庫存,請調整
+                </p>
+              </div>
             </div>
-            <input
-              :value="row.item.quantity"
-              type="number"
-              min="1"
-              :max="row.product.stock_quantity"
-              class="w-16 rounded-lg border border-beige px-2 py-1 text-sm focus:border-terracotta focus:outline-none focus:ring-1 focus:ring-terracotta"
-              @change="updateQuantity(row.product.id, Number(($event.target as HTMLInputElement).value))"
-            />
-            <span class="w-20 text-right text-sm text-brown">NT$ {{ row.product.base_price * row.item.quantity }}</span>
-            <button type="button" class="text-red-500 hover:underline" @click="cart.removeItem(row.product.id)">
-              移除
-            </button>
+            <div class="flex items-center justify-between gap-3 sm:flex-1 sm:justify-end">
+              <input
+                :value="row.item.quantity"
+                type="number"
+                min="1"
+                :max="row.product.stock_quantity"
+                class="w-16 rounded-lg border border-beige px-2 py-1 text-sm focus:border-terracotta focus:outline-none focus:ring-1 focus:ring-terracotta"
+                @change="updateQuantity(row.product.id, Number(($event.target as HTMLInputElement).value))"
+              />
+              <span class="text-right text-sm text-brown">NT$ {{ row.product.base_price * row.item.quantity }}</span>
+              <button type="button" class="text-red-500 hover:underline" @click="cart.removeItem(row.product.id)">
+                移除
+              </button>
+            </div>
           </div>
         </section>
 
