@@ -11,6 +11,7 @@ const LOW_STOCK_THRESHOLD = 2
 const auth = useAuthStore()
 const router = useRouter()
 const lowStockCount = ref(0)
+const storefrontUrl = import.meta.env.VITE_STOREFRONT_URL ?? 'http://localhost:5173'
 
 async function loadLowStockCount() {
   try {
@@ -62,6 +63,14 @@ function handleLogout() {
         <el-menu-item index="role-list" :route="{ name: 'role-list' }">角色權限</el-menu-item>
         <el-menu-item index="user-list" :route="{ name: 'user-list' }">後台人員</el-menu-item>
       </el-menu>
+      <a
+        :href="storefrontUrl"
+        target="_blank"
+        rel="noopener"
+        class="mt-4 block px-4 text-xs text-taupe/60 transition hover:text-terracotta"
+      >
+        回前台
+      </a>
     </el-aside>
     <el-container>
       <el-header class="flex items-center justify-end border-b border-beige bg-white">
