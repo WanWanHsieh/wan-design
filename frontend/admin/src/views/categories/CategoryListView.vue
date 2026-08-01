@@ -31,6 +31,23 @@ const categoryTree = computed<CategoryNode[]>(() => {
   }
   return roots
 })
+
+interface FlatCategoryRow {
+  node: CategoryNode
+  depth: number
+}
+
+const flatCategoryRows = computed<FlatCategoryRow[]>(() => {
+  const rows: FlatCategoryRow[] = []
+  function visit(nodes: CategoryNode[], depth: number) {
+    for (const node of nodes) {
+      rows.push({ node, depth })
+      visit(node.children, depth + 1)
+    }
+  }
+  visit(categoryTree.value, 0)
+  return rows
+})
 const dialogVisible = ref(false)
 const editing = ref<Category | null>(null)
 const form = ref({ name: '', slug: '', description: '', parent_id: null as number | null, sort_order: 0 })
@@ -111,7 +128,14 @@ onMounted(loadCategories)
       <el-button type="primary" @click="openCreate">新增分類</el-button>
     </div>
 
-    <el-table :data="categoryTree" row-key="id" default-expand-all :tree-props="{ children: 'children' }" stripe>
+    <el-table
+      :data="categoryTree"
+      row-key="id"
+      default-expand-all
+      :tree-props="{ children: 'children' }"
+      stripe
+      class="hidden sm:block"
+    >
       <el-table-column prop="name" label="名稱" />
       <el-table-column label="價格" width="140">
         <template #default="{ row }">{{ categoryPrices(row.id) }}</template>
@@ -127,6 +151,31 @@ onMounted(loadCategories)
         </template>
       </el-table-column>
     </el-table>
+
+    <div class="flex flex-col gap-3 sm:hidden">
+      <div
+        v-for="{ node, depth } in flatCategoryRows"
+        :key="node.id"
+        class="rounded-xl border border-beige bg-white p-3 shadow-[0_2px_8px_rgba(180,140,110,0.08)]"
+        :style="{ marginLeft: `${depth * 16}px` }"
+      >
+        <div class="flex items-center justify-between gap-2">
+          <span class="font-medium text-brown">{{ node.name }}</span>
+          <span
+            class="flex-none rounded-full px-2 py-0.5 text-xs"
+            :class="node.is_active ? 'bg-sage/15 text-sage-dark' : 'bg-beige/60 text-taupe'"
+          >
+            {{ node.is_active ? '啟用' : '停用' }}
+          </span>
+        </div>
+        <div class="mt-1 text-sm text-taupe">價格:{{ categoryPrices(node.id) }}</div>
+        <div class="text-xs text-taupe/70">Slug:{{ node.slug }}</div>
+        <div class="mt-3 flex gap-2">
+          <el-button size="small" class="flex-1" @click="openEdit(node)">編輯</el-button>
+          <el-button size="small" type="danger" class="flex-1" @click="handleDelete(node)">刪除</el-button>
+        </div>
+      </div>
+    </div>
 
     <el-dialog v-model="dialogVisible" :title="editing ? '編輯分類' : '新增分類'">
       <el-form label-position="top">
