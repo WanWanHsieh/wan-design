@@ -60,6 +60,7 @@ class MaterialPublicOut(BaseModel):
     id: int
     name: str
     price_addon: float
+    origin: str | None = None
     images: list[MaterialImageOut] = []
 
     class Config:

@@ -16,6 +16,7 @@ def to_public_out(material: Material) -> MaterialPublicOut:
         id=material.id,
         name=material.name,
         price_addon=material.price_addon,
+        origin=material.origin,
         images=[MaterialImageOut.model_validate(img) for img in material.images],
     )
 
