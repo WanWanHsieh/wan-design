@@ -78,49 +78,13 @@ function closeMobileMenu() {
       </a>
     </el-aside>
 
-    <el-drawer
-      v-model="mobileMenuOpen"
-      direction="ltr"
-      size="240px"
-      :with-header="false"
-      class="sm:hidden"
-    >
-      <div class="flex items-center gap-2 px-2 py-2 text-lg font-bold text-brown">
-        <img :src="logo" alt="Wan's Design" class="h-8 w-8 rounded-full object-cover" />
-        後台管理
-      </div>
-      <el-menu :default-active="$route.name as string" router background-color="transparent" @select="closeMobileMenu">
-        <el-menu-item index="product-list" :route="{ name: 'product-list' }">商品管理</el-menu-item>
-        <el-menu-item index="ready-stock-list" :route="{ name: 'ready-stock-list' }">
-          <span class="flex w-full items-center justify-between">
-            現貨管理
-            <el-tag v-if="lowStockCount > 0" type="warning" size="small" round>{{ lowStockCount }}</el-tag>
-          </span>
-        </el-menu-item>
-        <el-menu-item index="category-list" :route="{ name: 'category-list' }">分類管理</el-menu-item>
-        <el-menu-item index="material-list" :route="{ name: 'material-list' }">原材料管理</el-menu-item>
-        <el-menu-item index="order-list" :route="{ name: 'order-list' }">訂單管理</el-menu-item>
-        <el-menu-item index="role-list" :route="{ name: 'role-list' }">角色權限</el-menu-item>
-        <el-menu-item index="user-list" :route="{ name: 'user-list' }">後台人員</el-menu-item>
-      </el-menu>
-      <a
-        :href="storefrontUrl"
-        target="_blank"
-        rel="noopener"
-        class="mt-4 block px-2 text-xs text-taupe/60 transition hover:text-terracotta"
-        @click="closeMobileMenu"
-      >
-        回前台
-      </a>
-    </el-drawer>
-
     <el-container>
       <el-header class="flex items-center justify-between border-b border-beige bg-white sm:justify-end">
         <button
           type="button"
           aria-label="開啟選單"
           class="flex h-8 w-8 flex-col items-center justify-center gap-1.5 sm:hidden"
-          @click="mobileMenuOpen = true"
+          @click="mobileMenuOpen = !mobileMenuOpen"
         >
           <span class="block h-0.5 w-5 bg-brown"></span>
           <span class="block h-0.5 w-5 bg-brown"></span>
@@ -131,6 +95,75 @@ function closeMobileMenu() {
           <el-button size="small" @click="handleLogout">登出</el-button>
         </div>
       </el-header>
+
+      <nav v-if="mobileMenuOpen" class="flex flex-col gap-1 border-b border-beige bg-white px-4 py-3 text-sm sm:hidden">
+          <RouterLink
+            :to="{ name: 'product-list' }"
+            class="rounded-lg px-2 py-2 text-taupe transition hover:bg-beige/40 hover:text-terracotta"
+            active-class="font-medium text-terracotta"
+            @click="closeMobileMenu"
+          >
+            商品管理
+          </RouterLink>
+          <RouterLink
+            :to="{ name: 'ready-stock-list' }"
+            class="flex items-center justify-between rounded-lg px-2 py-2 text-taupe transition hover:bg-beige/40 hover:text-terracotta"
+            active-class="font-medium text-terracotta"
+            @click="closeMobileMenu"
+          >
+            現貨管理
+            <el-tag v-if="lowStockCount > 0" type="warning" size="small" round>{{ lowStockCount }}</el-tag>
+          </RouterLink>
+          <RouterLink
+            :to="{ name: 'category-list' }"
+            class="rounded-lg px-2 py-2 text-taupe transition hover:bg-beige/40 hover:text-terracotta"
+            active-class="font-medium text-terracotta"
+            @click="closeMobileMenu"
+          >
+            分類管理
+          </RouterLink>
+          <RouterLink
+            :to="{ name: 'material-list' }"
+            class="rounded-lg px-2 py-2 text-taupe transition hover:bg-beige/40 hover:text-terracotta"
+            active-class="font-medium text-terracotta"
+            @click="closeMobileMenu"
+          >
+            原材料管理
+          </RouterLink>
+          <RouterLink
+            :to="{ name: 'order-list' }"
+            class="rounded-lg px-2 py-2 text-taupe transition hover:bg-beige/40 hover:text-terracotta"
+            active-class="font-medium text-terracotta"
+            @click="closeMobileMenu"
+          >
+            訂單管理
+          </RouterLink>
+          <RouterLink
+            :to="{ name: 'role-list' }"
+            class="rounded-lg px-2 py-2 text-taupe transition hover:bg-beige/40 hover:text-terracotta"
+            active-class="font-medium text-terracotta"
+            @click="closeMobileMenu"
+          >
+            角色權限
+          </RouterLink>
+          <RouterLink
+            :to="{ name: 'user-list' }"
+            class="rounded-lg px-2 py-2 text-taupe transition hover:bg-beige/40 hover:text-terracotta"
+            active-class="font-medium text-terracotta"
+            @click="closeMobileMenu"
+          >
+            後台人員
+          </RouterLink>
+          <a
+            :href="storefrontUrl"
+            target="_blank"
+            rel="noopener"
+            class="mt-2 rounded-lg px-2 py-2 text-xs text-taupe/60 transition hover:text-terracotta"
+            @click="closeMobileMenu"
+          >
+            回前台
+          </a>
+      </nav>
       <el-main class="overflow-x-auto">
         <RouterView />
       </el-main>
