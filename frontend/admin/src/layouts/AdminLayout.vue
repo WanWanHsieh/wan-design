@@ -154,18 +154,19 @@ function closeMobileMenu() {
           >
             後台人員
           </RouterLink>
+      </nav>
+      <el-main class="overflow-x-auto">
+        <RouterView />
+        <footer class="mt-8 border-t border-beige py-4 text-center sm:hidden">
           <a
             :href="storefrontUrl"
             target="_blank"
             rel="noopener"
-            class="mt-2 rounded-lg px-2 py-2 text-xs text-taupe/60 transition hover:text-terracotta"
-            @click="closeMobileMenu"
+            class="text-xs text-taupe/60 transition hover:text-terracotta"
           >
             回前台
           </a>
-      </nav>
-      <el-main class="overflow-x-auto">
-        <RouterView />
+        </footer>
       </el-main>
     </el-container>
   </el-container>
