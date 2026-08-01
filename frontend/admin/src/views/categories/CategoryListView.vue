@@ -37,12 +37,20 @@ interface FlatCategoryRow {
   depth: number
 }
 
+const expandedIds = ref<Record<number, boolean>>({})
+
+function toggleExpand(id: number) {
+  expandedIds.value[id] = !expandedIds.value[id]
+}
+
 const flatCategoryRows = computed<FlatCategoryRow[]>(() => {
   const rows: FlatCategoryRow[] = []
   function visit(nodes: CategoryNode[], depth: number) {
     for (const node of nodes) {
       rows.push({ node, depth })
-      visit(node.children, depth + 1)
+      if (node.children.length > 0 && expandedIds.value[node.id]) {
+        visit(node.children, depth + 1)
+      }
     }
   }
   visit(categoryTree.value, 0)
@@ -160,7 +168,22 @@ onMounted(loadCategories)
         :style="{ marginLeft: `${depth * 16}px` }"
       >
         <div class="flex items-center justify-between gap-2">
-          <span class="font-medium text-brown">{{ node.name }}</span>
+          <button
+            v-if="node.children.length > 0"
+            type="button"
+            class="flex items-center gap-1 font-medium text-brown"
+            @click="toggleExpand(node.id)"
+          >
+            <span
+              class="inline-block transition-transform"
+              :class="expandedIds[node.id] ? 'rotate-90' : ''"
+            >
+              ›
+            </span>
+            {{ node.name }}
+            <span class="text-xs text-taupe/60">({{ node.children.length }})</span>
+          </button>
+          <span v-else class="font-medium text-brown">{{ node.name }}</span>
           <span
             class="flex-none rounded-full px-2 py-0.5 text-xs"
             :class="node.is_active ? 'bg-sage/15 text-sage-dark' : 'bg-beige/60 text-taupe'"
@@ -177,7 +200,7 @@ onMounted(loadCategories)
       </div>
     </div>
 
-    <el-dialog v-model="dialogVisible" :title="editing ? '編輯分類' : '新增分類'">
+    <el-dialog v-model="dialogVisible" :title="editing ? '編輯分類' : '新增分類'" width="92%" class="sm:!w-[480px]">
       <el-form label-position="top">
         <el-form-item label="名稱">
           <el-input v-model="form.name" />
