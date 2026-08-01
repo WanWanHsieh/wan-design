@@ -12,6 +12,7 @@ const auth = useAuthStore()
 const router = useRouter()
 const lowStockCount = ref(0)
 const storefrontUrl = import.meta.env.VITE_STOREFRONT_URL ?? 'http://localhost:5173'
+const mobileMenuOpen = ref(false)
 
 async function loadLowStockCount() {
   try {
@@ -40,11 +41,15 @@ function handleLogout() {
   auth.logout()
   router.push({ name: 'login' })
 }
+
+function closeMobileMenu() {
+  mobileMenuOpen.value = false
+}
 </script>
 
 <template>
   <el-container class="h-screen bg-cream">
-    <el-aside width="200px" class="border-r border-beige bg-white">
+    <el-aside width="200px" class="hidden border-r border-beige bg-white sm:block">
       <div class="flex items-center gap-2 px-4 py-4 text-lg font-bold text-brown">
         <img :src="logo" alt="Wan's Design" class="h-8 w-8 rounded-full object-cover" />
         後台管理
@@ -72,12 +77,61 @@ function handleLogout() {
         回前台
       </a>
     </el-aside>
+
+    <el-drawer
+      v-model="mobileMenuOpen"
+      direction="ltr"
+      size="240px"
+      :with-header="false"
+      class="sm:hidden"
+    >
+      <div class="flex items-center gap-2 px-2 py-2 text-lg font-bold text-brown">
+        <img :src="logo" alt="Wan's Design" class="h-8 w-8 rounded-full object-cover" />
+        後台管理
+      </div>
+      <el-menu :default-active="$route.name as string" router background-color="transparent" @select="closeMobileMenu">
+        <el-menu-item index="product-list" :route="{ name: 'product-list' }">商品管理</el-menu-item>
+        <el-menu-item index="ready-stock-list" :route="{ name: 'ready-stock-list' }">
+          <span class="flex w-full items-center justify-between">
+            現貨管理
+            <el-tag v-if="lowStockCount > 0" type="warning" size="small" round>{{ lowStockCount }}</el-tag>
+          </span>
+        </el-menu-item>
+        <el-menu-item index="category-list" :route="{ name: 'category-list' }">分類管理</el-menu-item>
+        <el-menu-item index="material-list" :route="{ name: 'material-list' }">原材料管理</el-menu-item>
+        <el-menu-item index="order-list" :route="{ name: 'order-list' }">訂單管理</el-menu-item>
+        <el-menu-item index="role-list" :route="{ name: 'role-list' }">角色權限</el-menu-item>
+        <el-menu-item index="user-list" :route="{ name: 'user-list' }">後台人員</el-menu-item>
+      </el-menu>
+      <a
+        :href="storefrontUrl"
+        target="_blank"
+        rel="noopener"
+        class="mt-4 block px-2 text-xs text-taupe/60 transition hover:text-terracotta"
+        @click="closeMobileMenu"
+      >
+        回前台
+      </a>
+    </el-drawer>
+
     <el-container>
-      <el-header class="flex items-center justify-end border-b border-beige bg-white">
-        <span class="mr-4 text-sm text-taupe">{{ auth.user?.full_name }}</span>
-        <el-button size="small" @click="handleLogout">登出</el-button>
+      <el-header class="flex items-center justify-between border-b border-beige bg-white sm:justify-end">
+        <button
+          type="button"
+          aria-label="開啟選單"
+          class="flex h-8 w-8 flex-col items-center justify-center gap-1.5 sm:hidden"
+          @click="mobileMenuOpen = true"
+        >
+          <span class="block h-0.5 w-5 bg-brown"></span>
+          <span class="block h-0.5 w-5 bg-brown"></span>
+          <span class="block h-0.5 w-5 bg-brown"></span>
+        </button>
+        <div class="flex items-center">
+          <span class="mr-4 text-sm text-taupe">{{ auth.user?.full_name }}</span>
+          <el-button size="small" @click="handleLogout">登出</el-button>
+        </div>
       </el-header>
-      <el-main>
+      <el-main class="overflow-x-auto">
         <RouterView />
       </el-main>
     </el-container>

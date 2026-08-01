@@ -90,7 +90,7 @@ async function toggleItemCompleted(orderId: number, item: OrderItem) {
         <template #default="{ row }">
           <div class="bg-gray-50 px-6 py-3">
             <div class="mb-2 text-sm font-medium text-gray-700">訂購項目</div>
-            <div class="flex flex-wrap gap-4">
+            <div class="flex max-w-[100vw] flex-wrap gap-4 overflow-hidden">
               <div
                 v-for="item in row.items"
                 :key="item.id"
