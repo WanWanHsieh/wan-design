@@ -60,7 +60,7 @@ onMounted(loadData)
       <el-button type="primary" @click="openCreate">新增角色</el-button>
     </div>
 
-    <el-table :data="roles" stripe>
+    <el-table :data="roles" stripe class="hidden sm:block">
       <el-table-column prop="name" label="角色名稱" width="180" />
       <el-table-column prop="description" label="說明" />
       <el-table-column label="權限">
@@ -77,7 +77,27 @@ onMounted(loadData)
       </el-table-column>
     </el-table>
 
-    <el-dialog v-model="dialogVisible" :title="editing ? '編輯角色' : '新增角色'">
+    <div class="flex flex-col gap-3 sm:hidden">
+      <div
+        v-for="role in roles"
+        :key="role.id"
+        class="rounded-xl border border-beige bg-white p-3 shadow-[0_2px_8px_rgba(180,140,110,0.08)]"
+      >
+        <div class="font-medium text-brown">{{ role.name }}</div>
+        <div v-if="role.description" class="mt-1 text-sm text-taupe">{{ role.description }}</div>
+        <div class="mt-2 flex flex-wrap gap-1">
+          <el-tag v-for="p in role.permissions" :key="p.id" size="small">{{ p.code }}</el-tag>
+        </div>
+        <el-button size="small" class="mt-3 w-full" @click="openEdit(role)">編輯</el-button>
+      </div>
+    </div>
+
+    <el-dialog
+      v-model="dialogVisible"
+      :title="editing ? '編輯角色' : '新增角色'"
+      width="92%"
+      class="sm:!w-[480px]"
+    >
       <el-form label-position="top">
         <el-form-item label="角色名稱">
           <el-input v-model="form.name" />
