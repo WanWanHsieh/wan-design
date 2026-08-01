@@ -49,7 +49,7 @@ onMounted(loadMaterials)
       <el-button type="primary" @click="router.push({ name: 'material-new' })">新增原材料</el-button>
     </div>
 
-    <el-table :data="materials" v-loading="loading" stripe>
+    <el-table :data="materials" v-loading="loading" stripe class="hidden sm:block">
       <el-table-column label="照片" width="80">
         <template #default="{ row }">
           <img
@@ -82,5 +82,40 @@ onMounted(loadMaterials)
         </template>
       </el-table-column>
     </el-table>
+
+    <div v-loading="loading" class="flex flex-col gap-3 sm:hidden">
+      <div
+        v-for="row in materials"
+        :key="row.id"
+        class="flex gap-3 rounded-xl border border-beige bg-white p-3 shadow-[0_2px_8px_rgba(180,140,110,0.08)]"
+      >
+        <img
+          v-if="fabricThumbnail(row)"
+          :src="imageUrl(fabricThumbnail(row)!)"
+          class="h-16 w-16 flex-none rounded-lg object-cover"
+        />
+        <div class="flex-1">
+          <div class="font-medium text-brown">{{ row.name }}</div>
+          <div class="text-xs text-taupe/70">{{ row.code }}・{{ row.status }}</div>
+          <div class="mt-1 text-sm text-taupe">
+            成本 NT$ {{ row.unit_cost }} / {{ UNIT_LABELS[row.unit] ?? row.unit }}・加價 NT$ {{ row.price_addon }}
+          </div>
+          <div class="text-sm text-taupe">
+            庫存 {{ row.quantity_on_hand }} {{ UNIT_LABELS[row.unit] ?? row.unit }}
+          </div>
+          <div v-if="row.origin || row.supplier" class="text-xs text-taupe/70">
+            <template v-if="row.origin">產地:{{ row.origin }}</template>
+            <template v-if="row.origin && row.supplier"> ・ </template>
+            <template v-if="row.supplier">供應商:{{ row.supplier }}</template>
+          </div>
+          <div class="mt-2 flex gap-2">
+            <el-button size="small" class="flex-1" @click="router.push({ name: 'material-edit', params: { id: row.id } })">
+              編輯
+            </el-button>
+            <el-button size="small" type="danger" class="flex-1" @click="handleDelete(row)">刪除</el-button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>

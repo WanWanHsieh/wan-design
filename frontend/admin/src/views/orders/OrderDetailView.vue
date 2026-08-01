@@ -224,7 +224,7 @@ async function handleDelete() {
         <div
           v-for="(item, index) in lineItems"
           :key="index"
-          class="mb-3 grid grid-cols-4 items-end gap-3 rounded border border-gray-200 p-3"
+          class="mb-3 grid grid-cols-1 items-end gap-3 rounded border border-gray-200 p-3 sm:grid-cols-4"
         >
           <el-form-item label="商品" class="!mb-0">
             <div class="flex items-center gap-2">

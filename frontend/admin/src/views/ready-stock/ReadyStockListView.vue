@@ -66,7 +66,7 @@ onMounted(loadProducts)
       ⚠️ 有 {{ lowStockCount }} 項現貨庫存偏低(≤{{ LOW_STOCK_THRESHOLD }}件或已售完),建議儘快補貨。
     </div>
 
-    <el-table :data="products" v-loading="loading" stripe>
+    <el-table :data="products" v-loading="loading" stripe class="hidden sm:block">
       <el-table-column label="圖片" width="80">
         <template #default="{ row }">
           <img
@@ -95,5 +95,35 @@ onMounted(loadProducts)
         </template>
       </el-table-column>
     </el-table>
+
+    <div v-loading="loading" class="flex flex-col gap-3 sm:hidden">
+      <div
+        v-for="row in products"
+        :key="row.id"
+        class="flex gap-3 rounded-xl border border-beige bg-white p-3 shadow-[0_2px_8px_rgba(180,140,110,0.08)]"
+      >
+        <img
+          v-if="row.images[0]"
+          :src="imageUrl(row.images[0].thumbnail_key ?? row.images[0].storage_key)"
+          class="h-16 w-16 flex-none rounded-lg object-cover"
+        />
+        <div class="flex-1">
+          <div class="font-medium text-brown">{{ row.name }}</div>
+          <div class="mt-1 flex items-center gap-2 text-sm text-taupe">
+            <span>NT$ {{ row.base_price }}</span>
+            <el-tag :type="stockTagType(row.stock_quantity)" size="small">
+              {{ stockLabel(row.stock_quantity) }}
+            </el-tag>
+          </div>
+          <div class="mt-1 text-xs text-taupe/70">狀態:{{ row.status }}</div>
+          <div class="mt-2 flex gap-2">
+            <el-button size="small" class="flex-1" @click="router.push({ name: 'ready-stock-edit', params: { id: row.id } })">
+              編輯
+            </el-button>
+            <el-button size="small" type="danger" class="flex-1" @click="handleDelete(row)">刪除</el-button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>

@@ -46,7 +46,7 @@ onMounted(loadProducts)
       <el-button type="primary" @click="router.push({ name: 'product-new' })">新增商品</el-button>
     </div>
 
-    <el-table :data="products" v-loading="loading" stripe>
+    <el-table :data="products" v-loading="loading" stripe class="hidden sm:block">
       <el-table-column label="圖片" width="80">
         <template #default="{ row }">
           <img
@@ -72,5 +72,30 @@ onMounted(loadProducts)
         </template>
       </el-table-column>
     </el-table>
+
+    <div v-loading="loading" class="flex flex-col gap-3 sm:hidden">
+      <div
+        v-for="row in products"
+        :key="row.id"
+        class="flex gap-3 rounded-xl border border-beige bg-white p-3 shadow-[0_2px_8px_rgba(180,140,110,0.08)]"
+      >
+        <img
+          v-if="row.images[0]"
+          :src="imageUrl(row.images[0].thumbnail_key ?? row.images[0].storage_key)"
+          class="h-16 w-16 flex-none rounded-lg object-cover"
+        />
+        <div class="flex-1">
+          <div class="font-medium text-brown">{{ row.name }}</div>
+          <div class="text-xs text-taupe/70">{{ row.sku }}・{{ categoryName(row.category_id) }}</div>
+          <div class="mt-1 text-sm text-taupe">NT$ {{ row.base_price }}・{{ row.status }}</div>
+          <div class="mt-2 flex gap-2">
+            <el-button size="small" class="flex-1" @click="router.push({ name: 'product-edit', params: { id: row.id } })">
+              編輯
+            </el-button>
+            <el-button size="small" type="danger" class="flex-1" @click="handleDelete(row)">刪除</el-button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>

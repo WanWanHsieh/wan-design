@@ -52,7 +52,7 @@ onMounted(loadData)
       <el-button type="primary" @click="openCreate">新增人員</el-button>
     </div>
 
-    <el-table :data="users" stripe>
+    <el-table :data="users" stripe class="hidden sm:block">
       <el-table-column prop="email" label="Email" />
       <el-table-column prop="full_name" label="姓名" />
       <el-table-column label="角色">
@@ -65,7 +65,29 @@ onMounted(loadData)
       </el-table-column>
     </el-table>
 
-    <el-dialog v-model="dialogVisible" title="新增後台人員">
+    <div class="flex flex-col gap-3 sm:hidden">
+      <div
+        v-for="row in users"
+        :key="row.id"
+        class="rounded-xl border border-beige bg-white p-3 shadow-[0_2px_8px_rgba(180,140,110,0.08)]"
+      >
+        <div class="flex items-center justify-between gap-2">
+          <span class="font-medium text-brown">{{ row.full_name }}</span>
+          <span
+            class="flex-none rounded-full px-2 py-0.5 text-xs"
+            :class="row.is_active ? 'bg-sage/15 text-sage-dark' : 'bg-beige/60 text-taupe'"
+          >
+            {{ row.is_active ? '啟用' : '停用' }}
+          </span>
+        </div>
+        <div class="mt-1 text-sm text-taupe">{{ row.email }}</div>
+        <div class="mt-2 flex flex-wrap gap-1">
+          <el-tag v-for="r in row.roles" :key="r" size="small">{{ r }}</el-tag>
+        </div>
+      </div>
+    </div>
+
+    <el-dialog v-model="dialogVisible" title="新增後台人員" width="92%" class="sm:!w-[480px]">
       <el-form label-position="top">
         <el-form-item label="Email">
           <el-input v-model="form.email" />

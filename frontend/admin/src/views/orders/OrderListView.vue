@@ -60,6 +60,12 @@ async function updateStatus(order: OrderListItem, nextStatus: string) {
   }
 }
 
+const mobileExpandedIds = ref<Record<number, boolean>>({})
+
+function toggleMobileExpand(id: number) {
+  mobileExpandedIds.value[id] = !mobileExpandedIds.value[id]
+}
+
 const updatingItemIds = new Set<number>()
 
 async function toggleItemCompleted(orderId: number, item: OrderItem) {
@@ -85,7 +91,7 @@ async function toggleItemCompleted(orderId: number, item: OrderItem) {
   <div>
     <h1 class="mb-4 text-xl font-semibold">訂單管理</h1>
 
-    <el-table :data="orders" v-loading="loading" stripe row-key="id">
+    <el-table :data="orders" v-loading="loading" stripe row-key="id" class="hidden sm:block">
       <el-table-column type="expand">
         <template #default="{ row }">
           <div class="bg-gray-50 px-6 py-3">
@@ -166,5 +172,87 @@ async function toggleItemCompleted(orderId: number, item: OrderItem) {
         </template>
       </el-table-column>
     </el-table>
+
+    <div v-loading="loading" class="flex flex-col gap-3 sm:hidden">
+      <div
+        v-for="row in orders"
+        :key="row.id"
+        class="rounded-xl border border-beige bg-white p-3 shadow-[0_2px_8px_rgba(180,140,110,0.08)]"
+      >
+        <div class="flex items-center justify-between gap-2">
+          <span class="font-medium text-brown">{{ row.order_no }}</span>
+          <el-select
+            :model-value="row.status"
+            size="small"
+            :disabled="updatingIds.has(row.id)"
+            class="w-28"
+            @change="(val: string) => updateStatus(row, val)"
+          >
+            <template #prefix>
+              <span
+                class="inline-block h-2 w-2 rounded-full"
+                :style="{ backgroundColor: STATUS_DOT_COLORS[row.status] ?? '#909399' }"
+              />
+            </template>
+            <el-option v-for="(label, value) in STATUS_LABELS" :key="value" :label="label" :value="value" />
+          </el-select>
+        </div>
+        <div class="mt-1 text-sm text-taupe">{{ row.customer_name }}・{{ row.phone }}</div>
+        <div class="text-sm text-taupe">
+          {{ SHIPPING_LABELS[row.shipping_method] ?? row.shipping_method }}・預期 {{ row.expected_delivery_date }}
+        </div>
+        <div class="mt-1 flex items-center justify-between">
+          <span class="font-medium text-terracotta-dark">NT$ {{ row.total_amount }}</span>
+          <span class="text-xs text-taupe/60">{{ new Date(row.created_at).toLocaleString('zh-TW') }}</span>
+        </div>
+
+        <button
+          type="button"
+          class="mt-2 flex w-full items-center justify-between rounded-lg bg-cream/60 px-2 py-1.5 text-sm text-taupe"
+          @click="toggleMobileExpand(row.id)"
+        >
+          訂購項目({{ row.items.length }})
+          <span class="inline-block transition-transform" :class="mobileExpandedIds[row.id] ? 'rotate-90' : ''">›</span>
+        </button>
+        <div v-if="mobileExpandedIds[row.id]" class="mt-2 flex flex-col gap-2">
+          <div
+            v-for="item in row.items"
+            :key="item.id"
+            class="flex items-center gap-2 rounded border border-beige bg-cream/40 px-2 py-1.5"
+          >
+            <el-checkbox
+              :model-value="item.is_completed"
+              @click.prevent="toggleItemCompleted(row.id, item)"
+            />
+            <img
+              v-if="item.product_thumbnail"
+              :src="imageUrl(item.product_thumbnail)"
+              class="h-10 w-10 flex-none rounded object-cover"
+              :title="item.product_name_snapshot"
+            />
+            <img
+              v-if="item.material_thumbnail"
+              :src="imageUrl(item.material_thumbnail)"
+              class="h-10 w-10 flex-none rounded object-cover"
+              :title="item.material_name_snapshot"
+            />
+            <div class="text-sm" :class="{ 'text-taupe line-through': item.is_completed }">
+              <div :class="item.is_completed ? '' : 'text-brown'">{{ item.product_name_snapshot }}</div>
+              <div class="text-taupe">
+                <template v-if="item.material_name_snapshot">{{ item.material_name_snapshot }} × </template
+                >{{ item.quantity }}
+              </div>
+            </div>
+          </div>
+          <div v-if="row.notes" class="rounded border border-amber-200 bg-amber-50 px-2 py-1.5 text-sm text-amber-800">
+            <span class="font-medium">客人備註:</span>{{ row.notes }}
+          </div>
+        </div>
+
+        <el-button size="small" class="mt-3 w-full" @click="router.push({ name: 'order-detail', params: { id: row.id } })">
+          查看
+        </el-button>
+      </div>
+    </div>
   </div>
 </template>
