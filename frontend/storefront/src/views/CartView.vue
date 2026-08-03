@@ -57,6 +57,11 @@ function updateQuantity(productId: number, quantity: number) {
   cart.setQuantity(productId, quantity)
 }
 
+function handleClearCart() {
+  if (!confirm('確定要清空購物車嗎?')) return
+  cart.clear()
+}
+
 const canSubmit = computed(() => {
   if (cartRows.value.length === 0) return false
   if (!customerName.value.trim() || !phone.value.trim() || !expectedDeliveryDate.value) return false
@@ -149,7 +154,16 @@ async function handleSubmit() {
 
       <form v-else class="space-y-8" @submit.prevent="handleSubmit">
         <section class="rounded-2xl border border-beige bg-white p-5 shadow-[0_2px_10px_rgba(180,140,110,0.08)]">
-          <h2 class="mb-3 font-bold text-brown">購物車項目</h2>
+          <div class="mb-3 flex items-center justify-between">
+            <h2 class="font-bold text-brown">購物車項目</h2>
+            <button
+              type="button"
+              class="rounded-full border border-taupe/40 px-3 py-1 text-sm text-taupe transition hover:border-red-400 hover:text-red-500"
+              @click="handleClearCart"
+            >
+              清空購物車
+            </button>
+          </div>
           <div
             v-for="row in cartRows"
             :key="row.product.id"

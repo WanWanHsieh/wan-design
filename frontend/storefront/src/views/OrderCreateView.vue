@@ -124,6 +124,12 @@ function removeLineItem(index: number) {
   lineItems.value.splice(index, 1)
 }
 
+function clearLineItems() {
+  if (!confirm('確定要清空目前的訂購項目嗎?')) return
+  orderDraft.clear()
+  lineItems.value = [{ topCategoryId: null, productId: null, materialId: null, quantity: 1 }]
+}
+
 function itemUnitPrice(item: LineItem): number {
   const product = products.value.find((p) => p.id === item.productId)
   const material = materials.value.find((m) => m.id === item.materialId)
@@ -342,13 +348,22 @@ async function handleSubmit() {
         <section class="rounded-2xl border border-beige bg-white p-5 shadow-[0_2px_10px_rgba(180,140,110,0.08)]">
           <div class="mb-3 flex items-center justify-between">
             <h2 class="font-bold text-brown">訂購項目</h2>
-            <button
-              type="button"
-              class="rounded-full border border-terracotta px-3 py-1 text-sm text-terracotta transition hover:bg-terracotta-light"
-              @click="addLineItem"
-            >
-              + 新增項目
-            </button>
+            <div class="flex gap-2">
+              <button
+                type="button"
+                class="rounded-full border border-taupe/40 px-3 py-1 text-sm text-taupe transition hover:border-red-400 hover:text-red-500"
+                @click="clearLineItems"
+              >
+                清空清單
+              </button>
+              <button
+                type="button"
+                class="rounded-full border border-terracotta px-3 py-1 text-sm text-terracotta transition hover:bg-terracotta-light"
+                @click="addLineItem"
+              >
+                + 新增項目
+              </button>
+            </div>
           </div>
 
           <div
