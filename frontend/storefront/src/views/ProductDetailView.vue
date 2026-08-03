@@ -1,12 +1,31 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { apiClient, imageUrl } from '../api/client'
+import { useOrderDraftStore } from '../stores/orderDraft'
 import type { ProductDetail } from '../types'
 
 const route = useRoute()
+const router = useRouter()
+const orderDraft = useOrderDraftStore()
 const product = ref<ProductDetail | null>(null)
 const error = ref<string | null>(null)
+const addedFlash = ref(false)
+
+function addToOrderDraft() {
+  if (!product.value) return
+  orderDraft.addItem(product.value.id, 1)
+  addedFlash.value = true
+  setTimeout(() => {
+    addedFlash.value = false
+  }, 1200)
+}
+
+function orderNow() {
+  if (!product.value) return
+  orderDraft.addItem(product.value.id, 1)
+  router.push({ name: 'order-create' })
+}
 
 onMounted(async () => {
   try {
@@ -48,15 +67,24 @@ onMounted(async () => {
         <p class="mt-2 text-xl font-bold text-terracotta-dark">NT$ {{ product.base_price }}</p>
         <p class="mt-4 whitespace-pre-line text-brown/80">{{ product.description }}</p>
 
-        <RouterLink
-          v-if="!product.track_stock"
-          :to="{ name: 'order-create', query: { productId: product.id } }"
-          class="mt-6 inline-block rounded-full bg-terracotta px-6 py-2 font-medium text-white transition hover:bg-terracotta-dark"
-        >
-          立即訂購此商品
-        </RouterLink>
+        <div v-if="!product.track_stock" class="mt-6 flex flex-wrap gap-3">
+          <button
+            type="button"
+            class="rounded-full border border-terracotta px-6 py-2 font-medium text-terracotta transition hover:bg-terracotta-light"
+            @click="addToOrderDraft"
+          >
+            {{ addedFlash ? '已加入!' : '加入訂購清單' }}
+          </button>
+          <button
+            type="button"
+            class="rounded-full bg-terracotta px-6 py-2 font-medium text-white transition hover:bg-terracotta-dark"
+            @click="orderNow"
+          >
+            立即訂購此商品
+          </button>
+        </div>
         <p v-if="!product.track_stock" class="mt-2 text-xs text-taupe">
-          此商品為訂製款,下一步可選擇布料花色。
+          可以先「加入訂購清單」繼續選購其他商品,最後一起訂購;或直接「立即訂購此商品」單獨下單。
         </p>
 
         <dl

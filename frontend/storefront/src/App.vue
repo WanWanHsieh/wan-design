@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useCartStore } from './stores/cart'
+import { useOrderDraftStore } from './stores/orderDraft'
 import logo from './images/logo.png'
 
 const cart = useCartStore()
+const orderDraft = useOrderDraftStore()
 const adminUrl = import.meta.env.VITE_ADMIN_URL ?? 'http://localhost:5174'
 const mobileMenuOpen = ref(false)
 
@@ -49,10 +51,16 @@ function closeMobileMenu() {
           </RouterLink>
           <RouterLink
             to="/order"
-            class="text-taupe transition hover:text-terracotta"
+            class="flex items-center gap-1 text-taupe transition hover:text-terracotta"
             active-class="font-medium text-terracotta"
           >
             立即訂購
+            <span
+              v-if="orderDraft.totalQuantity > 0"
+              class="rounded-full bg-terracotta px-1.5 py-0.5 text-xs font-medium text-white"
+            >
+              {{ orderDraft.totalQuantity }}
+            </span>
           </RouterLink>
           <RouterLink
             to="/order-lookup"
@@ -131,11 +139,17 @@ function closeMobileMenu() {
         </RouterLink>
         <RouterLink
           to="/order"
-          class="rounded-lg px-2 py-2 text-taupe transition hover:bg-beige/40 hover:text-terracotta"
+          class="flex items-center gap-1 rounded-lg px-2 py-2 text-taupe transition hover:bg-beige/40 hover:text-terracotta"
           active-class="font-medium text-terracotta"
           @click="closeMobileMenu"
         >
           立即訂購
+          <span
+            v-if="orderDraft.totalQuantity > 0"
+            class="rounded-full bg-terracotta px-1.5 py-0.5 text-xs font-medium text-white"
+          >
+            {{ orderDraft.totalQuantity }}
+          </span>
         </RouterLink>
         <RouterLink
           to="/order-lookup"

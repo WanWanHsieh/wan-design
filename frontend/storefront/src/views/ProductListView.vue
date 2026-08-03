@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import { apiClient, imageUrl } from '../api/client'
 import ImageLightbox from '../components/ImageLightbox.vue'
 import { useCategoryNav } from '../composables/useCategoryNav'
+import { useOrderDraftStore } from '../stores/orderDraft'
 import type { Category, ProductListItem } from '../types'
 
 const products = ref<ProductListItem[]>([])
@@ -14,6 +15,17 @@ const error = ref<string | null>(null)
 const lightboxVisible = ref(false)
 const lightboxSrc = ref('')
 const lightboxAlt = ref('')
+
+const orderDraft = useOrderDraftStore()
+const addedFlash = reactive<Record<number, boolean>>({})
+
+function addToOrderDraft(product: ProductListItem) {
+  orderDraft.addItem(product.id, 1)
+  addedFlash[product.id] = true
+  setTimeout(() => {
+    addedFlash[product.id] = false
+  }, 1200)
+}
 
 const nav = useCategoryNav(categories)
 
@@ -160,6 +172,13 @@ function openLightbox(product: ProductListItem) {
                 <p class="truncate text-sm text-brown group-hover:text-terracotta">{{ product.name }}</p>
                 <p class="mt-1 font-semibold text-terracotta-dark">NT$ {{ product.base_price }}</p>
                 <p class="mt-0.5 text-xs text-taupe">訂製・需選布料</p>
+                <button
+                  type="button"
+                  class="mt-2 w-full rounded-full bg-terracotta px-3 py-1.5 text-xs font-medium text-white transition hover:bg-terracotta-dark"
+                  @click.stop.prevent="addToOrderDraft(product)"
+                >
+                  {{ addedFlash[product.id] ? '已加入!' : '加入訂購清單' }}
+                </button>
               </div>
             </RouterLink>
           </div>
@@ -211,6 +230,13 @@ function openLightbox(product: ProductListItem) {
               <p class="truncate text-sm text-brown group-hover:text-terracotta">{{ product.name }}</p>
               <p class="mt-1 font-semibold text-terracotta-dark">NT$ {{ product.base_price }}</p>
               <p class="mt-0.5 text-xs text-taupe">訂製・需選布料</p>
+              <button
+                type="button"
+                class="mt-2 w-full rounded-full bg-terracotta px-3 py-1.5 text-xs font-medium text-white transition hover:bg-terracotta-dark"
+                @click.stop.prevent="addToOrderDraft(product)"
+              >
+                {{ addedFlash[product.id] ? '已加入!' : '加入訂購清單' }}
+              </button>
             </div>
           </RouterLink>
         </div>

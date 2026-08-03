@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import { useRoute } from 'vue-router'
 import { apiClient, imageUrl } from '../api/client'
 import ImageLightbox from '../components/ImageLightbox.vue'
+import { useOrderDraftStore } from '../stores/orderDraft'
 import type { Category, Material, OrderResult, ProductListItem } from '../types'
 
 interface LineItem {
@@ -14,7 +14,7 @@ interface LineItem {
 
 const UNCATEGORIZED_TOP_ID = -1
 
-const route = useRoute()
+const orderDraft = useOrderDraftStore()
 const products = ref<ProductListItem[]>([])
 const materials = ref<Material[]>([])
 const categories = ref<Category[]>([])
@@ -58,17 +58,22 @@ onMounted(async () => {
     materials.value = materialsRes.data
     categories.value = categoriesRes.data
 
-    const preselectId = Number(route.query.productId)
-    const preselected = products.value.find((p) => p.id === preselectId)
-    if (preselected) {
-      lineItems.value = [
-        {
-          topCategoryId: topCategoryIdForCategory(preselected.category_id),
-          productId: preselected.id,
-          materialId: null,
-          quantity: 1,
-        },
-      ]
+    if (orderDraft.items.length > 0) {
+      const draftLineItems = orderDraft.items
+        .map((draftItem): LineItem | null => {
+          const draftProduct = products.value.find((p) => p.id === draftItem.productId)
+          if (!draftProduct) return null
+          return {
+            topCategoryId: topCategoryIdForCategory(draftProduct.category_id),
+            productId: draftProduct.id,
+            materialId: null,
+            quantity: draftItem.quantity,
+          }
+        })
+        .filter((item): item is LineItem => item !== null)
+      if (draftLineItems.length > 0) {
+        lineItems.value = draftLineItems
+      }
     }
   } catch {
     loadError.value = '無法載入商品/布料資料,請稍後再試。'
@@ -190,6 +195,7 @@ async function handleSubmit() {
       })),
     })
     result.value = data
+    orderDraft.clear()
   } catch {
     submitError.value = '訂單送出失敗,請確認資料填寫正確後再試一次。'
   } finally {
