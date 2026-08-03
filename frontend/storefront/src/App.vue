@@ -70,8 +70,22 @@ function closeMobileMenu() {
             查詢訂單
           </RouterLink>
           <RouterLink
-            to="/cart"
+            to="/order"
             class="ml-auto flex items-center gap-1 text-taupe transition hover:text-terracotta"
+            active-class="font-medium text-terracotta"
+            title="訂購清單"
+          >
+            <span aria-hidden="true" class="text-lg">📝</span>
+            <span
+              v-if="orderDraft.totalQuantity > 0"
+              class="rounded-full bg-terracotta px-1.5 py-0.5 text-xs font-medium text-white"
+            >
+              {{ orderDraft.totalQuantity }}
+            </span>
+          </RouterLink>
+          <RouterLink
+            to="/cart"
+            class="flex items-center gap-1 text-taupe transition hover:text-terracotta"
             active-class="font-medium text-terracotta"
           >
             <span aria-hidden="true">🛒</span>
@@ -86,6 +100,20 @@ function closeMobileMenu() {
         </nav>
 
         <div class="ml-auto flex items-center gap-4 sm:hidden">
+          <RouterLink
+            to="/order"
+            class="relative flex items-center text-taupe"
+            title="訂購清單"
+            @click="closeMobileMenu"
+          >
+            <span aria-hidden="true" class="text-xl">📝</span>
+            <span
+              v-if="orderDraft.totalQuantity > 0"
+              class="absolute -right-2 -top-2 rounded-full bg-terracotta px-1.5 py-0.5 text-xs font-medium text-white"
+            >
+              {{ orderDraft.totalQuantity }}
+            </span>
+          </RouterLink>
           <RouterLink
             to="/cart"
             class="relative flex items-center text-taupe"
