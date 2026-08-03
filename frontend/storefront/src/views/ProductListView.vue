@@ -159,6 +159,7 @@ function openLightbox(product: ProductListItem) {
               <div class="p-3">
                 <p class="truncate text-sm text-brown group-hover:text-terracotta">{{ product.name }}</p>
                 <p class="mt-1 font-semibold text-terracotta-dark">NT$ {{ product.base_price }}</p>
+                <p class="mt-0.5 text-xs text-taupe">訂製・需選布料</p>
               </div>
             </RouterLink>
           </div>
@@ -209,6 +210,7 @@ function openLightbox(product: ProductListItem) {
             <div class="p-3">
               <p class="truncate text-sm text-brown group-hover:text-terracotta">{{ product.name }}</p>
               <p class="mt-1 font-semibold text-terracotta-dark">NT$ {{ product.base_price }}</p>
+              <p class="mt-0.5 text-xs text-taupe">訂製・需選布料</p>
             </div>
           </RouterLink>
         </div>

@@ -30,6 +30,8 @@ export interface ProductDetail {
   base_price: number
   status: string
   custom_attributes: Record<string, unknown>
+  track_stock: boolean
+  stock_quantity: number
   images: ProductImage[]
 }
 

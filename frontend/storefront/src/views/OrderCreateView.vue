@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
+import { useRoute } from 'vue-router'
 import { apiClient, imageUrl } from '../api/client'
 import ImageLightbox from '../components/ImageLightbox.vue'
 import type { Category, Material, OrderResult, ProductListItem } from '../types'
@@ -13,6 +14,7 @@ interface LineItem {
 
 const UNCATEGORIZED_TOP_ID = -1
 
+const route = useRoute()
 const products = ref<ProductListItem[]>([])
 const materials = ref<Material[]>([])
 const categories = ref<Category[]>([])
@@ -55,12 +57,32 @@ onMounted(async () => {
     products.value = productsRes.data
     materials.value = materialsRes.data
     categories.value = categoriesRes.data
+
+    const preselectId = Number(route.query.productId)
+    const preselected = products.value.find((p) => p.id === preselectId)
+    if (preselected) {
+      lineItems.value = [
+        {
+          topCategoryId: topCategoryIdForCategory(preselected.category_id),
+          productId: preselected.id,
+          materialId: null,
+          quantity: 1,
+        },
+      ]
+    }
   } catch {
     loadError.value = '無法載入商品/布料資料,請稍後再試。'
   } finally {
     loading.value = false
   }
 })
+
+function topCategoryIdForCategory(categoryId: number | null): number {
+  if (categoryId === null) return UNCATEGORIZED_TOP_ID
+  const category = categories.value.find((c) => c.id === categoryId)
+  if (!category) return UNCATEGORIZED_TOP_ID
+  return category.parent_id === null ? category.id : category.parent_id
+}
 
 function categoryIdsUnderTop(topId: number): number[] {
   const childIds = categories.value.filter((c) => c.parent_id === topId).map((c) => c.id)

@@ -38,9 +38,26 @@ onMounted(async () => {
         <div v-else class="flex h-full items-center justify-center text-taupe">無圖片</div>
       </div>
       <div>
-        <h1 class="text-2xl font-bold text-brown">{{ product.name }}</h1>
+        <span
+          class="inline-block rounded-full px-2 py-0.5 text-xs font-medium"
+          :class="product.track_stock ? 'bg-sage/15 text-sage-dark' : 'bg-terracotta-light text-terracotta-dark'"
+        >
+          {{ product.track_stock ? '現貨' : '訂製商品・需選布料' }}
+        </span>
+        <h1 class="mt-2 text-2xl font-bold text-brown">{{ product.name }}</h1>
         <p class="mt-2 text-xl font-bold text-terracotta-dark">NT$ {{ product.base_price }}</p>
         <p class="mt-4 whitespace-pre-line text-brown/80">{{ product.description }}</p>
+
+        <RouterLink
+          v-if="!product.track_stock"
+          :to="{ name: 'order-create', query: { productId: product.id } }"
+          class="mt-6 inline-block rounded-full bg-terracotta px-6 py-2 font-medium text-white transition hover:bg-terracotta-dark"
+        >
+          立即訂購此商品
+        </RouterLink>
+        <p v-if="!product.track_stock" class="mt-2 text-xs text-taupe">
+          此商品為訂製款,下一步可選擇布料花色。
+        </p>
 
         <dl
           v-if="Object.keys(product.custom_attributes).length"
