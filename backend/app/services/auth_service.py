@@ -74,6 +74,34 @@ def login_admin(db: Session, email: str, password: str) -> TokenResponse:
     return _issue_tokens(db, "admin_user", admin_user.id)
 
 
+def update_admin_self(
+    db: Session,
+    admin_user: AdminUser,
+    current_password: str,
+    email: str | None,
+    full_name: str | None,
+    new_password: str | None,
+) -> AdminUser:
+    if not verify_password(current_password, admin_user.password_hash):
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "目前密碼不正確")
+
+    if email and email != admin_user.email:
+        existing = db.query(AdminUser).filter(AdminUser.email == email).first()
+        if existing is not None and existing.id != admin_user.id:
+            raise HTTPException(status.HTTP_409_CONFLICT, "此 Email 已被使用")
+        admin_user.email = email
+
+    if full_name:
+        admin_user.full_name = full_name
+
+    if new_password:
+        admin_user.password_hash = hash_password(new_password)
+
+    db.commit()
+    db.refresh(admin_user)
+    return admin_user
+
+
 def refresh_tokens(db: Session, raw_refresh_token: str, expected_subject_type: str) -> TokenResponse:
     token_hash = hash_refresh_token(raw_refresh_token)
     stored = db.query(RefreshToken).filter(RefreshToken.token_hash == token_hash).first()

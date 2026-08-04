@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
 import { useAuthStore } from '../stores/auth'
 import { apiClient } from '../api/client'
 import type { Product } from '../types'
@@ -13,6 +14,52 @@ const router = useRouter()
 const lowStockCount = ref(0)
 const storefrontUrl = import.meta.env.VITE_STOREFRONT_URL ?? 'http://localhost:5173'
 const mobileMenuOpen = ref(false)
+
+const accountDialogVisible = ref(false)
+const accountSaving = ref(false)
+const accountForm = reactive({
+  email: '',
+  full_name: '',
+  current_password: '',
+  new_password: '',
+  confirm_password: '',
+})
+
+function openAccountDialog() {
+  accountForm.email = auth.user?.email ?? ''
+  accountForm.full_name = auth.user?.full_name ?? ''
+  accountForm.current_password = ''
+  accountForm.new_password = ''
+  accountForm.confirm_password = ''
+  accountDialogVisible.value = true
+}
+
+async function handleAccountSave() {
+  if (!accountForm.current_password) {
+    ElMessage.error('請輸入目前密碼以確認身份')
+    return
+  }
+  if (accountForm.new_password && accountForm.new_password !== accountForm.confirm_password) {
+    ElMessage.error('新密碼與確認密碼不一致')
+    return
+  }
+  accountSaving.value = true
+  try {
+    await apiClient.put('/api/v1/admin/auth/me', {
+      current_password: accountForm.current_password,
+      email: accountForm.email,
+      full_name: accountForm.full_name,
+      new_password: accountForm.new_password || null,
+    })
+    await auth.fetchMe()
+    ElMessage.success('帳號資料已更新')
+    accountDialogVisible.value = false
+  } catch (err: any) {
+    ElMessage.error(err?.response?.data?.detail ?? '更新失敗,請確認目前密碼是否正確')
+  } finally {
+    accountSaving.value = false
+  }
+}
 
 async function loadLowStockCount() {
   try {
@@ -90,8 +137,9 @@ function closeMobileMenu() {
           <span class="block h-0.5 w-5 bg-brown"></span>
           <span class="block h-0.5 w-5 bg-brown"></span>
         </button>
-        <div class="flex items-center">
-          <span class="mr-4 text-sm text-taupe">{{ auth.user?.full_name }}</span>
+        <div class="flex items-center gap-2">
+          <span class="mr-2 text-sm text-taupe">{{ auth.user?.full_name }}</span>
+          <el-button size="small" @click="openAccountDialog">帳號設定</el-button>
           <el-button size="small" @click="handleLogout">登出</el-button>
         </div>
       </el-header>
@@ -169,5 +217,29 @@ function closeMobileMenu() {
         </footer>
       </el-main>
     </el-container>
+
+    <el-dialog v-model="accountDialogVisible" title="帳號設定" width="92%" class="sm:!w-[420px]">
+      <el-form label-position="top">
+        <el-form-item label="Email">
+          <el-input v-model="accountForm.email" type="email" />
+        </el-form-item>
+        <el-form-item label="姓名">
+          <el-input v-model="accountForm.full_name" />
+        </el-form-item>
+        <el-form-item label="新密碼(留空表示不更改)">
+          <el-input v-model="accountForm.new_password" type="password" show-password />
+        </el-form-item>
+        <el-form-item v-if="accountForm.new_password" label="確認新密碼">
+          <el-input v-model="accountForm.confirm_password" type="password" show-password />
+        </el-form-item>
+        <el-form-item label="目前密碼(必填,用來確認身份)">
+          <el-input v-model="accountForm.current_password" type="password" show-password />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="accountDialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="accountSaving" @click="handleAccountSave">儲存</el-button>
+      </template>
+    </el-dialog>
   </el-container>
 </template>
