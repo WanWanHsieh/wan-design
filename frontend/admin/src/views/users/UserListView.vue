@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { apiClient } from '../../api/client'
 import type { Role } from '../../types'
 
@@ -12,10 +12,21 @@ interface AdminUserListItem {
   roles: string[]
 }
 
+interface AdminUserDetail extends AdminUserListItem {
+  role_ids: number[]
+}
+
 const users = ref<AdminUserListItem[]>([])
 const roles = ref<Role[]>([])
 const dialogVisible = ref(false)
-const form = ref({ email: '', password: '', full_name: '', role_ids: [] as number[] })
+const editingId = ref<number | null>(null)
+const form = ref({
+  email: '',
+  password: '',
+  full_name: '',
+  is_active: true,
+  role_ids: [] as number[],
+})
 
 async function loadData() {
   const [usersRes, rolesRes] = await Promise.all([
@@ -27,18 +38,65 @@ async function loadData() {
 }
 
 function openCreate() {
-  form.value = { email: '', password: '', full_name: '', role_ids: [] }
+  editingId.value = null
+  form.value = { email: '', password: '', full_name: '', is_active: true, role_ids: [] }
+  dialogVisible.value = true
+}
+
+async function openEdit(row: AdminUserListItem) {
+  const { data } = await apiClient.get<AdminUserDetail>(`/api/v1/admin/users/${row.id}`)
+  editingId.value = data.id
+  form.value = {
+    email: data.email,
+    password: '',
+    full_name: data.full_name,
+    is_active: data.is_active,
+    role_ids: data.role_ids,
+  }
   dialogVisible.value = true
 }
 
 async function handleSave() {
   try {
-    await apiClient.post('/api/v1/admin/users', form.value)
+    if (editingId.value === null) {
+      await apiClient.post('/api/v1/admin/users', form.value)
+      ElMessage.success('已建立後台人員')
+    } else {
+      const payload: Record<string, unknown> = {
+        email: form.value.email,
+        full_name: form.value.full_name,
+        is_active: form.value.is_active,
+        role_ids: form.value.role_ids,
+      }
+      if (form.value.password) payload.password = form.value.password
+      await apiClient.put(`/api/v1/admin/users/${editingId.value}`, payload)
+      ElMessage.success('已更新後台人員')
+    }
     dialogVisible.value = false
-    ElMessage.success('已建立後台人員')
     await loadData()
   } catch {
-    ElMessage.error('建立失敗,請確認 Email 是否重複')
+    ElMessage.error(editingId.value === null ? '建立失敗,請確認 Email 是否重複' : '更新失敗,請確認 Email 是否重複')
+  }
+}
+
+async function handleDelete(row: AdminUserListItem) {
+  try {
+    await ElMessageBox.confirm(`確定要刪除「${row.full_name}」這個後台人員嗎?`, '刪除確認', {
+      type: 'warning',
+      confirmButtonText: '刪除',
+      cancelButtonText: '取消',
+    })
+  } catch {
+    return
+  }
+  try {
+    await apiClient.delete(`/api/v1/admin/users/${row.id}`)
+    ElMessage.success('已刪除')
+    await loadData()
+  } catch (err: unknown) {
+    const message =
+      (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ?? '刪除失敗'
+    ElMessage.error(message)
   }
 }
 
@@ -63,6 +121,12 @@ onMounted(loadData)
       <el-table-column prop="is_active" label="啟用" width="80">
         <template #default="{ row }">{{ row.is_active ? '是' : '否' }}</template>
       </el-table-column>
+      <el-table-column label="操作" width="140">
+        <template #default="{ row }">
+          <el-button size="small" @click="openEdit(row)">編輯</el-button>
+          <el-button size="small" type="danger" @click="handleDelete(row)">刪除</el-button>
+        </template>
+      </el-table-column>
     </el-table>
 
     <div class="flex flex-col gap-3 sm:hidden">
@@ -84,19 +148,31 @@ onMounted(loadData)
         <div class="mt-2 flex flex-wrap gap-1">
           <el-tag v-for="r in row.roles" :key="r" size="small">{{ r }}</el-tag>
         </div>
+        <div class="mt-3 flex gap-2">
+          <el-button size="small" class="flex-1" @click="openEdit(row)">編輯</el-button>
+          <el-button size="small" type="danger" class="flex-1" @click="handleDelete(row)">刪除</el-button>
+        </div>
       </div>
     </div>
 
-    <el-dialog v-model="dialogVisible" title="新增後台人員" width="92%" class="sm:!w-[480px]">
+    <el-dialog
+      v-model="dialogVisible"
+      :title="editingId === null ? '新增後台人員' : '編輯後台人員'"
+      width="92%"
+      class="sm:!w-[480px]"
+    >
       <el-form label-position="top">
         <el-form-item label="Email">
           <el-input v-model="form.email" />
         </el-form-item>
-        <el-form-item label="密碼">
+        <el-form-item :label="editingId === null ? '密碼' : '新密碼(留空則不變更)'">
           <el-input v-model="form.password" type="password" show-password />
         </el-form-item>
         <el-form-item label="姓名">
           <el-input v-model="form.full_name" />
+        </el-form-item>
+        <el-form-item v-if="editingId !== null" label="啟用">
+          <el-switch v-model="form.is_active" />
         </el-form-item>
         <el-form-item label="角色">
           <el-select v-model="form.role_ids" multiple>

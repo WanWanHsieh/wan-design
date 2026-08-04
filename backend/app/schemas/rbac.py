@@ -39,6 +39,14 @@ class AdminUserCreate(BaseModel):
     role_ids: list[int] = []
 
 
+class AdminUserUpdate(BaseModel):
+    email: str | None = None
+    full_name: str | None = None
+    is_active: bool | None = None
+    password: str | None = None
+    role_ids: list[int] | None = None
+
+
 class AdminUserListOut(BaseModel):
     id: int
     email: str
@@ -48,3 +56,7 @@ class AdminUserListOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class AdminUserDetailOut(AdminUserListOut):
+    role_ids: list[int] = []
