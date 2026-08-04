@@ -29,11 +29,11 @@ const form = ref({
 
 const saleEnabled = ref(false)
 const saleDateRange = computed<[string, string] | null>({
-  get() {
+  get: (): [string, string] | null => {
     if (!form.value.sale_starts_at && !form.value.sale_ends_at) return null
     return [form.value.sale_starts_at ?? '', form.value.sale_ends_at ?? '']
   },
-  set(value) {
+  set: (value: [string, string] | null) => {
     form.value.sale_starts_at = value?.[0] || null
     form.value.sale_ends_at = value?.[1] || null
   },
