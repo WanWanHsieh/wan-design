@@ -17,6 +17,17 @@ function categoryName(categoryId: number | null): string {
 
 const UNCATEGORIZED_KEY = 'uncategorized'
 
+function topCategoryFor(categoryId: number | null): Category | null {
+  if (categoryId === null) return null
+  let category = categories.value.find((c) => c.id === categoryId) ?? null
+  while (category?.parent_id !== null && category?.parent_id !== undefined) {
+    const parent = categories.value.find((c) => c.id === category!.parent_id)
+    if (!parent) break
+    category = parent
+  }
+  return category
+}
+
 interface ProductGroup {
   key: string
   name: string
@@ -26,11 +37,12 @@ interface ProductGroup {
 const productGroups = computed<ProductGroup[]>(() => {
   const groups = new Map<string, ProductGroup>()
   for (const product of products.value) {
-    const key = product.category_id === null ? UNCATEGORIZED_KEY : String(product.category_id)
+    const topCategory = topCategoryFor(product.category_id)
+    const key = topCategory ? String(topCategory.id) : UNCATEGORIZED_KEY
     if (!groups.has(key)) {
       groups.set(key, {
         key,
-        name: product.category_id === null ? '未分類' : categoryName(product.category_id),
+        name: topCategory ? topCategory.name : '未分類',
         products: [],
       })
     }
@@ -44,6 +56,27 @@ const expandedGroups = ref<Record<string, boolean>>({})
 function toggleGroup(key: string) {
   expandedGroups.value[key] = !expandedGroups.value[key]
 }
+
+interface ProductTreeRow {
+  key: string
+  isCategory: boolean
+  categoryLabel?: string
+  product?: Product
+  children?: ProductTreeRow[]
+}
+
+const productTree = computed<ProductTreeRow[]>(() =>
+  productGroups.value.map((group) => ({
+    key: group.key,
+    isCategory: true,
+    categoryLabel: group.name,
+    children: group.products.map((product) => ({
+      key: `p-${product.id}`,
+      isCategory: false,
+      product,
+    })),
+  })),
+)
 
 async function loadProducts() {
   loading.value = true
@@ -79,29 +112,51 @@ onMounted(loadProducts)
       </div>
     </div>
 
-    <el-table :data="products" v-loading="loading" stripe class="hidden sm:block">
+    <el-table
+      :data="productTree"
+      v-loading="loading"
+      row-key="key"
+      :tree-props="{ children: 'children' }"
+      stripe
+      class="hidden sm:block"
+    >
       <el-table-column label="圖片" width="80">
         <template #default="{ row }">
           <img
-            v-if="row.images[0]"
-            :src="imageUrl(row.images[0].thumbnail_key ?? row.images[0].storage_key)"
+            v-if="!row.isCategory && row.product.images[0]"
+            :src="imageUrl(row.product.images[0].thumbnail_key ?? row.product.images[0].storage_key)"
             class="h-12 w-12 rounded object-cover"
           />
         </template>
       </el-table-column>
-      <el-table-column prop="sku" label="SKU" width="140" />
-      <el-table-column prop="name" label="商品名稱" />
-      <el-table-column label="類別" width="120">
-        <template #default="{ row }">{{ categoryName(row.category_id) }}</template>
+      <el-table-column label="SKU" width="140">
+        <template #default="{ row }">{{ row.isCategory ? '' : row.product.sku }}</template>
       </el-table-column>
-      <el-table-column prop="base_price" label="價格" width="100" />
-      <el-table-column prop="status" label="狀態" width="100" />
+      <el-table-column label="商品名稱">
+        <template #default="{ row }">
+          <span v-if="row.isCategory" class="font-medium text-brown">
+            {{ row.categoryLabel }}({{ row.children.length }})
+          </span>
+          <span v-else>{{ row.product.name }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="類別" width="120">
+        <template #default="{ row }">{{ row.isCategory ? '' : categoryName(row.product.category_id) }}</template>
+      </el-table-column>
+      <el-table-column label="價格" width="100">
+        <template #default="{ row }">{{ row.isCategory ? '' : row.product.base_price }}</template>
+      </el-table-column>
+      <el-table-column label="狀態" width="100">
+        <template #default="{ row }">{{ row.isCategory ? '' : row.product.status }}</template>
+      </el-table-column>
       <el-table-column label="操作" width="160">
         <template #default="{ row }">
-          <el-button size="small" @click="router.push({ name: 'product-edit', params: { id: row.id } })">
-            編輯
-          </el-button>
-          <el-button size="small" type="danger" @click="handleDelete(row)">刪除</el-button>
+          <template v-if="!row.isCategory">
+            <el-button size="small" @click="router.push({ name: 'product-edit', params: { id: row.product.id } })">
+              編輯
+            </el-button>
+            <el-button size="small" type="danger" @click="handleDelete(row.product)">刪除</el-button>
+          </template>
         </template>
       </el-table-column>
     </el-table>
