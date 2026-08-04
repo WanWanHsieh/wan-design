@@ -21,6 +21,7 @@ const form = ref({
   category_id: null as number | null,
   base_price: 0,
   status: 'draft',
+  is_featured: false,
 })
 
 interface PendingImage {
@@ -67,6 +68,7 @@ async function loadProduct() {
     category_id: data.category_id,
     base_price: data.base_price,
     status: data.status,
+    is_featured: data.is_featured,
   }
   customAttributePairs.value = Object.entries(data.custom_attributes).map(([key, value]) => ({
     key,
@@ -231,6 +233,11 @@ watch(productId, (newId) => {
           </el-select>
         </el-form-item>
       </div>
+
+      <el-form-item>
+        <el-switch v-model="form.is_featured" />
+        <span class="ml-2 text-sm text-brown">設為本週主打商品(顯示在前台「主打商品」頁面)</span>
+      </el-form-item>
 
       <el-divider />
       <div class="mb-2 flex items-center justify-between">

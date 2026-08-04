@@ -74,6 +74,7 @@ def create_product(db: Session, data: ProductCreate, created_by: int) -> Product
         custom_attributes=data.custom_attributes,
         track_stock=data.track_stock,
         stock_quantity=data.stock_quantity,
+        is_featured=data.is_featured,
         created_by=created_by,
     )
     db.add(product)

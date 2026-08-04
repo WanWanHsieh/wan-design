@@ -19,6 +19,7 @@ class Product(Base, TimestampMixin, SoftDeleteMixin):
     custom_attributes: Mapped[dict] = mapped_column(JSONB, default=dict, nullable=False)
     track_stock: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     stock_quantity: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    is_featured: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     created_by: Mapped[int | None] = mapped_column(ForeignKey("admin_users.id"))
 
     category: Mapped["Category | None"] = relationship()  # noqa: F821

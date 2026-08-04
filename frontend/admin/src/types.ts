@@ -35,6 +35,7 @@ export interface Product {
   custom_attributes: Record<string, string>
   track_stock: boolean
   stock_quantity: number
+  is_featured: boolean
   images: ProductImage[]
   attribute_values: AttributeValue[]
 }

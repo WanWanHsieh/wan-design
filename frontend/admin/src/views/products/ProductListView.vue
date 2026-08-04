@@ -92,6 +92,17 @@ async function loadProducts() {
   }
 }
 
+async function toggleFeatured(product: Product) {
+  const next = !product.is_featured
+  try {
+    await apiClient.put(`/api/v1/admin/products/${product.id}`, { is_featured: next })
+    product.is_featured = next
+    ElMessage.success(next ? '已設為主打商品' : '已取消主打')
+  } catch {
+    ElMessage.error('更新失敗,請稍後再試')
+  }
+}
+
 async function handleDelete(product: Product) {
   await ElMessageBox.confirm(`確定要刪除「${product.name}」嗎?`, '刪除商品', { type: 'warning' })
   await apiClient.delete(`/api/v1/admin/products/${product.id}`)
@@ -149,6 +160,20 @@ onMounted(loadProducts)
       <el-table-column label="狀態" width="100">
         <template #default="{ row }">{{ row.isCategory ? '' : row.product.status }}</template>
       </el-table-column>
+      <el-table-column label="主打" width="70">
+        <template #default="{ row }">
+          <button
+            v-if="!row.isCategory"
+            type="button"
+            class="text-lg"
+            :class="row.product.is_featured ? 'text-amber-500' : 'text-gray-300'"
+            :title="row.product.is_featured ? '取消主打' : '設為主打'"
+            @click="toggleFeatured(row.product)"
+          >
+            ★
+          </button>
+        </template>
+      </el-table-column>
       <el-table-column label="操作" width="160">
         <template #default="{ row }">
           <template v-if="!row.isCategory">
@@ -187,7 +212,18 @@ onMounted(loadProducts)
               class="h-16 w-16 flex-none rounded-lg object-cover"
             />
             <div class="flex-1">
-              <div class="font-medium text-brown">{{ row.name }}</div>
+              <div class="flex items-center gap-1">
+                <span class="font-medium text-brown">{{ row.name }}</span>
+                <button
+                  type="button"
+                  class="text-lg"
+                  :class="row.is_featured ? 'text-amber-500' : 'text-gray-300'"
+                  :title="row.is_featured ? '取消主打' : '設為主打'"
+                  @click="toggleFeatured(row)"
+                >
+                  ★
+                </button>
+              </div>
               <div class="text-xs text-taupe/70">{{ row.sku }}・{{ categoryName(row.category_id) }}</div>
               <div class="mt-1 text-sm text-taupe">NT$ {{ row.base_price }}・{{ row.status }}</div>
               <div class="mt-2 flex gap-2">

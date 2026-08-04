@@ -27,6 +27,7 @@ def list_products(track_stock: bool = False, db: Session = Depends(get_db)):
                 category_id=p.category_id,
                 track_stock=p.track_stock,
                 stock_quantity=p.stock_quantity,
+                is_featured=p.is_featured,
                 primary_image=primary.storage_key if primary else None,
                 primary_thumbnail=primary.thumbnail_key if primary else None,
             )

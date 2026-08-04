@@ -36,6 +36,13 @@ function closeMobileMenu() {
             商品列表
           </RouterLink>
           <RouterLink
+            to="/featured"
+            class="text-taupe transition hover:text-terracotta"
+            active-class="font-medium text-terracotta"
+          >
+            💛主打商品
+          </RouterLink>
+          <RouterLink
             to="/instock"
             class="text-taupe transition hover:text-terracotta"
             active-class="font-medium text-terracotta"
@@ -148,6 +155,14 @@ function closeMobileMenu() {
           @click="closeMobileMenu"
         >
           商品列表
+        </RouterLink>
+        <RouterLink
+          to="/featured"
+          class="rounded-lg px-2 py-2 text-taupe transition hover:bg-beige/40 hover:text-terracotta"
+          active-class="font-medium text-terracotta"
+          @click="closeMobileMenu"
+        >
+          💛主打商品
         </RouterLink>
         <RouterLink
           to="/instock"

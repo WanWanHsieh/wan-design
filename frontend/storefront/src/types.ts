@@ -8,6 +8,7 @@ export interface ProductListItem {
   category_id: number | null
   track_stock: boolean
   stock_quantity: number
+  is_featured: boolean
   primary_image: string | null
   primary_thumbnail: string | null
 }
