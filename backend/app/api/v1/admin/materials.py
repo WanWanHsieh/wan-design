@@ -5,8 +5,9 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, s
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_admin_user, get_db, require_permission
+from app.schemas.bulk_import import BulkImportResult
 from app.schemas.material import MaterialCreate, MaterialImageOut, MaterialOut, MaterialUpdate
-from app.services import image_service, material_service, storage_service
+from app.services import bulk_import_service, image_service, material_service, storage_service
 
 router = APIRouter(prefix="/materials", tags=["admin-materials"])
 
@@ -27,6 +28,22 @@ def list_materials(db: Session = Depends(get_db)):
 )
 def get_material(material_id: int, db: Session = Depends(get_db)):
     return material_service.get_material(db, material_id)
+
+
+@router.post(
+    "/bulk-import",
+    response_model=BulkImportResult,
+    dependencies=[Depends(require_permission("materials.write"))],
+)
+def bulk_import_materials(
+    csv_file: UploadFile = File(...),
+    zip_file: UploadFile | None = File(None),
+    db: Session = Depends(get_db),
+    admin_user=Depends(get_current_admin_user),
+):
+    csv_bytes = csv_file.file.read()
+    zip_bytes = zip_file.file.read() if zip_file is not None else None
+    return bulk_import_service.import_materials(db, csv_bytes, zip_bytes, admin_user.id)
 
 
 @router.post(

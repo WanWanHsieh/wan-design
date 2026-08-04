@@ -46,7 +46,10 @@ onMounted(loadMaterials)
   <div>
     <div class="mb-4 flex items-center justify-between">
       <h1 class="text-xl font-semibold">原材料管理(布料)</h1>
-      <el-button type="primary" @click="router.push({ name: 'material-new' })">新增原材料</el-button>
+      <div class="flex gap-2">
+        <el-button @click="router.push({ name: 'material-bulk-import' })">批量匯入</el-button>
+        <el-button type="primary" @click="router.push({ name: 'material-new' })">新增原材料</el-button>
+      </div>
     </div>
 
     <el-table :data="materials" v-loading="loading" stripe class="hidden sm:block">

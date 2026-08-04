@@ -4,11 +4,13 @@ import LoginView from '../views/LoginView.vue'
 import AdminLayout from '../layouts/AdminLayout.vue'
 import ProductListView from '../views/products/ProductListView.vue'
 import ProductFormView from '../views/products/ProductFormView.vue'
+import ProductBulkImportView from '../views/products/ProductBulkImportView.vue'
 import ReadyStockListView from '../views/ready-stock/ReadyStockListView.vue'
 import ReadyStockFormView from '../views/ready-stock/ReadyStockFormView.vue'
 import CategoryListView from '../views/categories/CategoryListView.vue'
 import MaterialListView from '../views/materials/MaterialListView.vue'
 import MaterialFormView from '../views/materials/MaterialFormView.vue'
+import MaterialBulkImportView from '../views/materials/MaterialBulkImportView.vue'
 import OrderListView from '../views/orders/OrderListView.vue'
 import OrderDetailView from '../views/orders/OrderDetailView.vue'
 import RoleListView from '../views/roles/RoleListView.vue'
@@ -36,6 +38,12 @@ const router = createRouter({
           path: 'products/new',
           name: 'product-new',
           component: ProductFormView,
+          meta: { permission: 'products.write' },
+        },
+        {
+          path: 'products/bulk-import',
+          name: 'product-bulk-import',
+          component: ProductBulkImportView,
           meta: { permission: 'products.write' },
         },
         {
@@ -78,6 +86,12 @@ const router = createRouter({
           path: 'materials/new',
           name: 'material-new',
           component: MaterialFormView,
+          meta: { permission: 'materials.write' },
+        },
+        {
+          path: 'materials/bulk-import',
+          name: 'material-bulk-import',
+          component: MaterialBulkImportView,
           meta: { permission: 'materials.write' },
         },
         {
