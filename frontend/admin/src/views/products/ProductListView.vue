@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { apiClient, imageUrl } from '../../api/client'
@@ -13,6 +13,36 @@ const router = useRouter()
 function categoryName(categoryId: number | null): string {
   if (categoryId === null) return '-'
   return categories.value.find((c) => c.id === categoryId)?.name ?? '-'
+}
+
+const UNCATEGORIZED_KEY = 'uncategorized'
+
+interface ProductGroup {
+  key: string
+  name: string
+  products: Product[]
+}
+
+const productGroups = computed<ProductGroup[]>(() => {
+  const groups = new Map<string, ProductGroup>()
+  for (const product of products.value) {
+    const key = product.category_id === null ? UNCATEGORIZED_KEY : String(product.category_id)
+    if (!groups.has(key)) {
+      groups.set(key, {
+        key,
+        name: product.category_id === null ? '未分類' : categoryName(product.category_id),
+        products: [],
+      })
+    }
+    groups.get(key)!.products.push(product)
+  }
+  return Array.from(groups.values())
+})
+
+const expandedGroups = ref<Record<string, boolean>>({})
+
+function toggleGroup(key: string) {
+  expandedGroups.value[key] = !expandedGroups.value[key]
 }
 
 async function loadProducts() {
@@ -77,25 +107,41 @@ onMounted(loadProducts)
     </el-table>
 
     <div v-loading="loading" class="flex flex-col gap-3 sm:hidden">
-      <div
-        v-for="row in products"
-        :key="row.id"
-        class="flex gap-3 rounded-xl border border-beige bg-white p-3 shadow-[0_2px_8px_rgba(180,140,110,0.08)]"
-      >
-        <img
-          v-if="row.images[0]"
-          :src="imageUrl(row.images[0].thumbnail_key ?? row.images[0].storage_key)"
-          class="h-16 w-16 flex-none rounded-lg object-cover"
-        />
-        <div class="flex-1">
-          <div class="font-medium text-brown">{{ row.name }}</div>
-          <div class="text-xs text-taupe/70">{{ row.sku }}・{{ categoryName(row.category_id) }}</div>
-          <div class="mt-1 text-sm text-taupe">NT$ {{ row.base_price }}・{{ row.status }}</div>
-          <div class="mt-2 flex gap-2">
-            <el-button size="small" class="flex-1" @click="router.push({ name: 'product-edit', params: { id: row.id } })">
-              編輯
-            </el-button>
-            <el-button size="small" type="danger" class="flex-1" @click="handleDelete(row)">刪除</el-button>
+      <div v-for="group in productGroups" :key="group.key">
+        <button
+          type="button"
+          class="flex w-full items-center gap-1 rounded-xl bg-cream/60 px-3 py-2 font-medium text-brown"
+          @click="toggleGroup(group.key)"
+        >
+          <span class="inline-block transition-transform" :class="expandedGroups[group.key] ? 'rotate-90' : ''">
+            ›
+          </span>
+          {{ group.name }}
+          <span class="text-xs text-taupe/60">({{ group.products.length }})</span>
+        </button>
+
+        <div v-if="expandedGroups[group.key]" class="mt-2 flex flex-col gap-3">
+          <div
+            v-for="row in group.products"
+            :key="row.id"
+            class="flex gap-3 rounded-xl border border-beige bg-white p-3 shadow-[0_2px_8px_rgba(180,140,110,0.08)]"
+          >
+            <img
+              v-if="row.images[0]"
+              :src="imageUrl(row.images[0].thumbnail_key ?? row.images[0].storage_key)"
+              class="h-16 w-16 flex-none rounded-lg object-cover"
+            />
+            <div class="flex-1">
+              <div class="font-medium text-brown">{{ row.name }}</div>
+              <div class="text-xs text-taupe/70">{{ row.sku }}・{{ categoryName(row.category_id) }}</div>
+              <div class="mt-1 text-sm text-taupe">NT$ {{ row.base_price }}・{{ row.status }}</div>
+              <div class="mt-2 flex gap-2">
+                <el-button size="small" class="flex-1" @click="router.push({ name: 'product-edit', params: { id: row.id } })">
+                  編輯
+                </el-button>
+                <el-button size="small" type="danger" class="flex-1" @click="handleDelete(row)">刪除</el-button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
