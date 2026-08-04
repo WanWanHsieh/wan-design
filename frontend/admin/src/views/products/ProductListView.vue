@@ -154,8 +154,14 @@ onMounted(loadProducts)
       <el-table-column label="類別" width="120">
         <template #default="{ row }">{{ row.isCategory ? '' : categoryName(row.product.category_id) }}</template>
       </el-table-column>
-      <el-table-column label="價格" width="100">
-        <template #default="{ row }">{{ row.isCategory ? '' : row.product.base_price }}</template>
+      <el-table-column label="價格" width="120">
+        <template #default="{ row }">
+          <template v-if="!row.isCategory">
+            <span v-if="row.product.is_on_sale" class="text-taupe/60 line-through">{{ row.product.base_price }}</span>
+            <span v-if="row.product.is_on_sale" class="ml-1 font-medium text-red-600">{{ row.product.sale_price }}</span>
+            <span v-else>{{ row.product.base_price }}</span>
+          </template>
+        </template>
       </el-table-column>
       <el-table-column label="狀態" width="100">
         <template #default="{ row }">{{ row.isCategory ? '' : row.product.status }}</template>
@@ -225,7 +231,14 @@ onMounted(loadProducts)
                 </button>
               </div>
               <div class="text-xs text-taupe/70">{{ row.sku }}・{{ categoryName(row.category_id) }}</div>
-              <div class="mt-1 text-sm text-taupe">NT$ {{ row.base_price }}・{{ row.status }}</div>
+              <div class="mt-1 text-sm text-taupe">
+                <template v-if="row.is_on_sale">
+                  <span class="text-taupe/60 line-through">NT$ {{ row.base_price }}</span>
+                  <span class="ml-1 font-medium text-red-600">NT$ {{ row.sale_price }}</span>
+                </template>
+                <template v-else>NT$ {{ row.base_price }}</template>
+                ・{{ row.status }}
+              </div>
               <div class="mt-2 flex gap-2">
                 <el-button size="small" class="flex-1" @click="router.push({ name: 'product-edit', params: { id: row.id } })">
                   編輯

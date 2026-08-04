@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { apiClient, imageUrl } from '../api/client'
+import PriceTag from '../components/PriceTag.vue'
 import { useCartStore } from '../stores/cart'
 import type { OrderResult, ProductListItem } from '../types'
 
@@ -50,7 +51,7 @@ const cartRows = computed(() =>
 )
 
 const totalAmount = computed(() =>
-  cartRows.value.reduce((sum, row) => sum + row.product.base_price * row.item.quantity, 0),
+  cartRows.value.reduce((sum, row) => sum + row.product.effective_price * row.item.quantity, 0),
 )
 
 function updateQuantity(productId: number, quantity: number) {
@@ -177,7 +178,14 @@ async function handleSubmit() {
               />
               <div class="flex-1 sm:w-40 sm:flex-none">
                 <p class="text-sm font-medium text-brown">{{ row.product.name }}</p>
-                <p class="text-xs text-taupe">NT$ {{ row.product.base_price }} / 件・庫存 {{ row.product.stock_quantity }}</p>
+                <p class="text-xs text-taupe">
+                  <PriceTag
+                    :base-price="row.product.base_price"
+                    :effective-price="row.product.effective_price"
+                    :is-on-sale="row.product.is_on_sale"
+                  />
+                  / 件・庫存 {{ row.product.stock_quantity }}
+                </p>
                 <p v-if="row.item.quantity > row.product.stock_quantity" class="text-xs text-red-500">
                   數量超過現有庫存,請調整
                 </p>
@@ -192,7 +200,7 @@ async function handleSubmit() {
                 class="w-16 rounded-lg border border-beige px-2 py-1 text-sm focus:border-terracotta focus:outline-none focus:ring-1 focus:ring-terracotta"
                 @change="updateQuantity(row.product.id, Number(($event.target as HTMLInputElement).value))"
               />
-              <span class="text-right text-sm text-brown">NT$ {{ row.product.base_price * row.item.quantity }}</span>
+              <span class="text-right text-sm text-brown">NT$ {{ row.product.effective_price * row.item.quantity }}</span>
               <button type="button" class="text-red-500 hover:underline" @click="cart.removeItem(row.product.id)">
                 移除
               </button>

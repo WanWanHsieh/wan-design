@@ -77,7 +77,13 @@ onMounted(loadProducts)
         </template>
       </el-table-column>
       <el-table-column prop="name" label="名稱" />
-      <el-table-column prop="base_price" label="價格" width="100" />
+      <el-table-column label="價格" width="120">
+        <template #default="{ row }">
+          <span v-if="row.is_on_sale" class="text-taupe/60 line-through">{{ row.base_price }}</span>
+          <span v-if="row.is_on_sale" class="ml-1 font-medium text-red-600">{{ row.sale_price }}</span>
+          <span v-else>{{ row.base_price }}</span>
+        </template>
+      </el-table-column>
       <el-table-column label="庫存" width="120">
         <template #default="{ row }">
           <el-tag :type="stockTagType(row.stock_quantity)" size="small">
@@ -110,7 +116,11 @@ onMounted(loadProducts)
         <div class="flex-1">
           <div class="font-medium text-brown">{{ row.name }}</div>
           <div class="mt-1 flex items-center gap-2 text-sm text-taupe">
-            <span>NT$ {{ row.base_price }}</span>
+            <span v-if="row.is_on_sale">
+              <span class="text-taupe/60 line-through">NT$ {{ row.base_price }}</span>
+              <span class="ml-1 font-medium text-red-600">NT$ {{ row.sale_price }}</span>
+            </span>
+            <span v-else>NT$ {{ row.base_price }}</span>
             <el-tag :type="stockTagType(row.stock_quantity)" size="small">
               {{ stockLabel(row.stock_quantity) }}
             </el-tag>

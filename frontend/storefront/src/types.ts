@@ -9,6 +9,11 @@ export interface ProductListItem {
   track_stock: boolean
   stock_quantity: number
   is_featured: boolean
+  sale_price: number | null
+  sale_starts_at: string | null
+  sale_ends_at: string | null
+  is_on_sale: boolean
+  effective_price: number
   primary_image: string | null
   primary_thumbnail: string | null
 }
@@ -33,6 +38,11 @@ export interface ProductDetail {
   custom_attributes: Record<string, unknown>
   track_stock: boolean
   stock_quantity: number
+  sale_price: number | null
+  sale_starts_at: string | null
+  sale_ends_at: string | null
+  is_on_sale: boolean
+  effective_price: number
   images: ProductImage[]
 }
 

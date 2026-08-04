@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue'
 import { apiClient, imageUrl } from '../api/client'
+import PriceTag from '../components/PriceTag.vue'
 import { useCartStore } from '../stores/cart'
 import { useCategoryNav } from '../composables/useCategoryNav'
 import type { Category, ProductListItem } from '../types'
@@ -196,7 +197,11 @@ function addToCart(product: ProductListItem) {
             </RouterLink>
             <div class="flex flex-1 flex-col gap-2 p-3">
               <p class="truncate text-sm font-medium text-brown">{{ product.name }}</p>
-              <p class="text-sm text-terracotta-dark">NT$ {{ product.base_price }}</p>
+              <PriceTag
+          :base-price="product.base_price"
+          :effective-price="product.effective_price"
+          :is-on-sale="product.is_on_sale"
+        />
 
               <p v-if="isSoldOut(product)" class="text-xs font-medium text-red-500">已售完</p>
               <p v-else class="text-xs text-taupe">剩 {{ availableStock(product) }} 件</p>

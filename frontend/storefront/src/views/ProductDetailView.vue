@@ -2,6 +2,7 @@
 import { onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { apiClient, imageUrl } from '../api/client'
+import PriceTag from '../components/PriceTag.vue'
 import { useOrderDraftStore } from '../stores/orderDraft'
 import type { ProductDetail } from '../types'
 
@@ -57,7 +58,14 @@ onMounted(async () => {
           {{ product.track_stock ? '現貨' : '訂製商品・需選布料' }}
         </span>
         <h1 class="mt-2 text-2xl font-bold text-brown">{{ product.name }}</h1>
-        <p class="mt-2 text-xl font-bold text-terracotta-dark">NT$ {{ product.base_price }}</p>
+        <p class="mt-2">
+          <PriceTag
+            :base-price="product.base_price"
+            :effective-price="product.effective_price"
+            :is-on-sale="product.is_on_sale"
+            size="lg"
+          />
+        </p>
         <p class="mt-4 whitespace-pre-line text-brown/80">{{ product.description }}</p>
 
         <button

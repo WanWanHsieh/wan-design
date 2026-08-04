@@ -134,7 +134,7 @@ function itemUnitPrice(item: LineItem): number {
   const product = products.value.find((p) => p.id === item.productId)
   const material = materials.value.find((m) => m.id === item.materialId)
   if (!product || !material) return 0
-  return product.base_price + material.price_addon
+  return product.effective_price + material.price_addon
 }
 
 function itemSubtotal(item: LineItem): number {
@@ -400,7 +400,7 @@ async function handleSubmit() {
                 >
                   <option :value="null" disabled>{{ item.topCategoryId ? '請選擇' : '請先選分類' }}</option>
                   <option v-for="p in productsForTopCategory(item.topCategoryId)" :key="p.id" :value="p.id">
-                    {{ p.name }}(NT$ {{ p.base_price }})
+                    {{ p.name }}(NT$ {{ p.effective_price }}{{ p.is_on_sale ? ' 特價中' : '' }})
                   </option>
                 </select>
               </div>

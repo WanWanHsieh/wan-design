@@ -1,3 +1,5 @@
+from datetime import date
+
 from pydantic import BaseModel, Field
 
 
@@ -39,6 +41,9 @@ class ProductBase(BaseModel):
     track_stock: bool = False
     stock_quantity: int = Field(default=0, ge=0)
     is_featured: bool = False
+    sale_price: float | None = None
+    sale_starts_at: date | None = None
+    sale_ends_at: date | None = None
 
 
 class ProductCreate(ProductBase):
@@ -57,11 +62,16 @@ class ProductUpdate(BaseModel):
     track_stock: bool | None = None
     stock_quantity: int | None = Field(default=None, ge=0)
     is_featured: bool | None = None
+    sale_price: float | None = None
+    sale_starts_at: date | None = None
+    sale_ends_at: date | None = None
     attribute_values: list[AttributeValueIn] | None = None
 
 
 class ProductOut(ProductBase):
     id: int
+    is_on_sale: bool = False
+    effective_price: float
     images: list[ProductImageOut] = []
     attribute_values: list[AttributeValueOut] = []
 
@@ -80,6 +90,11 @@ class ProductListItemOut(BaseModel):
     track_stock: bool
     stock_quantity: int
     is_featured: bool
+    sale_price: float | None = None
+    sale_starts_at: date | None = None
+    sale_ends_at: date | None = None
+    is_on_sale: bool = False
+    effective_price: float
     primary_image: str | None = None
     primary_thumbnail: str | None = None
 

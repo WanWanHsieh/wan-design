@@ -28,6 +28,11 @@ def list_products(track_stock: bool = False, db: Session = Depends(get_db)):
                 track_stock=p.track_stock,
                 stock_quantity=p.stock_quantity,
                 is_featured=p.is_featured,
+                sale_price=p.sale_price,
+                sale_starts_at=p.sale_starts_at,
+                sale_ends_at=p.sale_ends_at,
+                is_on_sale=p.is_on_sale,
+                effective_price=p.effective_price,
                 primary_image=primary.storage_key if primary else None,
                 primary_thumbnail=primary.thumbnail_key if primary else None,
             )

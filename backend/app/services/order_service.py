@@ -75,7 +75,7 @@ def _build_order_items(
                     )
                 product.stock_quantity -= item.quantity
 
-            unit_price = float(product.base_price)
+            unit_price = float(product.effective_price)
             subtotal = round(unit_price * item.quantity, 2)
             total_amount += subtotal
 
@@ -104,7 +104,7 @@ def _build_order_items(
         if material is None:
             raise HTTPException(status.HTTP_400_BAD_REQUEST, f"Material {item.material_id} not found")
 
-        unit_price = float(product.base_price) + float(material.price_addon)
+        unit_price = float(product.effective_price) + float(material.price_addon)
         subtotal = round(unit_price * item.quantity, 2)
         total_amount += subtotal
 

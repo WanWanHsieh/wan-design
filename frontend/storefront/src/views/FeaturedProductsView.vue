@@ -2,6 +2,7 @@
 import { onMounted, reactive, ref } from 'vue'
 import { apiClient, imageUrl } from '../api/client'
 import ImageLightbox from '../components/ImageLightbox.vue'
+import PriceTag from '../components/PriceTag.vue'
 import { useOrderDraftStore } from '../stores/orderDraft'
 import type { ProductListItem } from '../types'
 
@@ -79,7 +80,13 @@ onMounted(async () => {
           <RouterLink :to="{ name: 'product-detail', params: { slug: product.slug } }">
             <p class="truncate text-sm text-brown group-hover:text-terracotta">{{ product.name }}</p>
           </RouterLink>
-          <p class="mt-1 font-semibold text-terracotta-dark">NT$ {{ product.base_price }}</p>
+          <p class="mt-1">
+            <PriceTag
+              :base-price="product.base_price"
+              :effective-price="product.effective_price"
+              :is-on-sale="product.is_on_sale"
+            />
+          </p>
           <p class="mt-0.5 text-xs text-taupe">{{ product.track_stock ? '現貨' : '訂製・需選布料' }}</p>
           <button
             v-if="!product.track_stock"

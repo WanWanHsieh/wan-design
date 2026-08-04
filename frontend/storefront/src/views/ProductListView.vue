@@ -3,6 +3,7 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import { apiClient, imageUrl } from '../api/client'
 import ImageLightbox from '../components/ImageLightbox.vue'
+import PriceTag from '../components/PriceTag.vue'
 import { useCategoryNav } from '../composables/useCategoryNav'
 import { useOrderDraftStore } from '../stores/orderDraft'
 import type { Category, ProductListItem } from '../types'
@@ -170,7 +171,13 @@ function openLightbox(product: ProductListItem) {
               </div>
               <div class="p-3">
                 <p class="truncate text-sm text-brown group-hover:text-terracotta">{{ product.name }}</p>
-                <p class="mt-1 font-semibold text-terracotta-dark">NT$ {{ product.base_price }}</p>
+                <p class="mt-1">
+                  <PriceTag
+                    :base-price="product.base_price"
+                    :effective-price="product.effective_price"
+                    :is-on-sale="product.is_on_sale"
+                  />
+                </p>
                 <p class="mt-0.5 text-xs text-taupe">訂製・需選布料</p>
                 <button
                   type="button"
@@ -228,7 +235,13 @@ function openLightbox(product: ProductListItem) {
             </div>
             <div class="p-3">
               <p class="truncate text-sm text-brown group-hover:text-terracotta">{{ product.name }}</p>
-              <p class="mt-1 font-semibold text-terracotta-dark">NT$ {{ product.base_price }}</p>
+              <p class="mt-1">
+                <PriceTag
+                  :base-price="product.base_price"
+                  :effective-price="product.effective_price"
+                  :is-on-sale="product.is_on_sale"
+                />
+              </p>
               <p class="mt-0.5 text-xs text-taupe">訂製・需選布料</p>
               <button
                 type="button"

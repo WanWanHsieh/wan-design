@@ -22,6 +22,29 @@ const form = ref({
   base_price: 0,
   status: 'active',
   stock_quantity: 1,
+  sale_price: null as number | null,
+  sale_starts_at: null as string | null,
+  sale_ends_at: null as string | null,
+})
+
+const saleEnabled = ref(false)
+const saleDateRange = computed<[string, string] | null>({
+  get() {
+    if (!form.value.sale_starts_at && !form.value.sale_ends_at) return null
+    return [form.value.sale_starts_at ?? '', form.value.sale_ends_at ?? '']
+  },
+  set(value) {
+    form.value.sale_starts_at = value?.[0] || null
+    form.value.sale_ends_at = value?.[1] || null
+  },
+})
+
+watch(saleEnabled, (enabled) => {
+  if (!enabled) {
+    form.value.sale_price = null
+    form.value.sale_starts_at = null
+    form.value.sale_ends_at = null
+  }
 })
 
 interface PendingImage {
@@ -68,7 +91,11 @@ async function loadProduct() {
     base_price: data.base_price,
     status: data.status,
     stock_quantity: data.stock_quantity,
+    sale_price: data.sale_price,
+    sale_starts_at: data.sale_starts_at,
+    sale_ends_at: data.sale_ends_at,
   }
+  saleEnabled.value = data.sale_price !== null
   images.value = data.images
 }
 
@@ -218,6 +245,26 @@ watch(productId, (newId) => {
           <el-option label="下架" value="archived" />
         </el-select>
       </el-form-item>
+
+      <el-form-item>
+        <el-switch v-model="saleEnabled" />
+        <span class="ml-2 text-sm text-brown">設定特價</span>
+      </el-form-item>
+      <div v-if="saleEnabled" class="grid grid-cols-2 gap-4">
+        <el-form-item label="特價">
+          <el-input-number v-model="form.sale_price" :min="0" />
+        </el-form-item>
+        <el-form-item label="特價起訖日期(留空表示不限日期)">
+          <el-date-picker
+            v-model="saleDateRange"
+            type="daterange"
+            value-format="YYYY-MM-DD"
+            start-placeholder="開始日期"
+            end-placeholder="結束日期"
+            class="w-full"
+          />
+        </el-form-item>
+      </div>
 
       <el-divider />
       <el-button type="primary" :loading="saving" @click="handleSubmit">
