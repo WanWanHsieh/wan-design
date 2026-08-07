@@ -11,8 +11,8 @@ const submitting = ref(false)
 const result = ref<{ created: number; errors: { row: number; message: string }[] } | null>(null)
 
 const TEMPLATE_CSV =
-  '名稱,單位,成本,加價,庫存量,產地,供應商,備註,照片檔名\n' +
-  '範例布料,碼,150,0,5,韓國,,,範例布料.jpg\n'
+  '名稱,單位,成本,加價,庫存量,產地,布料種類,供應商,備註,照片檔名\n' +
+  '範例布料,碼,150,0,5,韓國,棉布,,,範例布料.jpg\n'
 
 function downloadTemplate() {
   const blob = new Blob(['﻿' + TEMPLATE_CSV], { type: 'text/csv;charset=utf-8;' })
@@ -67,6 +67,7 @@ async function handleSubmit() {
       <p class="mb-2 text-sm text-gray-700">操作步驟:</p>
       <ol class="ml-4 list-decimal space-y-1 text-sm text-gray-600">
         <li>下載範本 CSV,依照欄位填入布料資料(可用 Excel 開啟編輯,填完存成 CSV 格式)</li>
+        <li>「布料種類」欄位請填:二紗、棉布 或 厚棉(留空則不設定)</li>
         <li>把所有布料照片放同一個資料夾,檔名對應 CSV 裡的「照片檔名」欄位,壓縮成一個 ZIP</li>
         <li>選擇 CSV 跟 ZIP,按「開始匯入」</li>
       </ol>

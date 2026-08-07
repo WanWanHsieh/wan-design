@@ -16,6 +16,7 @@ class Material(Base, TimestampMixin, SoftDeleteMixin):
     price_addon: Mapped[float] = mapped_column(Numeric(12, 2), nullable=False, default=0)
     quantity_on_hand: Mapped[float] = mapped_column(Numeric(12, 2), nullable=False, default=1)
     origin: Mapped[str | None] = mapped_column(String(100), default="韓國")
+    fabric_type: Mapped[str | None] = mapped_column(String(20))
     supplier: Mapped[str | None] = mapped_column(String(255))
     notes: Mapped[str | None] = mapped_column(Text)
     status: Mapped[str] = mapped_column(String(20), default="active", nullable=False)  # active|discontinued

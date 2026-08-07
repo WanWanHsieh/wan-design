@@ -61,6 +61,7 @@ export interface Material {
   name: string
   price_addon: number
   origin: string | null
+  fabric_type: string | null
   images: MaterialImage[]
 }
 

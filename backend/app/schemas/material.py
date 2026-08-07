@@ -22,6 +22,7 @@ class MaterialBase(BaseModel):
     price_addon: float = 0
     quantity_on_hand: float = 1
     origin: str | None = "韓國"
+    fabric_type: str | None = None
     supplier: str | None = None
     notes: str | None = None
     status: str = "active"
@@ -40,6 +41,7 @@ class MaterialUpdate(BaseModel):
     price_addon: float | None = None
     quantity_on_hand: float | None = None
     origin: str | None = None
+    fabric_type: str | None = None
     supplier: str | None = None
     notes: str | None = None
     status: str | None = None
@@ -61,6 +63,7 @@ class MaterialPublicOut(BaseModel):
     name: str
     price_addon: float
     origin: str | None = None
+    fabric_type: str | None = None
     images: list[MaterialImageOut] = []
 
     class Config:

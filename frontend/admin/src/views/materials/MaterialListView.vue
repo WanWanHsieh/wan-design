@@ -74,6 +74,7 @@ onMounted(loadMaterials)
         <template #default="{ row }">{{ row.quantity_on_hand }} {{ UNIT_LABELS[row.unit] ?? row.unit }}</template>
       </el-table-column>
       <el-table-column prop="origin" label="產地" width="100" />
+      <el-table-column prop="fabric_type" label="布料種類" width="100" />
       <el-table-column prop="supplier" label="供應商" />
       <el-table-column prop="status" label="狀態" width="100" />
       <el-table-column label="操作" width="160">
@@ -106,9 +107,11 @@ onMounted(loadMaterials)
           <div class="text-sm text-taupe">
             庫存 {{ row.quantity_on_hand }} {{ UNIT_LABELS[row.unit] ?? row.unit }}
           </div>
-          <div v-if="row.origin || row.supplier" class="text-xs text-taupe/70">
+          <div v-if="row.origin || row.fabric_type || row.supplier" class="text-xs text-taupe/70">
             <template v-if="row.origin">產地:{{ row.origin }}</template>
-            <template v-if="row.origin && row.supplier"> ・ </template>
+            <template v-if="row.origin && (row.fabric_type || row.supplier)"> ・ </template>
+            <template v-if="row.fabric_type">種類:{{ row.fabric_type }}</template>
+            <template v-if="row.fabric_type && row.supplier"> ・ </template>
             <template v-if="row.supplier">供應商:{{ row.supplier }}</template>
           </div>
           <div class="mt-2 flex gap-2">

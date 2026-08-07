@@ -74,6 +74,7 @@ export interface Material {
   price_addon: number
   quantity_on_hand: number
   origin: string | null
+  fabric_type: string | null
   supplier: string | null
   notes: string | null
   status: string

@@ -8,16 +8,25 @@ const materials = ref<Material[]>([])
 const loading = ref(true)
 const error = ref<string | null>(null)
 const selectedOrigin = ref<string | null>(null)
+const selectedFabricType = ref<string | null>(null)
 
 const origins = computed(() => {
   const set = new Set(materials.value.map((m) => m.origin).filter((o): o is string => !!o))
   return Array.from(set).sort()
 })
 
-const filteredMaterials = computed(() => {
-  if (!selectedOrigin.value) return materials.value
-  return materials.value.filter((m) => m.origin === selectedOrigin.value)
+const fabricTypes = computed(() => {
+  const set = new Set(materials.value.map((m) => m.fabric_type).filter((t): t is string => !!t))
+  return Array.from(set).sort()
 })
+
+const filteredMaterials = computed(() =>
+  materials.value.filter(
+    (m) =>
+      (!selectedOrigin.value || m.origin === selectedOrigin.value) &&
+      (!selectedFabricType.value || m.fabric_type === selectedFabricType.value),
+  ),
+)
 
 const lightboxVisible = ref(false)
 const lightboxSrc = ref('')
@@ -80,7 +89,28 @@ function openLightbox(material: Material) {
         </button>
       </div>
 
-      <p v-if="filteredMaterials.length === 0" class="text-taupe">這個產地目前沒有布料。</p>
+      <div v-if="fabricTypes.length > 0" class="mb-6 flex flex-wrap gap-2">
+        <button
+          type="button"
+          class="rounded-full border px-3 py-1 text-sm transition"
+          :class="!selectedFabricType ? 'border-terracotta bg-terracotta text-white' : 'border-beige text-taupe hover:border-terracotta hover:text-terracotta'"
+          @click="selectedFabricType = null"
+        >
+          全部種類
+        </button>
+        <button
+          v-for="fabricType in fabricTypes"
+          :key="fabricType"
+          type="button"
+          class="rounded-full border px-3 py-1 text-sm transition"
+          :class="selectedFabricType === fabricType ? 'border-terracotta bg-terracotta text-white' : 'border-beige text-taupe hover:border-terracotta hover:text-terracotta'"
+          @click="selectedFabricType = fabricType"
+        >
+          {{ fabricType }}
+        </button>
+      </div>
+
+      <p v-if="filteredMaterials.length === 0" class="text-taupe">這個篩選條件目前沒有布料。</p>
       <div v-else class="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4">
         <RouterLink
           v-for="material in filteredMaterials"
@@ -100,7 +130,11 @@ function openLightbox(material: Material) {
           </div>
           <div class="p-3">
             <p class="truncate text-sm text-brown group-hover:text-terracotta">{{ material.name }}</p>
-            <p v-if="material.origin" class="mt-0.5 text-xs text-taupe">產地:{{ material.origin }}</p>
+            <p v-if="material.origin || material.fabric_type" class="mt-0.5 text-xs text-taupe">
+              <template v-if="material.origin">產地:{{ material.origin }}</template>
+              <template v-if="material.origin && material.fabric_type"> ・ </template>
+              <template v-if="material.fabric_type">{{ material.fabric_type }}</template>
+            </p>
           </div>
         </RouterLink>
       </div>

@@ -223,6 +223,7 @@ def import_materials(
                 price_addon=_parse_float(row.get("加價", ""), "加價", default=0),
                 quantity_on_hand=_parse_float(row.get("庫存量", ""), "庫存量", default=1),
                 origin=row.get("產地") or "韓國",
+                fabric_type=row.get("布料種類") or None,
                 supplier=row.get("供應商") or None,
                 notes=row.get("備註") or None,
                 status="active",

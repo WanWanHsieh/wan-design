@@ -65,6 +65,11 @@ function openLightbox(storageKey: string) {
         </div>
         <div>
           <h1 class="text-2xl font-bold text-brown">{{ material.name }}</h1>
+          <p v-if="material.origin || material.fabric_type" class="mt-2 text-sm text-taupe">
+            <template v-if="material.origin">產地:{{ material.origin }}</template>
+            <template v-if="material.origin && material.fabric_type"> ・ </template>
+            <template v-if="material.fabric_type">{{ material.fabric_type }}</template>
+          </p>
         </div>
       </div>
 

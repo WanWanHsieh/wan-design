@@ -21,6 +21,7 @@ const form = ref({
   price_addon: 0,
   quantity_on_hand: 1,
   origin: '韓國',
+  fabric_type: '',
   supplier: '',
   notes: '',
   status: 'active',
@@ -57,6 +58,7 @@ async function loadMaterial() {
     price_addon: data.price_addon,
     quantity_on_hand: data.quantity_on_hand,
     origin: data.origin ?? '',
+    fabric_type: data.fabric_type ?? '',
     supplier: data.supplier ?? '',
     notes: data.notes ?? '',
     status: data.status,
@@ -115,6 +117,7 @@ async function submitOnce() {
     ...form.value,
     code: form.value.code || null,
     origin: form.value.origin || null,
+    fabric_type: form.value.fabric_type || null,
     custom_attributes: buildCustomAttributes(),
   }
   if (isEdit.value) {
@@ -247,6 +250,15 @@ watch(materialId, (newId) => {
             <el-option label="其他" value="其他" />
           </el-select>
         </el-form-item>
+        <el-form-item label="布料種類 (選填)">
+          <el-select v-model="form.fabric_type" clearable placeholder="請選擇布料種類">
+            <el-option label="二紗" value="二紗" />
+            <el-option label="棉布" value="棉布" />
+            <el-option label="厚棉" value="厚棉" />
+          </el-select>
+        </el-form-item>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
         <el-form-item label="供應商 (選填)">
           <el-input v-model="form.supplier" />
         </el-form-item>
