@@ -45,11 +45,11 @@ async function loadAll() {
     const [orderRes, productsRes, materialsRes] = await Promise.all([
       apiClient.get<Order>(`/api/v1/admin/orders/${orderId.value}`),
       apiClient.get<Product[]>('/api/v1/admin/products'),
-      apiClient.get<Material[]>('/api/v1/admin/materials'),
+      apiClient.get<{ items: Material[] }>('/api/v1/admin/materials', { params: { page_size: 1000 } }),
     ])
     order.value = orderRes.data
     products.value = productsRes.data
-    materials.value = materialsRes.data
+    materials.value = materialsRes.data.items
 
     customerName.value = orderRes.data.customer_name
     phone.value = orderRes.data.phone

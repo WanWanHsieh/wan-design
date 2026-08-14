@@ -65,6 +65,13 @@ export interface MaterialImage {
   image_type: 'fabric' | 'showcase'
 }
 
+export interface MaterialPage {
+  items: Material[]
+  total: number
+  page: number
+  page_size: number
+}
+
 export interface Material {
   id: number
   code: string | null

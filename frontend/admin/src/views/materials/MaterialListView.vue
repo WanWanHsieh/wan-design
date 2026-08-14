@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { apiClient, imageUrl } from '../../api/client'
 import type { Material } from '../../types'
 
 const materials = ref<Material[]>([])
+const total = ref(0)
 const loading = ref(true)
 const router = useRouter()
 
@@ -16,14 +17,60 @@ const UNIT_LABELS: Record<string, string> = {
   piece: '件',
 }
 
+const filters = ref({
+  search: '',
+  fabric_type: '',
+  origin: '',
+  status: '',
+})
+const page = ref(1)
+const pageSize = ref(20)
+
+let searchDebounce: ReturnType<typeof setTimeout> | null = null
+
 async function loadMaterials() {
   loading.value = true
   try {
-    const { data } = await apiClient.get<Material[]>('/api/v1/admin/materials')
-    materials.value = data
+    const { data } = await apiClient.get<{
+      items: Material[]
+      total: number
+      page: number
+      page_size: number
+    }>('/api/v1/admin/materials', {
+      params: {
+        search: filters.value.search || undefined,
+        fabric_type: filters.value.fabric_type || undefined,
+        origin: filters.value.origin || undefined,
+        status: filters.value.status || undefined,
+        page: page.value,
+        page_size: pageSize.value,
+      },
+    })
+    materials.value = data.items
+    total.value = data.total
   } finally {
     loading.value = false
   }
+}
+
+function resetAndReload() {
+  page.value = 1
+  loadMaterials()
+}
+
+watch(
+  () => filters.value.search,
+  () => {
+    if (searchDebounce) clearTimeout(searchDebounce)
+    searchDebounce = setTimeout(resetAndReload, 300)
+  },
+)
+watch([() => filters.value.fabric_type, () => filters.value.origin, () => filters.value.status], resetAndReload)
+watch(pageSize, resetAndReload)
+
+function handlePageChange(newPage: number) {
+  page.value = newPage
+  loadMaterials()
 }
 
 async function handleDelete(material: Material) {
@@ -50,6 +97,31 @@ onMounted(loadMaterials)
         <el-button @click="router.push({ name: 'material-bulk-import' })">批量匯入</el-button>
         <el-button type="primary" @click="router.push({ name: 'material-new' })">新增原材料</el-button>
       </div>
+    </div>
+
+    <div class="mb-4 flex flex-wrap items-center gap-2">
+      <el-input
+        v-model="filters.search"
+        placeholder="搜尋名稱或編號"
+        clearable
+        class="w-full sm:w-52"
+      />
+      <el-select v-model="filters.fabric_type" placeholder="布料種類" clearable class="w-full sm:w-36">
+        <el-option label="二紗" value="二紗" />
+        <el-option label="棉布" value="棉布" />
+        <el-option label="厚棉" value="厚棉" />
+      </el-select>
+      <el-select v-model="filters.origin" placeholder="產地" clearable class="w-full sm:w-32">
+        <el-option label="台灣" value="台灣" />
+        <el-option label="韓國" value="韓國" />
+        <el-option label="美國" value="美國" />
+        <el-option label="日本" value="日本" />
+        <el-option label="其他" value="其他" />
+      </el-select>
+      <el-select v-model="filters.status" placeholder="狀態" clearable class="w-full sm:w-32">
+        <el-option label="使用中" value="active" />
+        <el-option label="已停用" value="discontinued" />
+      </el-select>
     </div>
 
     <el-table :data="materials" v-loading="loading" stripe class="hidden sm:block">
@@ -122,6 +194,17 @@ onMounted(loadMaterials)
           </div>
         </div>
       </div>
+    </div>
+
+    <div class="mt-4 flex justify-center sm:justify-end">
+      <el-pagination
+        v-model:current-page="page"
+        v-model:page-size="pageSize"
+        :total="total"
+        :page-sizes="[20, 50, 100]"
+        layout="total, sizes, prev, pager, next"
+        @current-change="handlePageChange"
+      />
     </div>
   </div>
 </template>

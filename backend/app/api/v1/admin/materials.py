@@ -1,12 +1,18 @@
 import uuid
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile, status
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_admin_user, get_db, require_permission
 from app.schemas.bulk_import import BulkImportResult
-from app.schemas.material import MaterialCreate, MaterialImageOut, MaterialOut, MaterialUpdate
+from app.schemas.material import (
+    MaterialCreate,
+    MaterialImageOut,
+    MaterialOut,
+    MaterialPageOut,
+    MaterialUpdate,
+)
 from app.services import bulk_import_service, image_service, material_service, storage_service
 
 router = APIRouter(prefix="/materials", tags=["admin-materials"])
@@ -16,10 +22,27 @@ MAX_IMAGE_BYTES = 15 * 1024 * 1024
 
 
 @router.get(
-    "", response_model=list[MaterialOut], dependencies=[Depends(require_permission("materials.read"))]
+    "", response_model=MaterialPageOut, dependencies=[Depends(require_permission("materials.read"))]
 )
-def list_materials(db: Session = Depends(get_db)):
-    return material_service.list_materials(db)
+def list_materials(
+    search: str | None = None,
+    fabric_type: str | None = None,
+    origin: str | None = None,
+    status: str | None = None,
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=1000),
+    db: Session = Depends(get_db),
+):
+    items, total = material_service.list_materials_page(
+        db,
+        search=search,
+        fabric_type=fabric_type,
+        origin=origin,
+        status=status,
+        page=page,
+        page_size=page_size,
+    )
+    return MaterialPageOut(items=items, total=total, page=page, page_size=page_size)
 
 
 @router.get(

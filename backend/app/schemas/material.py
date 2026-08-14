@@ -56,6 +56,13 @@ class MaterialOut(MaterialBase):
         from_attributes = True
 
 
+class MaterialPageOut(BaseModel):
+    items: list[MaterialOut]
+    total: int
+    page: int
+    page_size: int
+
+
 class MaterialPublicOut(BaseModel):
     """Customer-facing view: name, photos, and the customer-facing price add-on only — no cost/supplier/stock data."""
 

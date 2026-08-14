@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 
 from fastapi import HTTPException, status
+from sqlalchemy import or_
 from sqlalchemy.orm import Session, selectinload
 
 from app.models.material import Material, MaterialImage
@@ -27,6 +28,36 @@ def list_materials(db: Session, include_inactive: bool = True) -> list[Material]
     if not include_inactive:
         query = query.filter(Material.status == "active")
     return query.order_by(Material.id.desc()).all()
+
+
+def list_materials_page(
+    db: Session,
+    search: str | None = None,
+    fabric_type: str | None = None,
+    origin: str | None = None,
+    status: str | None = None,
+    page: int = 1,
+    page_size: int = 20,
+) -> tuple[list[Material], int]:
+    query = _material_query(db).filter(Material.deleted_at.is_(None))
+    if search:
+        pattern = f"%{search.strip()}%"
+        query = query.filter(or_(Material.name.ilike(pattern), Material.code.ilike(pattern)))
+    if fabric_type:
+        query = query.filter(Material.fabric_type == fabric_type)
+    if origin:
+        query = query.filter(Material.origin == origin)
+    if status:
+        query = query.filter(Material.status == status)
+
+    total = query.order_by(None).count()
+    items = (
+        query.order_by(Material.id.desc())
+        .offset((page - 1) * page_size)
+        .limit(page_size)
+        .all()
+    )
+    return items, total
 
 
 def get_material(db: Session, material_id: int) -> Material:
