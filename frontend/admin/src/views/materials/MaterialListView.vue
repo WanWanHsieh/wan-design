@@ -100,28 +100,31 @@ onMounted(loadMaterials)
     </div>
 
     <div class="mb-4 flex flex-wrap items-center gap-2">
-      <el-input
-        v-model="filters.search"
-        placeholder="搜尋名稱或編號"
-        clearable
-        class="w-full sm:w-52"
-      />
-      <el-select v-model="filters.fabric_type" placeholder="布料種類" clearable class="w-full sm:w-36">
-        <el-option label="二紗" value="二紗" />
-        <el-option label="棉布" value="棉布" />
-        <el-option label="厚棉" value="厚棉" />
-      </el-select>
-      <el-select v-model="filters.origin" placeholder="產地" clearable class="w-full sm:w-32">
-        <el-option label="台灣" value="台灣" />
-        <el-option label="韓國" value="韓國" />
-        <el-option label="美國" value="美國" />
-        <el-option label="日本" value="日本" />
-        <el-option label="其他" value="其他" />
-      </el-select>
-      <el-select v-model="filters.status" placeholder="狀態" clearable class="w-full sm:w-32">
-        <el-option label="使用中" value="active" />
-        <el-option label="已停用" value="discontinued" />
-      </el-select>
+      <div class="w-full sm:w-52">
+        <el-input v-model="filters.search" placeholder="搜尋名稱或編號" clearable />
+      </div>
+      <div class="w-[calc(50%-4px)] sm:w-36">
+        <el-select v-model="filters.fabric_type" placeholder="布料種類" clearable class="w-full">
+          <el-option label="二紗" value="二紗" />
+          <el-option label="棉布" value="棉布" />
+          <el-option label="厚棉" value="厚棉" />
+        </el-select>
+      </div>
+      <div class="w-[calc(50%-4px)] sm:w-32">
+        <el-select v-model="filters.origin" placeholder="產地" clearable class="w-full">
+          <el-option label="台灣" value="台灣" />
+          <el-option label="韓國" value="韓國" />
+          <el-option label="美國" value="美國" />
+          <el-option label="日本" value="日本" />
+          <el-option label="其他" value="其他" />
+        </el-select>
+      </div>
+      <div class="w-[calc(50%-4px)] sm:w-32">
+        <el-select v-model="filters.status" placeholder="狀態" clearable class="w-full">
+          <el-option label="使用中" value="active" />
+          <el-option label="已停用" value="discontinued" />
+        </el-select>
+      </div>
     </div>
 
     <el-table :data="materials" v-loading="loading" stripe class="hidden sm:block">
