@@ -1,47 +1,63 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { apiClient, imageUrl } from '../api/client'
 import ImageLightbox from '../components/ImageLightbox.vue'
 import type { Material, MaterialImage } from '../types'
 
+const ORIGINS = ['台灣', '韓國', '美國', '日本', '其他']
+const FABRIC_TYPES = ['二紗', '棉布', '厚棉']
+
 const materials = ref<Material[]>([])
+const total = ref(0)
+const page = ref(1)
+const pageSize = 24
 const loading = ref(true)
 const error = ref<string | null>(null)
 const selectedOrigin = ref<string | null>(null)
 const selectedFabricType = ref<string | null>(null)
 
-const origins = computed(() => {
-  const set = new Set(materials.value.map((m) => m.origin).filter((o): o is string => !!o))
-  return Array.from(set).sort()
-})
-
-const fabricTypes = computed(() => {
-  const set = new Set(materials.value.map((m) => m.fabric_type).filter((t): t is string => !!t))
-  return Array.from(set).sort()
-})
-
-const filteredMaterials = computed(() =>
-  materials.value.filter(
-    (m) =>
-      (!selectedOrigin.value || m.origin === selectedOrigin.value) &&
-      (!selectedFabricType.value || m.fabric_type === selectedFabricType.value),
-  ),
-)
+const totalPages = computed(() => Math.max(1, Math.ceil(total.value / pageSize)))
 
 const lightboxVisible = ref(false)
 const lightboxSrc = ref('')
 const lightboxAlt = ref('')
 
-onMounted(async () => {
+async function loadMaterials() {
+  loading.value = true
   try {
-    const { data } = await apiClient.get<Material[]>('/api/v1/storefront/materials')
-    materials.value = data
+    const { data } = await apiClient.get<{ items: Material[]; total: number }>(
+      '/api/v1/storefront/materials',
+      {
+        params: {
+          origin: selectedOrigin.value ?? undefined,
+          fabric_type: selectedFabricType.value ?? undefined,
+          page: page.value,
+          page_size: pageSize,
+        },
+      },
+    )
+    materials.value = data.items
+    total.value = data.total
   } catch {
     error.value = '無法載入布料列表,請確認後端服務是否啟動。'
   } finally {
     loading.value = false
   }
+}
+
+watch([selectedOrigin, selectedFabricType], () => {
+  page.value = 1
+  loadMaterials()
 })
+
+function goToPage(newPage: number) {
+  if (newPage < 1 || newPage > totalPages.value) return
+  page.value = newPage
+  loadMaterials()
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
+onMounted(loadMaterials)
 
 function primaryFabricImage(material: Material): MaterialImage | null {
   const fabricImages = material.images.filter((img) => img.image_type === 'fabric')
@@ -63,57 +79,56 @@ function openLightbox(material: Material) {
       <span aria-hidden="true">🧶</span>布料列表
     </h1>
 
+    <div class="mb-6 flex flex-wrap gap-2">
+      <button
+        type="button"
+        class="rounded-full border px-3 py-1 text-sm transition"
+        :class="!selectedOrigin ? 'border-terracotta bg-terracotta text-white' : 'border-beige text-taupe hover:border-terracotta hover:text-terracotta'"
+        @click="selectedOrigin = null"
+      >
+        全部產地
+      </button>
+      <button
+        v-for="origin in ORIGINS"
+        :key="origin"
+        type="button"
+        class="rounded-full border px-3 py-1 text-sm transition"
+        :class="selectedOrigin === origin ? 'border-terracotta bg-terracotta text-white' : 'border-beige text-taupe hover:border-terracotta hover:text-terracotta'"
+        @click="selectedOrigin = origin"
+      >
+        {{ origin }}
+      </button>
+    </div>
+
+    <div class="mb-6 flex flex-wrap gap-2">
+      <button
+        type="button"
+        class="rounded-full border px-3 py-1 text-sm transition"
+        :class="!selectedFabricType ? 'border-terracotta bg-terracotta text-white' : 'border-beige text-taupe hover:border-terracotta hover:text-terracotta'"
+        @click="selectedFabricType = null"
+      >
+        全部種類
+      </button>
+      <button
+        v-for="fabricType in FABRIC_TYPES"
+        :key="fabricType"
+        type="button"
+        class="rounded-full border px-3 py-1 text-sm transition"
+        :class="selectedFabricType === fabricType ? 'border-terracotta bg-terracotta text-white' : 'border-beige text-taupe hover:border-terracotta hover:text-terracotta'"
+        @click="selectedFabricType = fabricType"
+      >
+        {{ fabricType }}
+      </button>
+    </div>
+
     <p v-if="loading" class="text-taupe">載入中...</p>
     <p v-else-if="error" class="text-red-600">{{ error }}</p>
-    <p v-else-if="materials.length === 0" class="text-taupe">目前還沒有可選擇的布料樣式。</p>
+    <p v-else-if="materials.length === 0" class="text-taupe">這個篩選條件目前沒有布料。</p>
 
     <template v-else>
-      <div v-if="origins.length > 0" class="mb-6 flex flex-wrap gap-2">
-        <button
-          type="button"
-          class="rounded-full border px-3 py-1 text-sm transition"
-          :class="!selectedOrigin ? 'border-terracotta bg-terracotta text-white' : 'border-beige text-taupe hover:border-terracotta hover:text-terracotta'"
-          @click="selectedOrigin = null"
-        >
-          全部
-        </button>
-        <button
-          v-for="origin in origins"
-          :key="origin"
-          type="button"
-          class="rounded-full border px-3 py-1 text-sm transition"
-          :class="selectedOrigin === origin ? 'border-terracotta bg-terracotta text-white' : 'border-beige text-taupe hover:border-terracotta hover:text-terracotta'"
-          @click="selectedOrigin = origin"
-        >
-          {{ origin }}
-        </button>
-      </div>
-
-      <div v-if="fabricTypes.length > 0" class="mb-6 flex flex-wrap gap-2">
-        <button
-          type="button"
-          class="rounded-full border px-3 py-1 text-sm transition"
-          :class="!selectedFabricType ? 'border-terracotta bg-terracotta text-white' : 'border-beige text-taupe hover:border-terracotta hover:text-terracotta'"
-          @click="selectedFabricType = null"
-        >
-          全部種類
-        </button>
-        <button
-          v-for="fabricType in fabricTypes"
-          :key="fabricType"
-          type="button"
-          class="rounded-full border px-3 py-1 text-sm transition"
-          :class="selectedFabricType === fabricType ? 'border-terracotta bg-terracotta text-white' : 'border-beige text-taupe hover:border-terracotta hover:text-terracotta'"
-          @click="selectedFabricType = fabricType"
-        >
-          {{ fabricType }}
-        </button>
-      </div>
-
-      <p v-if="filteredMaterials.length === 0" class="text-taupe">這個篩選條件目前沒有布料。</p>
-      <div v-else class="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4">
+      <div class="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4">
         <RouterLink
-          v-for="material in filteredMaterials"
+          v-for="material in materials"
           :key="material.id"
           :to="{ name: 'material-detail', params: { id: material.id } }"
           class="group block overflow-hidden rounded-2xl border border-beige bg-white shadow-[0_2px_10px_rgba(180,140,110,0.12)] transition hover:-translate-y-0.5 hover:shadow-[0_6px_16px_rgba(180,140,110,0.2)]"
@@ -137,6 +152,26 @@ function openLightbox(material: Material) {
             </p>
           </div>
         </RouterLink>
+      </div>
+
+      <div v-if="totalPages > 1" class="mt-8 flex items-center justify-center gap-2">
+        <button
+          type="button"
+          class="rounded-full border border-beige px-3 py-1 text-sm text-taupe transition hover:border-terracotta hover:text-terracotta disabled:cursor-not-allowed disabled:opacity-40"
+          :disabled="page <= 1"
+          @click="goToPage(page - 1)"
+        >
+          上一頁
+        </button>
+        <span class="text-sm text-taupe">第 {{ page }} / {{ totalPages }} 頁</span>
+        <button
+          type="button"
+          class="rounded-full border border-beige px-3 py-1 text-sm text-taupe transition hover:border-terracotta hover:text-terracotta disabled:cursor-not-allowed disabled:opacity-40"
+          :disabled="page >= totalPages"
+          @click="goToPage(page + 1)"
+        >
+          下一頁
+        </button>
       </div>
     </template>
 

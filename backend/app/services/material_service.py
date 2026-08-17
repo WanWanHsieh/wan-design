@@ -60,6 +60,29 @@ def list_materials_page(
     return items, total
 
 
+def list_materials_public_page(
+    db: Session,
+    fabric_type: str | None = None,
+    origin: str | None = None,
+    page: int = 1,
+    page_size: int = 20,
+) -> tuple[list[Material], int]:
+    query = _material_query(db).filter(Material.deleted_at.is_(None), Material.status == "active")
+    if fabric_type:
+        query = query.filter(Material.fabric_type == fabric_type)
+    if origin:
+        query = query.filter(Material.origin == origin)
+
+    total = query.order_by(None).count()
+    items = (
+        query.order_by(Material.id.desc())
+        .offset((page - 1) * page_size)
+        .limit(page_size)
+        .all()
+    )
+    return items, total
+
+
 def get_material(db: Session, material_id: int) -> Material:
     material = _material_query(db).filter(Material.id == material_id).first()
     if material is None or material.deleted_at is not None:

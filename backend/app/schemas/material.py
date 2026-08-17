@@ -75,3 +75,10 @@ class MaterialPublicOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class MaterialPublicPageOut(BaseModel):
+    items: list[MaterialPublicOut]
+    total: int
+    page: int
+    page_size: int

@@ -51,11 +51,11 @@ onMounted(async () => {
   try {
     const [productsRes, materialsRes, categoriesRes] = await Promise.all([
       apiClient.get<ProductListItem[]>('/api/v1/storefront/products'),
-      apiClient.get<Material[]>('/api/v1/storefront/materials'),
+      apiClient.get<{ items: Material[] }>('/api/v1/storefront/materials', { params: { page_size: 1000 } }),
       apiClient.get<Category[]>('/api/v1/storefront/categories'),
     ])
     products.value = productsRes.data
-    materials.value = materialsRes.data
+    materials.value = materialsRes.data.items
     categories.value = categoriesRes.data
 
     if (orderDraft.items.length > 0) {
