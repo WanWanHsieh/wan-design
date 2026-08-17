@@ -21,7 +21,6 @@ const filters = ref({
   search: '',
   fabric_type: '',
   origin: '',
-  status: '',
 })
 const page = ref(1)
 const pageSize = ref(20)
@@ -41,7 +40,6 @@ async function loadMaterials() {
         search: filters.value.search || undefined,
         fabric_type: filters.value.fabric_type || undefined,
         origin: filters.value.origin || undefined,
-        status: filters.value.status || undefined,
         page: page.value,
         page_size: pageSize.value,
       },
@@ -65,7 +63,7 @@ watch(
     searchDebounce = setTimeout(resetAndReload, 300)
   },
 )
-watch([() => filters.value.fabric_type, () => filters.value.origin, () => filters.value.status], resetAndReload)
+watch([() => filters.value.fabric_type, () => filters.value.origin], resetAndReload)
 watch(pageSize, resetAndReload)
 
 function handlePageChange(newPage: number) {
@@ -117,12 +115,6 @@ onMounted(loadMaterials)
           <el-option label="美國" value="美國" />
           <el-option label="日本" value="日本" />
           <el-option label="其他" value="其他" />
-        </el-select>
-      </div>
-      <div class="w-[calc(50%-4px)] sm:w-32">
-        <el-select v-model="filters.status" placeholder="狀態" clearable class="w-full">
-          <el-option label="使用中" value="active" />
-          <el-option label="已停用" value="discontinued" />
         </el-select>
       </div>
     </div>
