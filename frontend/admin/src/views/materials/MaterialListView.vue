@@ -84,6 +84,11 @@ function fabricThumbnail(material: Material): string | null {
   return image.thumbnail_key ?? image.storage_key
 }
 
+function fabricFullImage(material: Material): string | null {
+  const image = material.images.find((img) => img.image_type === 'fabric')
+  return image ? image.storage_key : null
+}
+
 onMounted(loadMaterials)
 </script>
 
@@ -122,10 +127,13 @@ onMounted(loadMaterials)
     <el-table :data="materials" v-loading="loading" stripe class="hidden sm:block">
       <el-table-column label="照片" width="80">
         <template #default="{ row }">
-          <img
+          <el-image
             v-if="fabricThumbnail(row)"
             :src="imageUrl(fabricThumbnail(row)!)"
-            class="h-12 w-12 rounded object-cover"
+            :preview-src-list="[imageUrl(fabricFullImage(row) ?? fabricThumbnail(row)!)]"
+            preview-teleported
+            fit="cover"
+            class="h-12 w-12 cursor-zoom-in rounded"
           />
         </template>
       </el-table-column>
@@ -160,10 +168,13 @@ onMounted(loadMaterials)
         :key="row.id"
         class="flex gap-3 rounded-xl border border-beige bg-white p-3 shadow-[0_2px_8px_rgba(180,140,110,0.08)]"
       >
-        <img
+        <el-image
           v-if="fabricThumbnail(row)"
           :src="imageUrl(fabricThumbnail(row)!)"
-          class="h-16 w-16 flex-none rounded-lg object-cover"
+          :preview-src-list="[imageUrl(fabricFullImage(row) ?? fabricThumbnail(row)!)]"
+          preview-teleported
+          fit="cover"
+          class="h-16 w-16 flex-none cursor-zoom-in rounded-lg"
         />
         <div class="flex-1">
           <div class="font-medium text-brown">{{ row.name }}</div>
