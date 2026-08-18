@@ -115,8 +115,12 @@ def upload_product_image(
     file: UploadFile = File(...),
     is_primary: bool = Form(False),
     sort_order: int = Form(0),
+    image_type: str = Form("main"),
     db: Session = Depends(get_db),
 ):
+    if image_type not in {"main", "reference"}:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Invalid image_type")
+
     extension = Path(file.filename or "").suffix.lower()
     if extension not in ALLOWED_IMAGE_EXTENSIONS:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Unsupported image type")
@@ -139,7 +143,7 @@ def upload_product_image(
     storage_service.save_file(storage_key, resized_bytes)
     storage_service.save_file(thumbnail_key, thumbnail_bytes)
     return product_service.add_product_image(
-        db, product_id, storage_key, thumbnail_key, is_primary, sort_order
+        db, product_id, storage_key, thumbnail_key, is_primary, sort_order, image_type
     )
 
 

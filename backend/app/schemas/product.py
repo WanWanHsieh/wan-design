@@ -10,6 +10,7 @@ class ProductImageOut(BaseModel):
     alt_text: str | None
     sort_order: int
     is_primary: bool
+    image_type: str
 
     class Config:
         from_attributes = True

@@ -113,6 +113,7 @@ def add_product_image(
     thumbnail_key: str,
     is_primary: bool,
     sort_order: int,
+    image_type: str = "main",
 ) -> ProductImage:
     product = get_product(db, product_id)
     if is_primary:
@@ -125,6 +126,7 @@ def add_product_image(
         thumbnail_key=thumbnail_key,
         is_primary=is_primary,
         sort_order=sort_order,
+        image_type=image_type,
     )
     db.add(image)
     db.commit()

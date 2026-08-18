@@ -50,6 +50,7 @@ watch(saleEnabled, (enabled) => {
 interface PendingImage {
   file: File
   previewUrl: string
+  imageType: 'main' | 'reference'
 }
 
 const customAttributePairs = ref<{ key: string; value: string }[]>([])
@@ -57,6 +58,13 @@ const images = ref<ProductImage[]>([])
 const pendingImages = ref<PendingImage[]>([])
 const categories = ref<Category[]>([])
 const saving = ref(false)
+
+const mainImages = computed(() => images.value.filter((img) => img.image_type === 'main'))
+const referenceImages = computed(() => images.value.filter((img) => img.image_type === 'reference'))
+const pendingMainImages = computed(() => pendingImages.value.filter((img) => img.imageType === 'main'))
+const pendingReferenceImages = computed(() =>
+  pendingImages.value.filter((img) => img.imageType === 'reference'),
+)
 
 const selectableCategories = computed(() =>
   categories.value.filter(
@@ -120,17 +128,27 @@ function buildCustomAttributes(): Record<string, string> {
   return result
 }
 
-async function uploadImageFile(targetProductId: number, file: File, isPrimary: boolean, sortOrder: number) {
+async function uploadImageFile(
+  targetProductId: number,
+  file: File,
+  imageType: 'main' | 'reference',
+  isPrimary: boolean,
+  sortOrder: number,
+) {
   const formData = new FormData()
   formData.append('file', file)
   formData.append('is_primary', String(isPrimary))
   formData.append('sort_order', String(sortOrder))
+  formData.append('image_type', imageType)
   await apiClient.post(`/api/v1/admin/products/${targetProductId}/images`, formData)
 }
 
 async function flushPendingImages(targetProductId: number) {
-  for (let i = 0; i < pendingImages.value.length; i++) {
-    await uploadImageFile(targetProductId, pendingImages.value[i].file, i === 0, i)
+  for (const imageType of ['main', 'reference'] as const) {
+    const pendingOfType = pendingImages.value.filter((img) => img.imageType === imageType)
+    for (let i = 0; i < pendingOfType.length; i++) {
+      await uploadImageFile(targetProductId, pendingOfType[i].file, imageType, i === 0 && imageType === 'main', i)
+    }
   }
   for (const pending of pendingImages.value) URL.revokeObjectURL(pending.previewUrl)
   pendingImages.value = []
@@ -174,26 +192,35 @@ async function handleSubmit() {
   }
 }
 
-async function handleImageUpload(options: UploadRequestOptions) {
-  const file = options.file as File
-  if (!productId.value) {
-    pendingImages.value.push({ file, previewUrl: URL.createObjectURL(file) })
-    return
+function uploadImage(imageType: 'main' | 'reference') {
+  return async (options: UploadRequestOptions) => {
+    const file = options.file as File
+    if (!productId.value) {
+      pendingImages.value.push({ file, previewUrl: URL.createObjectURL(file), imageType })
+      return
+    }
+    const groupCount = imageType === 'main' ? mainImages.value.length : referenceImages.value.length
+    const formData = new FormData()
+    formData.append('file', file)
+    formData.append('is_primary', String(imageType === 'main' && groupCount === 0))
+    formData.append('sort_order', String(groupCount))
+    formData.append('image_type', imageType)
+    const { data } = await apiClient.post<ProductImage>(
+      `/api/v1/admin/products/${productId.value}/images`,
+      formData,
+    )
+    images.value.push(data)
   }
-  const formData = new FormData()
-  formData.append('file', file)
-  formData.append('is_primary', String(images.value.length === 0))
-  formData.append('sort_order', String(images.value.length))
-  const { data } = await apiClient.post<ProductImage>(
-    `/api/v1/admin/products/${productId.value}/images`,
-    formData,
-  )
-  images.value.push(data)
 }
 
-function removePendingImage(index: number) {
-  URL.revokeObjectURL(pendingImages.value[index].previewUrl)
-  pendingImages.value.splice(index, 1)
+const handleMainImageUpload = uploadImage('main')
+const handleReferenceImageUpload = uploadImage('reference')
+
+function removePendingImage(imageType: 'main' | 'reference', index: number) {
+  const list = imageType === 'main' ? pendingMainImages.value : pendingReferenceImages.value
+  const target = list[index]
+  URL.revokeObjectURL(target.previewUrl)
+  pendingImages.value = pendingImages.value.filter((img) => img !== target)
 }
 
 async function handleImageDelete(image: ProductImage) {
@@ -304,12 +331,12 @@ watch(productId, (newId) => {
     </el-form>
 
     <el-divider />
-    <div class="mb-2 font-medium">商品照片</div>
+    <div class="mb-2 font-medium">商品主圖</div>
     <p v-if="!isEdit" class="mb-2 text-xs text-gray-500">
       先選好照片,按下「建立商品」時會一起上傳,就不會搞混是哪一張。
     </p>
     <div class="mb-4 flex flex-wrap gap-3">
-      <div v-for="image in images" :key="image.id" class="relative">
+      <div v-for="image in mainImages" :key="image.id" class="relative">
         <img :src="imageUrl(image.storage_key)" class="h-24 w-24 rounded object-cover" />
         <el-tag v-if="image.is_primary" size="small" class="absolute left-1 top-1">主圖</el-tag>
         <el-button
@@ -322,9 +349,9 @@ watch(productId, (newId) => {
           ×
         </el-button>
       </div>
-      <div v-for="(pending, index) in pendingImages" :key="pending.previewUrl" class="relative">
+      <div v-for="(pending, index) in pendingMainImages" :key="pending.previewUrl" class="relative">
         <img :src="pending.previewUrl" class="h-24 w-24 rounded object-cover" />
-        <el-tag v-if="images.length === 0 && index === 0" size="small" type="warning" class="absolute left-1 top-1">
+        <el-tag v-if="mainImages.length === 0 && index === 0" size="small" type="warning" class="absolute left-1 top-1">
           主圖
         </el-tag>
         <el-button
@@ -332,14 +359,54 @@ watch(productId, (newId) => {
           type="danger"
           circle
           class="absolute -right-2 -top-2"
-          @click="removePendingImage(index)"
+          @click="removePendingImage('main', index)"
         >
           ×
         </el-button>
       </div>
     </div>
-    <el-upload :http-request="handleImageUpload" :show-file-list="false" accept="image/*">
+    <el-upload :http-request="handleMainImageUpload" :show-file-list="false" accept="image/*">
       <el-button>上傳照片</el-button>
+    </el-upload>
+
+    <el-divider />
+    <div class="mb-2 font-medium">其他花色參考照片(前台商品展示)</div>
+    <p class="mb-2 text-sm text-gray-500">
+      上傳這個商品不同花色/款式的參考照片(可多張),顧客在前台瀏覽這個商品時會看到這些照片作為參考。
+    </p>
+    <div class="mb-4 flex flex-wrap gap-3">
+      <div v-for="image in referenceImages" :key="image.id" class="relative">
+        <img :src="imageUrl(image.storage_key)" class="h-24 w-24 rounded object-cover" />
+        <el-button
+          size="small"
+          type="danger"
+          circle
+          class="absolute -right-2 -top-2"
+          @click="handleImageDelete(image)"
+        >
+          ×
+        </el-button>
+      </div>
+      <div v-for="(pending, index) in pendingReferenceImages" :key="pending.previewUrl" class="relative">
+        <img :src="pending.previewUrl" class="h-24 w-24 rounded object-cover" />
+        <el-button
+          size="small"
+          type="danger"
+          circle
+          class="absolute -right-2 -top-2"
+          @click="removePendingImage('reference', index)"
+        >
+          ×
+        </el-button>
+      </div>
+    </div>
+    <el-upload
+      :http-request="handleReferenceImageUpload"
+      :show-file-list="false"
+      accept="image/*"
+      multiple
+    >
+      <el-button>上傳參考照片</el-button>
     </el-upload>
   </div>
 </template>

@@ -16,5 +16,6 @@ class ProductImage(Base, TimestampMixin):
     alt_text: Mapped[str | None] = mapped_column(String(255))
     sort_order: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     is_primary: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    image_type: Mapped[str] = mapped_column(String(20), default="main", nullable=False)  # main|reference
 
     product: Mapped["Product"] = relationship(back_populates="images")  # noqa: F821
