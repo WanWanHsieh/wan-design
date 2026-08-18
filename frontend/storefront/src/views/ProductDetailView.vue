@@ -12,26 +12,21 @@ const orderDraft = useOrderDraftStore()
 const product = ref<ProductDetail | null>(null)
 const error = ref<string | null>(null)
 const addedFlash = ref(false)
-const selectedImageIndex = ref(0)
 
 const lightboxVisible = ref(false)
 const lightboxSrc = ref('')
 const lightboxAlt = ref('')
 
-const sortedImages = computed(() => {
-  if (!product.value) return []
-  return [...product.value.images].sort((a, b) => Number(b.is_primary) - Number(a.is_primary))
-})
+const mainImage = computed(
+  () => product.value?.images.find((img) => img.is_primary) ?? product.value?.images[0] ?? null,
+)
+const otherImages = computed(
+  () => product.value?.images.filter((img) => img.id !== mainImage.value?.id) ?? [],
+)
 
-const selectedImage = computed(() => sortedImages.value[selectedImageIndex.value] ?? null)
-
-function selectImage(index: number) {
-  selectedImageIndex.value = index
-}
-
-function openLightbox() {
-  if (!selectedImage.value || !product.value) return
-  lightboxSrc.value = imageUrl(selectedImage.value.storage_key)
+function openLightbox(storageKey: string) {
+  if (!product.value) return
+  lightboxSrc.value = imageUrl(storageKey)
   lightboxAlt.value = product.value.name
   lightboxVisible.value = true
 }
@@ -64,37 +59,17 @@ onMounted(async () => {
     </RouterLink>
 
     <p v-if="error" class="text-red-600">{{ error }}</p>
-    <div v-else-if="product" class="grid gap-8 sm:grid-cols-2">
-      <div>
-        <div class="aspect-square overflow-hidden rounded-2xl bg-cream-dark shadow-[0_2px_10px_rgba(180,140,110,0.12)]">
-          <img
-            v-if="selectedImage"
-            :src="imageUrl(selectedImage.storage_key)"
-            :alt="product.name"
-            class="h-full w-full cursor-zoom-in object-cover"
-            @click="openLightbox"
-          />
-          <div v-else class="flex h-full items-center justify-center text-taupe">無圖片</div>
-        </div>
-        <div v-if="sortedImages.length > 1" class="mt-3 grid grid-cols-4 gap-2">
-          <button
-            v-for="(image, index) in sortedImages"
-            :key="image.id"
-            type="button"
-            class="aspect-square overflow-hidden rounded-lg border-2 transition"
-            :class="index === selectedImageIndex ? 'border-terracotta' : 'border-transparent hover:border-beige'"
-            @click="selectImage(index)"
-          >
-            <img
-              :src="imageUrl(image.thumbnail_key ?? image.storage_key)"
-              :alt="product.name"
-              class="h-full w-full object-cover"
-            />
-          </button>
-        </div>
-        <p v-if="sortedImages.length > 1" class="mt-2 text-xs text-taupe">
-          點選縮圖查看其他花色參考
-        </p>
+    <div v-else-if="product">
+      <div class="grid gap-8 sm:grid-cols-2">
+      <div class="aspect-square overflow-hidden rounded-2xl bg-cream-dark shadow-[0_2px_10px_rgba(180,140,110,0.12)]">
+        <img
+          v-if="mainImage"
+          :src="imageUrl(mainImage.storage_key)"
+          :alt="product.name"
+          class="h-full w-full cursor-zoom-in object-cover"
+          @click="openLightbox(mainImage.storage_key)"
+        />
+        <div v-else class="flex h-full items-center justify-center text-taupe">無圖片</div>
       </div>
       <div>
         <span
@@ -139,6 +114,29 @@ onMounted(async () => {
             <dd class="text-brown">{{ value }}</dd>
           </div>
         </dl>
+      </div>
+      </div>
+
+      <div v-if="otherImages.length" class="mt-12">
+        <h2 class="mb-4 flex items-center gap-2 text-lg font-bold text-brown">
+          <span aria-hidden="true">🎨</span>其他花色參考
+        </h2>
+        <div class="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4">
+          <div
+            v-for="image in otherImages"
+            :key="image.id"
+            class="overflow-hidden rounded-2xl border border-beige bg-white shadow-[0_2px_10px_rgba(180,140,110,0.12)]"
+          >
+            <div class="aspect-square bg-cream-dark">
+              <img
+                :src="imageUrl(image.thumbnail_key ?? image.storage_key)"
+                :alt="product.name"
+                class="h-full w-full cursor-zoom-in object-cover"
+                @click="openLightbox(image.storage_key)"
+              />
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
