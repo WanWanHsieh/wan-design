@@ -21,6 +21,7 @@ export interface ProductListItem {
 export interface ProductImage {
   id: number
   storage_key: string
+  thumbnail_key: string | null
   alt_text: string | null
   sort_order: number
   is_primary: boolean

@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { apiClient, imageUrl } from '../api/client'
+import ImageLightbox from '../components/ImageLightbox.vue'
 import PriceTag from '../components/PriceTag.vue'
 import { useOrderDraftStore } from '../stores/orderDraft'
 import type { ProductDetail } from '../types'
@@ -11,6 +12,29 @@ const orderDraft = useOrderDraftStore()
 const product = ref<ProductDetail | null>(null)
 const error = ref<string | null>(null)
 const addedFlash = ref(false)
+const selectedImageIndex = ref(0)
+
+const lightboxVisible = ref(false)
+const lightboxSrc = ref('')
+const lightboxAlt = ref('')
+
+const sortedImages = computed(() => {
+  if (!product.value) return []
+  return [...product.value.images].sort((a, b) => Number(b.is_primary) - Number(a.is_primary))
+})
+
+const selectedImage = computed(() => sortedImages.value[selectedImageIndex.value] ?? null)
+
+function selectImage(index: number) {
+  selectedImageIndex.value = index
+}
+
+function openLightbox() {
+  if (!selectedImage.value || !product.value) return
+  lightboxSrc.value = imageUrl(selectedImage.value.storage_key)
+  lightboxAlt.value = product.value.name
+  lightboxVisible.value = true
+}
 
 function addToOrderDraft() {
   if (!product.value) return
@@ -41,14 +65,36 @@ onMounted(async () => {
 
     <p v-if="error" class="text-red-600">{{ error }}</p>
     <div v-else-if="product" class="grid gap-8 sm:grid-cols-2">
-      <div class="aspect-square overflow-hidden rounded-2xl bg-cream-dark shadow-[0_2px_10px_rgba(180,140,110,0.12)]">
-        <img
-          v-if="product.images[0]"
-          :src="imageUrl(product.images[0].storage_key)"
-          :alt="product.name"
-          class="h-full w-full object-cover"
-        />
-        <div v-else class="flex h-full items-center justify-center text-taupe">無圖片</div>
+      <div>
+        <div class="aspect-square overflow-hidden rounded-2xl bg-cream-dark shadow-[0_2px_10px_rgba(180,140,110,0.12)]">
+          <img
+            v-if="selectedImage"
+            :src="imageUrl(selectedImage.storage_key)"
+            :alt="product.name"
+            class="h-full w-full cursor-zoom-in object-cover"
+            @click="openLightbox"
+          />
+          <div v-else class="flex h-full items-center justify-center text-taupe">無圖片</div>
+        </div>
+        <div v-if="sortedImages.length > 1" class="mt-3 grid grid-cols-4 gap-2">
+          <button
+            v-for="(image, index) in sortedImages"
+            :key="image.id"
+            type="button"
+            class="aspect-square overflow-hidden rounded-lg border-2 transition"
+            :class="index === selectedImageIndex ? 'border-terracotta' : 'border-transparent hover:border-beige'"
+            @click="selectImage(index)"
+          >
+            <img
+              :src="imageUrl(image.thumbnail_key ?? image.storage_key)"
+              :alt="product.name"
+              class="h-full w-full object-cover"
+            />
+          </button>
+        </div>
+        <p v-if="sortedImages.length > 1" class="mt-2 text-xs text-taupe">
+          點選縮圖查看其他花色參考
+        </p>
       </div>
       <div>
         <span
@@ -95,5 +141,7 @@ onMounted(async () => {
         </dl>
       </div>
     </div>
+
+    <ImageLightbox v-model="lightboxVisible" :src="lightboxSrc" :alt="lightboxAlt" />
   </main>
 </template>
