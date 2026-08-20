@@ -150,7 +150,7 @@ async function handleSearch() {
               @click="openLightbox(item.material_image ?? item.material_thumbnail!, item.material_name_snapshot!)"
             />
             <span class="flex-1 text-brown" :class="{ 'text-taupe line-through': item.is_completed }">
-              {{ item.product_name_snapshot }}
+              {{ item.product_name_snapshot }}<template v-if="item.variant_name_snapshot"> - {{ item.variant_name_snapshot }}</template>
               <template v-if="item.material_name_snapshot"> × {{ item.material_name_snapshot }}</template>
               × {{ item.quantity }} — NT$ {{ item.subtotal }}
             </span>

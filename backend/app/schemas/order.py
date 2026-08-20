@@ -8,6 +8,7 @@ ORDER_STATUSES = {"pending", "shipped", "completed", "cancelled"}
 
 class OrderItemIn(BaseModel):
     product_id: int
+    variant_id: int | None = None
     material_id: int | None = None
     quantity: int = Field(gt=0)
 
@@ -18,6 +19,8 @@ class OrderItemOut(BaseModel):
     product_name_snapshot: str
     product_thumbnail: str | None = None
     product_image: str | None = None
+    variant_id: int | None = None
+    variant_name_snapshot: str | None = None
     material_id: int | None
     material_name_snapshot: str | None
     material_thumbnail: str | None = None

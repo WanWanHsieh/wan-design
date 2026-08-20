@@ -10,6 +10,15 @@ const categories = ref<Category[]>([])
 const loading = ref(true)
 const router = useRouter()
 
+function variantPriceRange(product: Product): string | null {
+  if (!product.has_variants || product.variants.length === 0) return null
+  const prices = product.variants.filter((v) => v.is_active).map((v) => v.price)
+  if (prices.length === 0) return null
+  const min = Math.min(...prices)
+  const max = Math.max(...prices)
+  return min === max ? `NT$ ${min}` : `NT$ ${min}–${max}`
+}
+
 function categoryName(categoryId: number | null): string {
   if (categoryId === null) return '-'
   return categories.value.find((c) => c.id === categoryId)?.name ?? '-'
@@ -157,9 +166,12 @@ onMounted(loadProducts)
       <el-table-column label="價格" width="120">
         <template #default="{ row }">
           <template v-if="!row.isCategory">
-            <span v-if="row.product.is_on_sale" class="text-taupe/60 line-through">{{ row.product.base_price }}</span>
-            <span v-if="row.product.is_on_sale" class="ml-1 font-medium text-red-600">{{ row.product.sale_price }}</span>
-            <span v-else>{{ row.product.base_price }}</span>
+            <span v-if="variantPriceRange(row.product)">{{ variantPriceRange(row.product) }} 起</span>
+            <template v-else>
+              <span v-if="row.product.is_on_sale" class="text-taupe/60 line-through">{{ row.product.base_price }}</span>
+              <span v-if="row.product.is_on_sale" class="ml-1 font-medium text-red-600">{{ row.product.sale_price }}</span>
+              <span v-else>{{ row.product.base_price }}</span>
+            </template>
           </template>
         </template>
       </el-table-column>
@@ -232,7 +244,8 @@ onMounted(loadProducts)
               </div>
               <div class="text-xs text-taupe/70">{{ row.sku }}・{{ categoryName(row.category_id) }}</div>
               <div class="mt-1 text-sm text-taupe">
-                <template v-if="row.is_on_sale">
+                <template v-if="variantPriceRange(row)">{{ variantPriceRange(row) }} 起</template>
+                <template v-else-if="row.is_on_sale">
                   <span class="text-taupe/60 line-through">NT$ {{ row.base_price }}</span>
                   <span class="ml-1 font-medium text-red-600">NT$ {{ row.sale_price }}</span>
                 </template>

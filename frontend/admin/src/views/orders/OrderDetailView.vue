@@ -7,6 +7,7 @@ import type { Material, Order, Product } from '../../types'
 
 interface LineItem {
   productId: number | null
+  variantId: number | null
   materialId: number | null
   quantity: number
 }
@@ -61,6 +62,7 @@ async function loadAll() {
     orderStatus.value = orderRes.data.status
     lineItems.value = orderRes.data.items.map((item) => ({
       productId: item.product_id,
+      variantId: item.variant_id,
       materialId: item.material_id,
       quantity: item.quantity,
     }))
@@ -73,11 +75,19 @@ onMounted(loadAll)
 watch(orderId, loadAll)
 
 function addLineItem() {
-  lineItems.value.push({ productId: null, materialId: null, quantity: 1 })
+  lineItems.value.push({ productId: null, variantId: null, materialId: null, quantity: 1 })
 }
 
 function removeLineItem(index: number) {
   lineItems.value.splice(index, 1)
+}
+
+function handleProductChange(item: LineItem) {
+  item.variantId = null
+}
+
+function variantsForProduct(productId: number | null) {
+  return products.value.find((p) => p.id === productId)?.variants ?? []
 }
 
 function primaryFabricImage(materialId: number | null) {
@@ -96,10 +106,14 @@ function primaryProductImage(productId: number | null) {
 function itemUnitPrice(item: LineItem): number {
   const product = products.value.find((p) => p.id === item.productId)
   if (!product) return 0
-  if (item.materialId === null) return product.base_price
+  const basePrice = product.has_variants
+    ? product.variants.find((v) => v.id === item.variantId)?.price ?? null
+    : product.base_price
+  if (basePrice === null) return 0
+  if (item.materialId === null) return basePrice
   const material = materials.value.find((m) => m.id === item.materialId)
   if (!material) return 0
-  return product.base_price + material.price_addon
+  return basePrice + material.price_addon
 }
 
 function itemSubtotal(item: LineItem): number {
@@ -115,7 +129,11 @@ const canSave = computed(() => {
   if (shippingMethod.value === 'address' && !shippingAddress.value.trim()) return false
   if (shippingMethod.value !== 'address' && !shippingStoreCode.value.trim()) return false
   if (lineItems.value.length === 0) return false
-  return lineItems.value.every((item) => item.productId && item.quantity > 0)
+  return lineItems.value.every((item) => {
+    if (!item.productId || item.quantity <= 0) return false
+    if (variantsForProduct(item.productId).length > 0 && !item.variantId) return false
+    return true
+  })
 })
 
 async function handleSave() {
@@ -132,6 +150,7 @@ async function handleSave() {
       status: orderStatus.value,
       items: lineItems.value.map((item) => ({
         product_id: item.productId,
+        variant_id: item.variantId,
         material_id: item.materialId,
         quantity: item.quantity,
       })),
@@ -236,10 +255,15 @@ async function handleDelete() {
                 fit="cover"
                 class="h-8 w-8 flex-none cursor-zoom-in rounded"
               />
-              <el-select v-model="item.productId" filterable placeholder="請選擇">
+              <el-select v-model="item.productId" filterable placeholder="請選擇" @change="handleProductChange(item)">
                 <el-option v-for="p in products" :key="p.id" :label="p.name" :value="p.id" />
               </el-select>
             </div>
+          </el-form-item>
+          <el-form-item v-if="variantsForProduct(item.productId).length > 0" label="規格" class="!mb-0">
+            <el-select v-model="item.variantId" filterable placeholder="請選擇">
+              <el-option v-for="v in variantsForProduct(item.productId)" :key="v.id" :label="v.name" :value="v.id" />
+            </el-select>
           </el-form-item>
           <el-form-item label="布料" class="!mb-0">
             <div class="flex items-center gap-2">

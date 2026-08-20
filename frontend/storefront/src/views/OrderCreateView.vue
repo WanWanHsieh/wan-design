@@ -8,6 +8,7 @@ import type { Category, Material, OrderResult, ProductListItem } from '../types'
 interface LineItem {
   topCategoryId: number | null
   productId: number | null
+  variantId: number | null
   materialId: number | null
   quantity: number
 }
@@ -29,7 +30,9 @@ const shippingAddress = ref('')
 const expectedDeliveryDate = ref('')
 const notes = ref('')
 
-const lineItems = ref<LineItem[]>([{ topCategoryId: null, productId: null, materialId: null, quantity: 1 }])
+const lineItems = ref<LineItem[]>([
+  { topCategoryId: null, productId: null, variantId: null, materialId: null, quantity: 1 },
+])
 
 const submitting = ref(false)
 const submitError = ref<string | null>(null)
@@ -66,6 +69,7 @@ onMounted(async () => {
           return {
             topCategoryId: topCategoryIdForCategory(draftProduct.category_id),
             productId: draftProduct.id,
+            variantId: null,
             materialId: null,
             quantity: draftItem.quantity,
           }
@@ -114,10 +118,19 @@ function productsForTopCategory(topId: number | null): ProductListItem[] {
 
 function handleTopCategoryChange(item: LineItem) {
   item.productId = null
+  item.variantId = null
+}
+
+function handleProductChange(item: LineItem) {
+  item.variantId = null
+}
+
+function variantsForProduct(productId: number | null) {
+  return products.value.find((p) => p.id === productId)?.variants ?? []
 }
 
 function addLineItem() {
-  lineItems.value.push({ topCategoryId: null, productId: null, materialId: null, quantity: 1 })
+  lineItems.value.push({ topCategoryId: null, productId: null, variantId: null, materialId: null, quantity: 1 })
 }
 
 function removeLineItem(index: number) {
@@ -127,13 +140,18 @@ function removeLineItem(index: number) {
 function clearLineItems() {
   if (!confirm('確定要清空目前的訂購項目嗎?')) return
   orderDraft.clear()
-  lineItems.value = [{ topCategoryId: null, productId: null, materialId: null, quantity: 1 }]
+  lineItems.value = [{ topCategoryId: null, productId: null, variantId: null, materialId: null, quantity: 1 }]
 }
 
 function itemUnitPrice(item: LineItem): number {
   const product = products.value.find((p) => p.id === item.productId)
   const material = materials.value.find((m) => m.id === item.materialId)
   if (!product || !material) return 0
+  if (product.has_variants) {
+    const variant = product.variants.find((v) => v.id === item.variantId)
+    if (!variant) return 0
+    return variant.price + material.price_addon
+  }
   return product.effective_price + material.price_addon
 }
 
@@ -179,7 +197,11 @@ const canSubmit = computed(() => {
   if (shippingMethod.value === 'address' && !shippingAddress.value.trim()) return false
   if (shippingMethod.value !== 'address' && !shippingStoreCode.value.trim()) return false
   if (lineItems.value.length === 0) return false
-  return lineItems.value.every((item) => item.productId && item.materialId && item.quantity > 0)
+  return lineItems.value.every((item) => {
+    if (!item.productId || !item.materialId || item.quantity <= 0) return false
+    if (variantsForProduct(item.productId).length > 0 && !item.variantId) return false
+    return true
+  })
 })
 
 async function handleSubmit() {
@@ -196,6 +218,7 @@ async function handleSubmit() {
       notes: notes.value.trim() || null,
       items: lineItems.value.map((item) => ({
         product_id: item.productId,
+        variant_id: item.variantId,
         material_id: item.materialId,
         quantity: item.quantity,
       })),
@@ -247,7 +270,8 @@ async function handleSubmit() {
             @click="openLightbox(item.material_image ?? item.material_thumbnail!, item.material_name_snapshot ?? '')"
           />
           <span class="text-brown">
-            {{ item.product_name_snapshot }} × {{ item.material_name_snapshot }} × {{ item.quantity }}
+            {{ item.product_name_snapshot }}<template v-if="item.variant_name_snapshot"> - {{ item.variant_name_snapshot }}</template>
+            × {{ item.material_name_snapshot }} × {{ item.quantity }}
             — NT$ {{ item.subtotal }}
           </span>
         </div>
@@ -397,13 +421,27 @@ async function handleSubmit() {
                   required
                   :disabled="!item.topCategoryId"
                   class="w-full rounded-lg border border-beige bg-white px-2 py-2 focus:border-terracotta focus:outline-none focus:ring-1 focus:ring-terracotta disabled:bg-beige/40"
+                  @change="handleProductChange(item)"
                 >
                   <option :value="null" disabled>{{ item.topCategoryId ? '請選擇' : '請先選分類' }}</option>
                   <option v-for="p in productsForTopCategory(item.topCategoryId)" :key="p.id" :value="p.id">
-                    {{ p.name }}(NT$ {{ p.effective_price }}{{ p.is_on_sale ? ' 特價中' : '' }})
+                    {{ p.name }}(NT$ {{ p.effective_price }}{{ p.has_variants ? ' 起' : '' }}{{ p.is_on_sale ? ' 特價中' : '' }})
                   </option>
                 </select>
               </div>
+            </label>
+            <label v-if="variantsForProduct(item.productId).length > 0" class="block text-sm text-brown">
+              選擇規格
+              <select
+                v-model="item.variantId"
+                required
+                class="mt-1 w-full rounded-lg border border-beige bg-white px-2 py-2 focus:border-terracotta focus:outline-none focus:ring-1 focus:ring-terracotta"
+              >
+                <option :value="null" disabled>請選擇</option>
+                <option v-for="v in variantsForProduct(item.productId)" :key="v.id" :value="v.id">
+                  {{ v.name }}(NT$ {{ v.price }})
+                </option>
+              </select>
             </label>
             <label class="block text-sm text-brown sm:col-span-2">
               選擇布料

@@ -33,6 +33,8 @@ def list_products(track_stock: bool = False, db: Session = Depends(get_db)):
                 sale_ends_at=p.sale_ends_at,
                 is_on_sale=p.is_on_sale,
                 effective_price=p.effective_price,
+                has_variants=p.has_variants,
+                variants=[v for v in p.variants if v.is_active],
                 primary_image=primary.storage_key if primary else None,
                 primary_thumbnail=primary.thumbnail_key if primary else None,
             )
@@ -42,4 +44,7 @@ def list_products(track_stock: bool = False, db: Session = Depends(get_db)):
 
 @router.get("/{slug}", response_model=ProductOut)
 def get_product_by_slug(slug: str, db: Session = Depends(get_db)):
-    return product_service.get_product_by_slug(db, slug)
+    product = product_service.get_product_by_slug(db, slug)
+    out = ProductOut.model_validate(product)
+    out.variants = [v for v in out.variants if v.is_active]
+    return out

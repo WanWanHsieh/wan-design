@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session, selectinload
 from app.models.material import Material
 from app.models.order import Order, OrderItem
 from app.models.product import Product
+from app.models.product_variant import ProductVariant
 from app.schemas.order import ORDER_STATUSES, OrderCreate, OrderItemIn, OrderUpdate, check_shipping_fields
 from app.services import notification_service
 
@@ -29,6 +30,13 @@ def _restore_stock_for_items(db: Session, items: list[OrderItem]) -> None:
     for item in items:
         if item.material_id is not None or item.product_id is None:
             continue
+        if item.variant_id is not None:
+            variant = (
+                db.query(ProductVariant).filter(ProductVariant.id == item.variant_id).with_for_update().first()
+            )
+            if variant is not None and variant.track_stock:
+                variant.stock_quantity += item.quantity
+            continue
         product = db.query(Product).filter(Product.id == item.product_id).with_for_update().first()
         if product is not None and product.track_stock:
             product.stock_quantity += item.quantity
@@ -38,6 +46,17 @@ def _decrement_stock_for_items(db: Session, items: list[OrderItem]) -> None:
     for item in items:
         if item.material_id is not None or item.product_id is None:
             continue
+        if item.variant_id is not None:
+            variant = (
+                db.query(ProductVariant).filter(ProductVariant.id == item.variant_id).with_for_update().first()
+            )
+            if variant is not None and variant.track_stock:
+                if variant.stock_quantity < item.quantity:
+                    raise HTTPException(
+                        status.HTTP_400_BAD_REQUEST, f"規格「{variant.name}」庫存不足,無法恢復此訂單"
+                    )
+                variant.stock_quantity -= item.quantity
+            continue
         product = db.query(Product).filter(Product.id == item.product_id).with_for_update().first()
         if product is not None and product.track_stock:
             if product.stock_quantity < item.quantity:
@@ -45,6 +64,26 @@ def _decrement_stock_for_items(db: Session, items: list[OrderItem]) -> None:
                     status.HTTP_400_BAD_REQUEST, f"商品「{product.name}」庫存不足,無法恢復此訂單"
                 )
             product.stock_quantity -= item.quantity
+
+
+def _resolve_variant(db: Session, product: Product, variant_id: int | None) -> ProductVariant | None:
+    if not product.has_variants:
+        return None
+    if variant_id is None:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, f"商品「{product.name}」需要選擇規格")
+    variant = (
+        db.query(ProductVariant)
+        .filter(
+            ProductVariant.id == variant_id,
+            ProductVariant.product_id == product.id,
+            ProductVariant.is_active.is_(True),
+        )
+        .with_for_update()
+        .first()
+    )
+    if variant is None:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, f"商品「{product.name}」的規格不存在或已停用")
+    return variant
 
 
 def _build_order_items(
@@ -63,19 +102,22 @@ def _build_order_items(
         if product is None:
             raise HTTPException(status.HTTP_400_BAD_REQUEST, f"Product {item.product_id} not found")
 
+        variant = _resolve_variant(db, product, item.variant_id)
+        stock_target = variant if variant is not None else product
+
         if item.material_id is None:
-            if not product.track_stock:
+            if not stock_target.track_stock:
                 raise HTTPException(
                     status.HTTP_400_BAD_REQUEST, f"商品「{product.name}」非現貨販售商品"
                 )
             if adjust_stock:
-                if product.stock_quantity < item.quantity:
+                if stock_target.stock_quantity < item.quantity:
                     raise HTTPException(
                         status.HTTP_400_BAD_REQUEST, f"商品「{product.name}」庫存不足"
                     )
-                product.stock_quantity -= item.quantity
+                stock_target.stock_quantity -= item.quantity
 
-            unit_price = float(product.effective_price)
+            unit_price = float(variant.price) if variant is not None else float(product.effective_price)
             subtotal = round(unit_price * item.quantity, 2)
             total_amount += subtotal
 
@@ -83,6 +125,8 @@ def _build_order_items(
                 OrderItem(
                     product_id=product.id,
                     product_name_snapshot=product.name,
+                    variant_id=variant.id if variant is not None else None,
+                    variant_name_snapshot=variant.name if variant is not None else None,
                     material_id=None,
                     material_name_snapshot=None,
                     unit_price=unit_price,
@@ -104,7 +148,8 @@ def _build_order_items(
         if material is None:
             raise HTTPException(status.HTTP_400_BAD_REQUEST, f"Material {item.material_id} not found")
 
-        unit_price = float(product.effective_price) + float(material.price_addon)
+        base_price = float(variant.price) if variant is not None else float(product.effective_price)
+        unit_price = base_price + float(material.price_addon)
         subtotal = round(unit_price * item.quantity, 2)
         total_amount += subtotal
 
@@ -112,6 +157,8 @@ def _build_order_items(
             OrderItem(
                 product_id=product.id,
                 product_name_snapshot=product.name,
+                variant_id=variant.id if variant is not None else None,
+                variant_name_snapshot=variant.name if variant is not None else None,
                 material_id=material.id,
                 material_name_snapshot=material.name,
                 unit_price=unit_price,

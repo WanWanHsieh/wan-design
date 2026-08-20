@@ -119,7 +119,9 @@ async function toggleItemCompleted(orderId: number, item: OrderItem) {
                   :title="item.material_name_snapshot"
                 />
                 <div class="text-sm" :class="{ 'text-gray-400 line-through': item.is_completed }">
-                  <div :class="item.is_completed ? '' : 'text-gray-900'">{{ item.product_name_snapshot }}</div>
+                  <div :class="item.is_completed ? '' : 'text-gray-900'">
+                    {{ item.product_name_snapshot }}<template v-if="item.variant_name_snapshot"> - {{ item.variant_name_snapshot }}</template>
+                  </div>
                   <div class="text-gray-500">
                     <template v-if="item.material_name_snapshot">{{ item.material_name_snapshot }} × </template
                     >{{ item.quantity }}
@@ -237,7 +239,9 @@ async function toggleItemCompleted(orderId: number, item: OrderItem) {
               :title="item.material_name_snapshot"
             />
             <div class="text-sm" :class="{ 'text-taupe line-through': item.is_completed }">
-              <div :class="item.is_completed ? '' : 'text-brown'">{{ item.product_name_snapshot }}</div>
+              <div :class="item.is_completed ? '' : 'text-brown'">
+                {{ item.product_name_snapshot }}<template v-if="item.variant_name_snapshot"> - {{ item.variant_name_snapshot }}</template>
+              </div>
               <div class="text-taupe">
                 <template v-if="item.material_name_snapshot">{{ item.material_name_snapshot }} × </template
                 >{{ item.quantity }}

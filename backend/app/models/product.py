@@ -34,6 +34,13 @@ class Product(Base, TimestampMixin, SoftDeleteMixin):
     attribute_values: Mapped[list["ProductAttributeValue"]] = relationship(  # noqa: F821
         back_populates="product", cascade="all, delete-orphan"
     )
+    variants: Mapped[list["ProductVariant"]] = relationship(  # noqa: F821
+        back_populates="product", cascade="all, delete-orphan", order_by="ProductVariant.sort_order"
+    )
+
+    @property
+    def has_variants(self) -> bool:
+        return len(self.variants) > 0
 
     @property
     def is_on_sale(self) -> bool:

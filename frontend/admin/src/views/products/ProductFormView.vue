@@ -5,7 +5,7 @@ import { ElMessage } from 'element-plus'
 import type { UploadRequestOptions } from 'element-plus'
 import { apiClient, imageUrl } from '../../api/client'
 import { generateSku, generateSlug } from '../../utils/codegen'
-import type { Category, Product, ProductImage } from '../../types'
+import type { Category, Product, ProductImage, ProductVariant } from '../../types'
 
 const route = useRoute()
 const router = useRouter()
@@ -54,6 +54,7 @@ interface PendingImage {
 }
 
 const customAttributePairs = ref<{ key: string; value: string }[]>([])
+const variants = ref<ProductVariant[]>([])
 const images = ref<ProductImage[]>([])
 const pendingImages = ref<PendingImage[]>([])
 const categories = ref<Category[]>([])
@@ -109,7 +110,24 @@ async function loadProduct() {
     key,
     value: String(value),
   }))
+  variants.value = data.variants.map((v) => ({ ...v }))
   images.value = data.images
+}
+
+function addVariant() {
+  variants.value.push({
+    sku: null,
+    name: '',
+    price: form.value.base_price,
+    track_stock: false,
+    stock_quantity: 0,
+    sort_order: variants.value.length,
+    is_active: true,
+  })
+}
+
+function removeVariant(index: number) {
+  variants.value.splice(index, 1)
 }
 
 function addAttributePair() {
@@ -155,7 +173,11 @@ async function flushPendingImages(targetProductId: number) {
 }
 
 async function submitOnce() {
-  const payload = { ...form.value, custom_attributes: buildCustomAttributes() }
+  const payload = {
+    ...form.value,
+    custom_attributes: buildCustomAttributes(),
+    variants: variants.value,
+  }
   if (isEdit.value) {
     await apiClient.put(`/api/v1/admin/products/${productId.value}`, payload)
     ElMessage.success('已更新')
@@ -277,7 +299,10 @@ watch(productId, (newId) => {
           </el-select>
         </el-form-item>
         <el-form-item label="價格">
-          <el-input-number v-model="form.base_price" :min="0" />
+          <el-input-number v-model="form.base_price" :min="0" :disabled="variants.length > 0" />
+          <p v-if="variants.length > 0" class="mt-1 text-xs text-gray-400">
+            已有規格,價格改由下方各規格決定(此欄位僅顯示最低規格價格)
+          </p>
         </el-form-item>
         <el-form-item label="狀態">
           <el-select v-model="form.status">
@@ -293,11 +318,11 @@ watch(productId, (newId) => {
         <span class="ml-2 text-sm text-brown">設為本週主打商品(顯示在前台「主打商品」頁面)</span>
       </el-form-item>
 
-      <el-form-item>
+      <el-form-item v-if="variants.length === 0">
         <el-switch v-model="saleEnabled" />
         <span class="ml-2 text-sm text-brown">設定特價</span>
       </el-form-item>
-      <div v-if="saleEnabled" class="grid grid-cols-2 gap-4">
+      <div v-if="saleEnabled && variants.length === 0" class="grid grid-cols-2 gap-4">
         <el-form-item label="特價">
           <el-input-number v-model="form.sale_price" :min="0" />
         </el-form-item>
@@ -311,6 +336,27 @@ watch(productId, (newId) => {
             class="w-full"
           />
         </el-form-item>
+      </div>
+
+      <el-divider />
+      <div class="mb-2 flex items-center justify-between">
+        <span class="font-medium">規格(例如尺寸、款式 — 每個規格可設定不同價格)</span>
+        <el-button size="small" @click="addVariant">新增規格</el-button>
+      </div>
+      <p v-if="variants.length > 0" class="mb-2 text-xs text-gray-400">
+        有規格的商品不支援商品層級特價,上方特價設定將被忽略。
+      </p>
+      <div v-for="(variant, index) in variants" :key="index" class="mb-2 flex flex-wrap items-center gap-2">
+        <el-input v-model="variant.name" placeholder="規格名稱,例如:小童48cm" class="w-40" />
+        <el-input-number v-model="variant.price" :min="0" placeholder="價格" />
+        <span class="flex items-center gap-1 text-sm text-brown">
+          <el-switch v-model="variant.track_stock" size="small" />庫存追蹤
+        </span>
+        <el-input-number v-if="variant.track_stock" v-model="variant.stock_quantity" :min="0" placeholder="庫存數量" />
+        <span class="flex items-center gap-1 text-sm text-brown">
+          <el-switch v-model="variant.is_active" size="small" />啟用
+        </span>
+        <el-button @click="removeVariant(index)">移除</el-button>
       </div>
 
       <el-divider />

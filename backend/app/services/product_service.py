@@ -5,13 +5,16 @@ from app.models.attribute import ProductAttributeValue
 from app.models.category import Category
 from app.models.product import Product
 from app.models.product_image import ProductImage
+from app.models.product_variant import ProductVariant
 from app.schemas.category import CategoryCreate, CategoryUpdate
-from app.schemas.product import AttributeValueIn, ProductCreate, ProductUpdate
+from app.schemas.product import AttributeValueIn, ProductCreate, ProductUpdate, ProductVariantIn
 
 
 def _product_query(db: Session):
     return db.query(Product).options(
-        selectinload(Product.images), selectinload(Product.attribute_values)
+        selectinload(Product.images),
+        selectinload(Product.attribute_values),
+        selectinload(Product.variants),
     )
 
 
@@ -58,6 +61,32 @@ def _apply_attribute_values(
         )
 
 
+def _apply_variants(db: Session, product: Product, variants: list[ProductVariantIn]) -> None:
+    db.query(ProductVariant).filter(ProductVariant.product_id == product.id).delete()
+    for variant in variants:
+        db.add(
+            ProductVariant(
+                product_id=product.id,
+                sku=variant.sku,
+                name=variant.name,
+                price=variant.price,
+                track_stock=variant.track_stock,
+                stock_quantity=variant.stock_quantity,
+                sort_order=variant.sort_order,
+                is_active=variant.is_active,
+            )
+        )
+    db.flush()
+
+    if variants:
+        active_prices = [v.price for v in variants if v.is_active]
+        if active_prices:
+            product.base_price = min(active_prices)
+        product.sale_price = None
+        product.sale_starts_at = None
+        product.sale_ends_at = None
+
+
 def create_product(db: Session, data: ProductCreate, created_by: int) -> Product:
     if db.query(Product).filter(Product.sku == data.sku).first() is not None:
         raise HTTPException(status.HTTP_409_CONFLICT, "SKU already exists")
@@ -83,17 +112,20 @@ def create_product(db: Session, data: ProductCreate, created_by: int) -> Product
     db.add(product)
     db.flush()
     _apply_attribute_values(db, product, data.attribute_values)
+    _apply_variants(db, product, data.variants)
     db.commit()
     return get_product(db, product.id)
 
 
 def update_product(db: Session, product_id: int, data: ProductUpdate) -> Product:
     product = get_product(db, product_id)
-    updates = data.model_dump(exclude_unset=True, exclude={"attribute_values"})
+    updates = data.model_dump(exclude_unset=True, exclude={"attribute_values", "variants"})
     for field, value in updates.items():
         setattr(product, field, value)
     if data.attribute_values is not None:
         _apply_attribute_values(db, product, data.attribute_values)
+    if data.variants is not None:
+        _apply_variants(db, product, data.variants)
     db.commit()
     return get_product(db, product_id)
 

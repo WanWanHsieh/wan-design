@@ -30,6 +30,23 @@ class AttributeValueOut(AttributeValueIn):
         from_attributes = True
 
 
+class ProductVariantIn(BaseModel):
+    sku: str | None = None
+    name: str = Field(min_length=1, max_length=100)
+    price: float
+    track_stock: bool = False
+    stock_quantity: int = Field(default=0, ge=0)
+    sort_order: int = 0
+    is_active: bool = True
+
+
+class ProductVariantOut(ProductVariantIn):
+    id: int
+
+    class Config:
+        from_attributes = True
+
+
 class ProductBase(BaseModel):
     sku: str = Field(min_length=1, max_length=64)
     name: str = Field(min_length=1, max_length=255)
@@ -49,6 +66,7 @@ class ProductBase(BaseModel):
 
 class ProductCreate(ProductBase):
     attribute_values: list[AttributeValueIn] = []
+    variants: list[ProductVariantIn] = []
 
 
 class ProductUpdate(BaseModel):
@@ -67,14 +85,17 @@ class ProductUpdate(BaseModel):
     sale_starts_at: date | None = None
     sale_ends_at: date | None = None
     attribute_values: list[AttributeValueIn] | None = None
+    variants: list[ProductVariantIn] | None = None
 
 
 class ProductOut(ProductBase):
     id: int
     is_on_sale: bool = False
     effective_price: float
+    has_variants: bool = False
     images: list[ProductImageOut] = []
     attribute_values: list[AttributeValueOut] = []
+    variants: list[ProductVariantOut] = []
 
     class Config:
         from_attributes = True
@@ -96,6 +117,8 @@ class ProductListItemOut(BaseModel):
     sale_ends_at: date | None = None
     is_on_sale: bool = False
     effective_price: float
+    has_variants: bool = False
+    variants: list[ProductVariantOut] = []
     primary_image: str | None = None
     primary_thumbnail: str | None = None
 

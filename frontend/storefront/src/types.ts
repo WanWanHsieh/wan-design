@@ -1,3 +1,14 @@
+export interface ProductVariant {
+  id: number
+  sku: string | null
+  name: string
+  price: number
+  track_stock: boolean
+  stock_quantity: number
+  sort_order: number
+  is_active: boolean
+}
+
 export interface ProductListItem {
   id: number
   sku: string
@@ -14,6 +25,8 @@ export interface ProductListItem {
   sale_ends_at: string | null
   is_on_sale: boolean
   effective_price: number
+  has_variants: boolean
+  variants: ProductVariant[]
   primary_image: string | null
   primary_thumbnail: string | null
 }
@@ -45,6 +58,8 @@ export interface ProductDetail {
   sale_ends_at: string | null
   is_on_sale: boolean
   effective_price: number
+  has_variants: boolean
+  variants: ProductVariant[]
   images: ProductImage[]
 }
 
@@ -72,6 +87,7 @@ export interface OrderItemResult {
   product_name_snapshot: string
   product_thumbnail: string | null
   product_image: string | null
+  variant_name_snapshot: string | null
   material_name_snapshot: string | null
   material_thumbnail: string | null
   material_image: string | null

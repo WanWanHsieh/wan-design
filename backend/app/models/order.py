@@ -33,6 +33,10 @@ class OrderItem(Base):
     order_id: Mapped[int] = mapped_column(ForeignKey("orders.id", ondelete="CASCADE"), nullable=False)
     product_id: Mapped[int | None] = mapped_column(ForeignKey("products.id", ondelete="SET NULL"))
     product_name_snapshot: Mapped[str] = mapped_column(String(255), nullable=False)
+    variant_id: Mapped[int | None] = mapped_column(
+        ForeignKey("product_variants.id", ondelete="SET NULL")
+    )
+    variant_name_snapshot: Mapped[str | None] = mapped_column(String(255))
     material_id: Mapped[int | None] = mapped_column(ForeignKey("materials.id", ondelete="SET NULL"))
     material_name_snapshot: Mapped[str | None] = mapped_column(String(255))
     unit_price: Mapped[float] = mapped_column(Numeric(12, 2), nullable=False)
@@ -43,6 +47,7 @@ class OrderItem(Base):
     order: Mapped["Order"] = relationship(back_populates="items")
     material: Mapped["Material | None"] = relationship()  # noqa: F821
     product: Mapped["Product | None"] = relationship()  # noqa: F821
+    variant: Mapped["ProductVariant | None"] = relationship()  # noqa: F821
 
     def _primary_fabric_image(self):
         if not self.material:

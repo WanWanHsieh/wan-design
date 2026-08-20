@@ -24,6 +24,17 @@ export interface AttributeValue {
   value_boolean: boolean | null
 }
 
+export interface ProductVariant {
+  id?: number
+  sku: string | null
+  name: string
+  price: number
+  track_stock: boolean
+  stock_quantity: number
+  sort_order: number
+  is_active: boolean
+}
+
 export interface Product {
   id: number
   sku: string
@@ -42,8 +53,10 @@ export interface Product {
   sale_ends_at: string | null
   is_on_sale: boolean
   effective_price: number
+  has_variants: boolean
   images: ProductImage[]
   attribute_values: AttributeValue[]
+  variants: ProductVariant[]
 }
 
 export interface Category {
@@ -109,6 +122,8 @@ export interface OrderItem {
   product_name_snapshot: string
   product_thumbnail: string | null
   product_image: string | null
+  variant_id: number | null
+  variant_name_snapshot: string | null
   material_id: number | null
   material_name_snapshot: string
   material_thumbnail: string | null

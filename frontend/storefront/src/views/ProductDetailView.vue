@@ -89,6 +89,17 @@ onMounted(async () => {
         </p>
         <p class="mt-4 whitespace-pre-line text-brown/80">{{ product.description }}</p>
 
+        <div v-if="product.has_variants" class="mt-4 rounded-xl border border-beige bg-cream/40 p-3">
+          <p class="text-sm font-medium text-brown">規格選項</p>
+          <ul class="mt-1 space-y-1 text-sm text-brown/80">
+            <li v-for="variant in product.variants" :key="variant.id" class="flex justify-between">
+              <span>{{ variant.name }}</span>
+              <span>NT$ {{ variant.price }}</span>
+            </li>
+          </ul>
+          <p class="mt-1 text-xs text-taupe">實際規格選擇請於前往訂購頁時進行。</p>
+        </div>
+
         <button
           v-if="!product.track_stock"
           type="button"
