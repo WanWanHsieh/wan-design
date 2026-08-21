@@ -393,9 +393,9 @@ async function handleSubmit() {
           <div
             v-for="(item, index) in lineItems"
             :key="index"
-            class="mb-3 grid grid-cols-1 gap-3 rounded-xl border border-beige bg-cream/60 p-4 sm:grid-cols-6 sm:items-end"
+            class="mb-3 flex flex-wrap items-end gap-3 rounded-xl border border-beige bg-cream/60 p-4"
           >
-            <label class="block text-sm text-brown">
+            <label class="block w-full text-sm text-brown sm:w-36">
               商品分類
               <select
                 v-model="item.topCategoryId"
@@ -407,7 +407,7 @@ async function handleSubmit() {
                 <option v-for="c in topCategories" :key="c.id" :value="c.id">{{ c.name }}</option>
               </select>
             </label>
-            <label class="block text-sm text-brown">
+            <label class="block w-full text-sm text-brown sm:w-56">
               選擇商品
               <div class="mt-1 flex items-center gap-2">
                 <img
@@ -430,7 +430,10 @@ async function handleSubmit() {
                 </select>
               </div>
             </label>
-            <label v-if="variantsForProduct(item.productId).length > 0" class="block text-sm text-brown">
+            <label
+              v-if="variantsForProduct(item.productId).length > 0"
+              class="block w-full text-sm text-brown sm:w-40"
+            >
               選擇規格
               <select
                 v-model="item.variantId"
@@ -443,7 +446,7 @@ async function handleSubmit() {
                 </option>
               </select>
             </label>
-            <label class="block text-sm text-brown sm:col-span-2">
+            <label class="block w-full text-sm text-brown sm:min-w-[220px] sm:flex-1">
               選擇布料
               <div class="mt-1 flex items-center gap-2">
                 <img
@@ -464,7 +467,7 @@ async function handleSubmit() {
                 </select>
               </div>
             </label>
-            <label class="block text-sm text-brown">
+            <label class="block w-full text-sm text-brown sm:w-24">
               數量
               <input
                 v-model.number="item.quantity"
@@ -474,7 +477,7 @@ async function handleSubmit() {
                 class="mt-1 w-full rounded-lg border border-beige bg-white px-2 py-2 focus:border-terracotta focus:outline-none focus:ring-1 focus:ring-terracotta"
               />
             </label>
-            <div class="flex items-center justify-between text-sm sm:col-span-6">
+            <div class="flex w-full items-center justify-between text-sm">
               <span class="text-taupe">小計:NT$ {{ itemSubtotal(item) }}</span>
               <button
                 v-if="lineItems.length > 1"

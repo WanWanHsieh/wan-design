@@ -243,9 +243,9 @@ async function handleDelete() {
         <div
           v-for="(item, index) in lineItems"
           :key="index"
-          class="mb-3 grid grid-cols-1 items-end gap-3 rounded border border-gray-200 p-3 sm:grid-cols-4"
+          class="mb-3 flex flex-wrap items-end gap-3 rounded border border-gray-200 p-3"
         >
-          <el-form-item label="商品" class="!mb-0">
+          <el-form-item label="商品" class="!mb-0 w-full sm:w-56">
             <div class="flex items-center gap-2">
               <el-image
                 v-if="primaryProductImage(item.productId)"
@@ -260,12 +260,16 @@ async function handleDelete() {
               </el-select>
             </div>
           </el-form-item>
-          <el-form-item v-if="variantsForProduct(item.productId).length > 0" label="規格" class="!mb-0">
+          <el-form-item
+            v-if="variantsForProduct(item.productId).length > 0"
+            label="規格"
+            class="!mb-0 w-full sm:w-40"
+          >
             <el-select v-model="item.variantId" filterable placeholder="請選擇">
               <el-option v-for="v in variantsForProduct(item.productId)" :key="v.id" :label="v.name" :value="v.id" />
             </el-select>
           </el-form-item>
-          <el-form-item label="布料" class="!mb-0">
+          <el-form-item label="布料" class="!mb-0 w-full sm:min-w-[220px] sm:flex-1">
             <div class="flex items-center gap-2">
               <el-image
                 v-if="primaryFabricImage(item.materialId)"
@@ -280,10 +284,10 @@ async function handleDelete() {
               </el-select>
             </div>
           </el-form-item>
-          <el-form-item label="數量" class="!mb-0">
+          <el-form-item label="數量" class="!mb-0 w-full sm:w-28">
             <el-input-number v-model="item.quantity" :min="1" />
           </el-form-item>
-          <div class="flex items-center justify-between">
+          <div class="flex w-full items-center justify-between">
             <span class="text-sm text-gray-600">小計:NT$ {{ itemSubtotal(item) }}</span>
             <el-button
               v-if="lineItems.length > 1"
