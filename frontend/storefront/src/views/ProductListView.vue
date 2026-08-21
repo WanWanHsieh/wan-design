@@ -47,12 +47,7 @@ onMounted(async () => {
 
 const uncategorized = computed(() => products.value.filter((p) => p.category_id === null))
 
-function categoryHasProducts(categoryId: number): boolean {
-  const scope = [categoryId, ...categories.value.filter((c) => c.parent_id === categoryId).map((c) => c.id)]
-  return products.value.some((p) => p.category_id !== null && scope.includes(p.category_id))
-}
-
-const visibleTopCategories = computed(() => nav.topCategories.value.filter((c) => categoryHasProducts(c.id)))
+const visibleTopCategories = computed(() => nav.topCategories.value)
 
 const visibleChildCategories = computed(() =>
   nav.childCategories.value.filter((c) => products.value.some((p) => p.category_id === c.id)),

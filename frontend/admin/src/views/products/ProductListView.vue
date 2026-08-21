@@ -10,6 +10,11 @@ const categories = ref<Category[]>([])
 const loading = ref(true)
 const router = useRouter()
 
+function primaryImage(product: Product) {
+  if (!product.images.length) return null
+  return product.images.find((img) => img.is_primary) ?? product.images[0]
+}
+
 function variantPriceRange(product: Product): string | null {
   if (!product.has_variants || product.variants.length === 0) return null
   const prices = product.variants.filter((v) => v.is_active).map((v) => v.price)
@@ -142,10 +147,13 @@ onMounted(loadProducts)
     >
       <el-table-column label="圖片" width="80">
         <template #default="{ row }">
-          <img
-            v-if="!row.isCategory && row.product.images[0]"
-            :src="imageUrl(row.product.images[0].thumbnail_key ?? row.product.images[0].storage_key)"
-            class="h-12 w-12 rounded object-cover"
+          <el-image
+            v-if="!row.isCategory && primaryImage(row.product)"
+            :src="imageUrl(primaryImage(row.product)!.thumbnail_key ?? primaryImage(row.product)!.storage_key)"
+            :preview-src-list="[imageUrl(primaryImage(row.product)!.storage_key)]"
+            preview-teleported
+            fit="cover"
+            class="h-12 w-12 cursor-zoom-in rounded"
           />
         </template>
       </el-table-column>
@@ -224,10 +232,13 @@ onMounted(loadProducts)
             :key="row.id"
             class="flex gap-3 rounded-xl border border-beige bg-white p-3 shadow-[0_2px_8px_rgba(180,140,110,0.08)]"
           >
-            <img
-              v-if="row.images[0]"
-              :src="imageUrl(row.images[0].thumbnail_key ?? row.images[0].storage_key)"
-              class="h-16 w-16 flex-none rounded-lg object-cover"
+            <el-image
+              v-if="primaryImage(row)"
+              :src="imageUrl(primaryImage(row)!.thumbnail_key ?? primaryImage(row)!.storage_key)"
+              :preview-src-list="[imageUrl(primaryImage(row)!.storage_key)]"
+              preview-teleported
+              fit="cover"
+              class="h-16 w-16 flex-none cursor-zoom-in rounded-lg"
             />
             <div class="flex-1">
               <div class="flex items-center gap-1">
