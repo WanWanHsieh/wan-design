@@ -251,6 +251,18 @@ async function handleSubmit() {
         我們會依照您留下的聯絡電話({{ result.phone }})與您聯繫確認訂單與付款方式。
       </p>
 
+      <div class="mt-4 rounded-xl border border-terracotta/30 bg-white/70 p-3 text-sm text-brown">
+        <p class="font-medium">📱 訂購完成後,請加入官方 LINE 與小編確認訂單</p>
+        <a
+          href="https://line.me/R/ti/p/@894onjvt?from=page&searchId=894onjvt"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="mt-2 inline-block rounded-full bg-[#06C755] px-4 py-1.5 text-sm font-medium text-white transition hover:opacity-90"
+        >
+          加入 LINE 好友(ID:@894onjvt)
+        </a>
+      </div>
+
       <div class="mt-4 space-y-2">
         <div
           v-for="item in result.items"
