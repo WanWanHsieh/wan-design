@@ -300,7 +300,7 @@ async function handleSubmit() {
       </p>
       <p class="mt-2 text-sm text-brown/80">訂單編號:{{ result.order_no }}</p>
       <p class="mt-1 text-sm text-brown/80">
-        我們會依照您留下的聯絡電話({{ result.phone }})與您聯繫確認訂單與付款方式。
+        {{ result.customer_name }} 您好,請加入下方官方 LINE,我們會與您聯繫確認訂單與付款方式。
       </p>
 
       <div class="mt-4 rounded-xl border border-terracotta/30 bg-white/70 p-3 text-sm text-brown">
