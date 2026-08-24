@@ -20,6 +20,8 @@ class Order(Base, TimestampMixin):
     total_amount: Mapped[float] = mapped_column(Numeric(12, 2), nullable=False)
     status: Mapped[str] = mapped_column(String(20), default="pending", nullable=False)
     notes: Mapped[str | None] = mapped_column(Text)
+    adjustment_amount: Mapped[float] = mapped_column(Numeric(12, 2), default=0, nullable=False)
+    adjustment_note: Mapped[str | None] = mapped_column(Text)
 
     items: Mapped[list["OrderItem"]] = relationship(
         back_populates="order", cascade="all, delete-orphan"
@@ -43,6 +45,8 @@ class OrderItem(Base):
     quantity: Mapped[int] = mapped_column(Integer, nullable=False)
     subtotal: Mapped[float] = mapped_column(Numeric(12, 2), nullable=False)
     is_completed: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    custom_note: Mapped[str | None] = mapped_column(Text)
+    extra_charge: Mapped[float] = mapped_column(Numeric(12, 2), default=0, nullable=False)
 
     order: Mapped["Order"] = relationship(back_populates="items")
     material: Mapped["Material | None"] = relationship()  # noqa: F821

@@ -95,6 +95,8 @@ export interface OrderItemResult {
   quantity: number
   subtotal: number
   is_completed: boolean
+  custom_note: string | null
+  extra_charge: number
 }
 
 export interface OrderResult {
@@ -109,6 +111,8 @@ export interface OrderResult {
   total_amount: number
   status: string
   notes: string | null
+  adjustment_amount: number
+  adjustment_note: string | null
   created_at: string
   items: OrderItemResult[]
 }

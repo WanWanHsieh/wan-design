@@ -13,6 +13,11 @@ class OrderItemIn(BaseModel):
     quantity: int = Field(gt=0)
 
 
+class AdminOrderItemIn(OrderItemIn):
+    custom_note: str | None = None
+    extra_charge: float = 0
+
+
 class OrderItemOut(BaseModel):
     id: int
     product_id: int | None
@@ -29,6 +34,8 @@ class OrderItemOut(BaseModel):
     quantity: int
     subtotal: float
     is_completed: bool
+    custom_note: str | None = None
+    extra_charge: float = 0
 
     class Config:
         from_attributes = True
@@ -76,7 +83,9 @@ class OrderUpdate(BaseModel):
     expected_delivery_date: date | None = None
     status: str | None = None
     notes: str | None = None
-    items: list[OrderItemIn] | None = Field(default=None, min_length=1)
+    adjustment_amount: float | None = None
+    adjustment_note: str | None = None
+    items: list[AdminOrderItemIn] | None = Field(default=None, min_length=1)
 
 
 class OrderOut(BaseModel):
@@ -91,6 +100,8 @@ class OrderOut(BaseModel):
     total_amount: float
     status: str
     notes: str | None
+    adjustment_amount: float = 0
+    adjustment_note: str | None = None
     created_at: datetime
     items: list[OrderItemOut] = []
 
@@ -110,6 +121,8 @@ class OrderListItemOut(BaseModel):
     total_amount: float
     status: str
     notes: str | None
+    adjustment_amount: float = 0
+    adjustment_note: str | None = None
     created_at: datetime
     items: list[OrderItemOut] = []
 

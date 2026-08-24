@@ -104,6 +104,8 @@ def _build_order_items(
 
         variant = _resolve_variant(db, product, item.variant_id)
         stock_target = variant if variant is not None else product
+        extra_charge = float(getattr(item, "extra_charge", 0) or 0)
+        custom_note = getattr(item, "custom_note", None)
 
         if item.material_id is None:
             if not stock_target.track_stock:
@@ -117,7 +119,8 @@ def _build_order_items(
                     )
                 stock_target.stock_quantity -= item.quantity
 
-            unit_price = float(variant.price) if variant is not None else float(product.effective_price)
+            base_price = float(variant.price) if variant is not None else float(product.effective_price)
+            unit_price = base_price + extra_charge
             subtotal = round(unit_price * item.quantity, 2)
             total_amount += subtotal
 
@@ -132,6 +135,8 @@ def _build_order_items(
                     unit_price=unit_price,
                     quantity=item.quantity,
                     subtotal=subtotal,
+                    custom_note=custom_note,
+                    extra_charge=extra_charge,
                 )
             )
             continue
@@ -149,7 +154,7 @@ def _build_order_items(
             raise HTTPException(status.HTTP_400_BAD_REQUEST, f"Material {item.material_id} not found")
 
         base_price = float(variant.price) if variant is not None else float(product.effective_price)
-        unit_price = base_price + float(material.price_addon)
+        unit_price = base_price + float(material.price_addon) + extra_charge
         subtotal = round(unit_price * item.quantity, 2)
         total_amount += subtotal
 
@@ -164,6 +169,8 @@ def _build_order_items(
                 unit_price=unit_price,
                 quantity=item.quantity,
                 subtotal=subtotal,
+                custom_note=custom_note,
+                extra_charge=extra_charge,
             )
         )
 
@@ -226,13 +233,16 @@ def update_order(db: Session, order_id: int, data: OrderUpdate) -> Order:
     if data.items is not None:
         if stock_was_reserved:
             _restore_stock_for_items(db, order.items)
-        order_items, total_amount = _build_order_items(db, data.items, adjust_stock=will_reserve)
+        order_items, _ = _build_order_items(db, data.items, adjust_stock=will_reserve)
         order.items = order_items
-        order.total_amount = total_amount
     elif stock_was_reserved and not will_reserve:
         _restore_stock_for_items(db, order.items)
     elif not stock_was_reserved and will_reserve:
         _decrement_stock_for_items(db, order.items)
+
+    order.total_amount = round(
+        sum(float(item.subtotal) for item in order.items) + float(order.adjustment_amount), 2
+    )
 
     try:
         check_shipping_fields(order.shipping_method, order.shipping_store_code, order.shipping_address)

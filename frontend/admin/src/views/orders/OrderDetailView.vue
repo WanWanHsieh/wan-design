@@ -10,6 +10,8 @@ interface LineItem {
   variantId: number | null
   materialId: number | null
   quantity: number
+  customNote: string | null
+  extraCharge: number
 }
 
 const route = useRoute()
@@ -31,6 +33,8 @@ const expectedDeliveryDate = ref('')
 const notes = ref('')
 const orderStatus = ref('pending')
 const lineItems = ref<LineItem[]>([])
+const adjustmentAmount = ref(0)
+const adjustmentNote = ref('')
 
 const STATUS_LABELS: Record<string, string> = {
   pending: '待處理',
@@ -60,11 +64,15 @@ async function loadAll() {
     expectedDeliveryDate.value = orderRes.data.expected_delivery_date
     notes.value = orderRes.data.notes ?? ''
     orderStatus.value = orderRes.data.status
+    adjustmentAmount.value = orderRes.data.adjustment_amount
+    adjustmentNote.value = orderRes.data.adjustment_note ?? ''
     lineItems.value = orderRes.data.items.map((item) => ({
       productId: item.product_id,
       variantId: item.variant_id,
       materialId: item.material_id,
       quantity: item.quantity,
+      customNote: item.custom_note,
+      extraCharge: item.extra_charge,
     }))
   } finally {
     loading.value = false
@@ -75,7 +83,14 @@ onMounted(loadAll)
 watch(orderId, loadAll)
 
 function addLineItem() {
-  lineItems.value.push({ productId: null, variantId: null, materialId: null, quantity: 1 })
+  lineItems.value.push({
+    productId: null,
+    variantId: null,
+    materialId: null,
+    quantity: 1,
+    customNote: null,
+    extraCharge: 0,
+  })
 }
 
 function removeLineItem(index: number) {
@@ -110,19 +125,22 @@ function itemUnitPrice(item: LineItem): number {
     ? product.variants.find((v) => v.id === item.variantId)?.price ?? null
     : product.base_price
   if (basePrice === null) return 0
-  if (item.materialId === null) return basePrice
+  const extraCharge = item.extraCharge || 0
+  if (item.materialId === null) return basePrice + extraCharge
   const material = materials.value.find((m) => m.id === item.materialId)
   if (!material) return 0
-  return basePrice + material.price_addon
+  return basePrice + material.price_addon + extraCharge
 }
 
 function itemSubtotal(item: LineItem): number {
   return itemUnitPrice(item) * (item.quantity || 0)
 }
 
-const totalAmount = computed(() =>
+const itemsTotal = computed(() =>
   lineItems.value.reduce((sum, item) => sum + itemSubtotal(item), 0),
 )
+
+const totalAmount = computed(() => itemsTotal.value + (adjustmentAmount.value || 0))
 
 const canSave = computed(() => {
   if (!customerName.value.trim() || !phone.value.trim() || !expectedDeliveryDate.value) return false
@@ -148,11 +166,15 @@ async function handleSave() {
       expected_delivery_date: expectedDeliveryDate.value,
       notes: notes.value.trim() || null,
       status: orderStatus.value,
+      adjustment_amount: adjustmentAmount.value || 0,
+      adjustment_note: adjustmentNote.value.trim() || null,
       items: lineItems.value.map((item) => ({
         product_id: item.productId,
         variant_id: item.variantId,
         material_id: item.materialId,
         quantity: item.quantity,
+        custom_note: item.customNote?.trim() || null,
+        extra_charge: item.extraCharge || 0,
       })),
     })
     ElMessage.success('已儲存變更')
@@ -287,6 +309,12 @@ async function handleDelete() {
           <el-form-item label="數量" class="!mb-0 w-full sm:w-28">
             <el-input-number v-model="item.quantity" :min="1" />
           </el-form-item>
+          <el-form-item label="客製說明" class="!mb-0 w-full sm:min-w-[200px] sm:flex-1">
+            <el-input v-model="item.customNote" placeholder="例如:繡名字、加大尺寸" clearable />
+          </el-form-item>
+          <el-form-item label="加價(每件)" class="!mb-0 w-full sm:w-32">
+            <el-input-number v-model="item.extraCharge" :step="10" />
+          </el-form-item>
           <div class="flex w-full items-center justify-between">
             <span class="text-sm text-gray-600">小計:NT$ {{ itemSubtotal(item) }}</span>
             <el-button
@@ -301,8 +329,24 @@ async function handleDelete() {
           </div>
         </div>
 
+        <el-divider />
+        <div class="mb-2 font-medium">價格調整(折扣或加價,套用在整張訂單)</div>
+        <div class="mb-4 flex flex-wrap items-end gap-3">
+          <el-form-item label="調整金額(負數為折扣)" class="!mb-0 w-full sm:w-48">
+            <el-input-number v-model="adjustmentAmount" :step="10" />
+          </el-form-item>
+          <el-form-item label="說明" class="!mb-0 w-full sm:min-w-[220px] sm:flex-1">
+            <el-input v-model="adjustmentNote" placeholder="例如:老客戶折扣、加急處理費" clearable />
+          </el-form-item>
+        </div>
+
         <div class="mt-4 flex items-center justify-between border-t border-gray-200 pt-4">
-          <span class="text-lg font-semibold">總價:NT$ {{ totalAmount }}</span>
+          <div>
+            <p v-if="adjustmentAmount" class="text-sm text-gray-500">
+              商品小計:NT$ {{ itemsTotal }}(調整 {{ adjustmentAmount > 0 ? '+' : '' }}{{ adjustmentAmount }})
+            </p>
+            <span class="text-lg font-semibold">總價:NT$ {{ totalAmount }}</span>
+          </div>
           <el-button type="primary" :loading="saving" :disabled="!canSave" @click="handleSave">
             儲存變更
           </el-button>

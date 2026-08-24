@@ -153,12 +153,19 @@ async function handleSearch() {
               {{ item.product_name_snapshot }}<template v-if="item.variant_name_snapshot"> - {{ item.variant_name_snapshot }}</template>
               <template v-if="item.material_name_snapshot"> × {{ item.material_name_snapshot }}</template>
               × {{ item.quantity }} — NT$ {{ item.subtotal }}
+              <span v-if="item.custom_note" class="mt-0.5 block text-xs text-terracotta-dark">
+                客製說明:{{ item.custom_note }}
+              </span>
             </span>
             <span v-if="item.is_completed" class="flex-none text-xs text-sage-dark">已完成</span>
           </div>
         </div>
 
         <p v-if="result.notes" class="mt-4 text-sm text-brown/80">備註:{{ result.notes }}</p>
+        <p v-if="result.adjustment_amount" class="mt-2 text-sm text-brown/80">
+          價格調整:{{ result.adjustment_amount > 0 ? '+' : '' }}NT$ {{ result.adjustment_amount }}
+          <template v-if="result.adjustment_note">({{ result.adjustment_note }})</template>
+        </p>
         <p class="mt-4 text-lg font-bold text-terracotta-dark">總金額:NT$ {{ result.total_amount }}</p>
       </div>
     </div>
