@@ -5,26 +5,18 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { apiClient, imageUrl } from '../../api/client'
 import type { Product } from '../../types'
 
-const LOW_STOCK_THRESHOLD = 2
-
 const products = ref<Product[]>([])
 const loading = ref(true)
 const router = useRouter()
 
-const lowStockCount = computed(
-  () => products.value.filter((p) => p.stock_quantity <= LOW_STOCK_THRESHOLD).length,
-)
+const soldOutCount = computed(() => products.value.filter((p) => p.stock_quantity <= 0).length)
 
-function stockTagType(qty: number): 'success' | 'warning' | 'danger' {
-  if (qty <= 0) return 'danger'
-  if (qty <= LOW_STOCK_THRESHOLD) return 'warning'
-  return 'success'
+function stockTagType(qty: number): 'success' | 'danger' {
+  return qty <= 0 ? 'danger' : 'success'
 }
 
 function stockLabel(qty: number): string {
-  if (qty <= 0) return '已售完'
-  if (qty <= LOW_STOCK_THRESHOLD) return `低庫存 ${qty}`
-  return `現貨 ${qty}`
+  return qty <= 0 ? '已售完' : `現貨 ${qty}`
 }
 
 async function loadProducts() {
@@ -60,10 +52,10 @@ onMounted(loadProducts)
     </p>
 
     <div
-      v-if="lowStockCount > 0"
+      v-if="soldOutCount > 0"
       class="mb-4 rounded-lg border border-amber-300 bg-amber-50 px-4 py-2 text-sm text-amber-800"
     >
-      ⚠️ 有 {{ lowStockCount }} 項現貨庫存偏低(≤{{ LOW_STOCK_THRESHOLD }}件或已售完),建議儘快補貨。
+      ⚠️ 有 {{ soldOutCount }} 項現貨已售完,建議儘快補貨。
     </div>
 
     <el-table :data="products" v-loading="loading" stripe class="hidden sm:block">

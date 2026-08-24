@@ -10,18 +10,20 @@ from app.schemas.category import CategoryCreate, CategoryUpdate
 from app.schemas.product import AttributeValueIn, ProductCreate, ProductUpdate, ProductVariantIn
 
 
-def _product_query(db: Session):
-    return db.query(Product).options(
-        selectinload(Product.images),
-        selectinload(Product.attribute_values),
-        selectinload(Product.variants),
-    )
+def _product_query(db: Session, include_attributes: bool = True):
+    options = [selectinload(Product.images), selectinload(Product.variants)]
+    if include_attributes:
+        options.append(selectinload(Product.attribute_values))
+    return db.query(Product).options(*options)
 
 
 def list_products(
-    db: Session, include_inactive: bool = True, track_stock: bool | None = None
+    db: Session,
+    include_inactive: bool = True,
+    track_stock: bool | None = None,
+    include_attributes: bool = True,
 ) -> list[Product]:
-    query = _product_query(db).filter(Product.deleted_at.is_(None))
+    query = _product_query(db, include_attributes=include_attributes).filter(Product.deleted_at.is_(None))
     if not include_inactive:
         query = query.filter(Product.status == "active")
     if track_stock is not None:

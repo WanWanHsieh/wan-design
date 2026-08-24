@@ -11,7 +11,7 @@ router = APIRouter(prefix="/products", tags=["storefront-products"])
 @router.get("", response_model=list[ProductListItemOut])
 def list_products(track_stock: bool = False, db: Session = Depends(get_db)):
     products = product_service.list_products(
-        db, include_inactive=False, track_stock=track_stock
+        db, include_inactive=False, track_stock=track_stock, include_attributes=False
     )
     result = []
     for p in products:

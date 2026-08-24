@@ -7,8 +7,6 @@ import { apiClient } from '../api/client'
 import type { Product } from '../types'
 import logo from '../images/logo.png'
 
-const LOW_STOCK_THRESHOLD = 2
-
 const auth = useAuthStore()
 const router = useRouter()
 const lowStockCount = ref(0)
@@ -66,7 +64,7 @@ async function loadLowStockCount() {
     const { data } = await apiClient.get<Product[]>('/api/v1/admin/products', {
       params: { track_stock: true },
     })
-    lowStockCount.value = data.filter((p) => p.stock_quantity <= LOW_STOCK_THRESHOLD).length
+    lowStockCount.value = data.filter((p) => p.stock_quantity <= 0).length
   } catch {
     lowStockCount.value = 0
   }
