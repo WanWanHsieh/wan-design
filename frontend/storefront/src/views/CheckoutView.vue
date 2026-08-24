@@ -2,6 +2,8 @@
 import { computed, onMounted, ref } from 'vue'
 import { apiClient, imageUrl } from '../api/client'
 import ImageLightbox from '../components/ImageLightbox.vue'
+import PriceTag from '../components/PriceTag.vue'
+import { useCartStore } from '../stores/cart'
 import { useOrderDraftStore } from '../stores/orderDraft'
 import type { Category, Material, OrderResult, ProductListItem } from '../types'
 
@@ -15,8 +17,11 @@ interface LineItem {
 
 const UNCATEGORIZED_TOP_ID = -1
 
+const cart = useCartStore()
 const orderDraft = useOrderDraftStore()
-const products = ref<ProductListItem[]>([])
+
+const orderProducts = ref<ProductListItem[]>([])
+const inStockProducts = ref<ProductListItem[]>([])
 const materials = ref<Material[]>([])
 const categories = ref<Category[]>([])
 const loading = ref(true)
@@ -30,9 +35,7 @@ const shippingAddress = ref('')
 const expectedDeliveryDate = ref('')
 const notes = ref('')
 
-const lineItems = ref<LineItem[]>([
-  { topCategoryId: null, productId: null, variantId: null, materialId: null, quantity: 1 },
-])
+const lineItems = ref<LineItem[]>([])
 
 const submitting = ref(false)
 const submitError = ref<string | null>(null)
@@ -52,19 +55,21 @@ function openLightbox(storageKey: string, alt: string) {
 
 onMounted(async () => {
   try {
-    const [productsRes, materialsRes, categoriesRes] = await Promise.all([
+    const [orderProductsRes, inStockProductsRes, materialsRes, categoriesRes] = await Promise.all([
       apiClient.get<ProductListItem[]>('/api/v1/storefront/products'),
+      apiClient.get<ProductListItem[]>('/api/v1/storefront/products', { params: { track_stock: true } }),
       apiClient.get<{ items: Material[] }>('/api/v1/storefront/materials', { params: { page_size: 1000 } }),
       apiClient.get<Category[]>('/api/v1/storefront/categories'),
     ])
-    products.value = productsRes.data
+    orderProducts.value = orderProductsRes.data
+    inStockProducts.value = inStockProductsRes.data
     materials.value = materialsRes.data.items
     categories.value = categoriesRes.data
 
     if (orderDraft.items.length > 0) {
       const draftLineItems = orderDraft.items
         .map((draftItem): LineItem | null => {
-          const draftProduct = products.value.find((p) => p.id === draftItem.productId)
+          const draftProduct = orderProducts.value.find((p) => p.id === draftItem.productId)
           if (!draftProduct) return null
           return {
             topCategoryId: topCategoryIdForCategory(draftProduct.category_id),
@@ -86,6 +91,36 @@ onMounted(async () => {
   }
 })
 
+// ---- 現貨(購物車)區塊 ----
+
+function inStockProductOf(productId: number): ProductListItem | undefined {
+  return inStockProducts.value.find((p) => p.id === productId)
+}
+
+const cartRows = computed(() =>
+  cart.items
+    .map((item) => {
+      const product = inStockProductOf(item.productId)
+      return product ? { item, product } : null
+    })
+    .filter((row): row is { item: { productId: number; quantity: number }; product: ProductListItem } => row !== null),
+)
+
+const cartTotalAmount = computed(() =>
+  cartRows.value.reduce((sum, row) => sum + row.product.effective_price * row.item.quantity, 0),
+)
+
+function updateCartQuantity(productId: number, quantity: number) {
+  cart.setQuantity(productId, quantity)
+}
+
+function handleClearCart() {
+  if (!confirm('確定要清空現貨商品嗎?')) return
+  cart.clear()
+}
+
+// ---- 訂製(訂購清單)區塊 ----
+
 function topCategoryIdForCategory(categoryId: number | null): number {
   if (categoryId === null) return UNCATEGORIZED_TOP_ID
   const category = categories.value.find((c) => c.id === categoryId)
@@ -103,17 +138,17 @@ const topCategories = computed(() => {
     .filter((c) => c.parent_id === null)
     .filter((c) => {
       const scope = categoryIdsUnderTop(c.id)
-      return products.value.some((p) => p.category_id !== null && scope.includes(p.category_id))
+      return orderProducts.value.some((p) => p.category_id !== null && scope.includes(p.category_id))
     })
-  const hasUncategorized = products.value.some((p) => p.category_id === null)
+  const hasUncategorized = orderProducts.value.some((p) => p.category_id === null)
   return hasUncategorized ? [...tops, { id: UNCATEGORIZED_TOP_ID, name: '未分類' } as Category] : tops
 })
 
 function productsForTopCategory(topId: number | null): ProductListItem[] {
   if (topId === null) return []
-  if (topId === UNCATEGORIZED_TOP_ID) return products.value.filter((p) => p.category_id === null)
+  if (topId === UNCATEGORIZED_TOP_ID) return orderProducts.value.filter((p) => p.category_id === null)
   const scope = categoryIdsUnderTop(topId)
-  return products.value.filter((p) => p.category_id !== null && scope.includes(p.category_id))
+  return orderProducts.value.filter((p) => p.category_id !== null && scope.includes(p.category_id))
 }
 
 function handleTopCategoryChange(item: LineItem) {
@@ -126,7 +161,7 @@ function handleProductChange(item: LineItem) {
 }
 
 function variantsForProduct(productId: number | null) {
-  return products.value.find((p) => p.id === productId)?.variants ?? []
+  return orderProducts.value.find((p) => p.id === productId)?.variants ?? []
 }
 
 function addLineItem() {
@@ -138,13 +173,13 @@ function removeLineItem(index: number) {
 }
 
 function clearLineItems() {
-  if (!confirm('確定要清空目前的訂購項目嗎?')) return
+  if (!confirm('確定要清空目前的訂製項目嗎?')) return
   orderDraft.clear()
-  lineItems.value = [{ topCategoryId: null, productId: null, variantId: null, materialId: null, quantity: 1 }]
+  lineItems.value = []
 }
 
 function itemUnitPrice(item: LineItem): number {
-  const product = products.value.find((p) => p.id === item.productId)
+  const product = orderProducts.value.find((p) => p.id === item.productId)
   const material = materials.value.find((m) => m.id === item.materialId)
   if (!product || !material) return 0
   if (product.has_variants) {
@@ -178,30 +213,40 @@ function materialFullImage(materialId: number | null): string | null {
 }
 
 function productThumbnail(productId: number | null): string | null {
-  const product = products.value.find((p) => p.id === productId)
+  const product = orderProducts.value.find((p) => p.id === productId)
   if (!product) return null
   return product.primary_thumbnail ?? product.primary_image
 }
 
 function productFullImage(productId: number | null): string | null {
-  const product = products.value.find((p) => p.id === productId)
+  const product = orderProducts.value.find((p) => p.id === productId)
   return product ? product.primary_image : null
 }
 
-const totalAmount = computed(() =>
+const orderTotalAmount = computed(() =>
   lineItems.value.reduce((sum, item) => sum + itemSubtotal(item), 0),
 )
 
+// ---- 合併 ----
+
+const hasAnyItems = computed(() => cartRows.value.length > 0 || lineItems.value.length > 0)
+
+const totalAmount = computed(() => cartTotalAmount.value + orderTotalAmount.value)
+
 const canSubmit = computed(() => {
+  if (!hasAnyItems.value) return false
   if (!customerName.value.trim() || !phone.value.trim() || !expectedDeliveryDate.value) return false
   if (shippingMethod.value === 'address' && !shippingAddress.value.trim()) return false
   if (shippingMethod.value !== 'address' && !shippingStoreCode.value.trim()) return false
-  if (lineItems.value.length === 0) return false
-  return lineItems.value.every((item) => {
+  const cartValid = cartRows.value.every(
+    (row) => row.item.quantity > 0 && row.item.quantity <= row.product.stock_quantity,
+  )
+  const lineItemsValid = lineItems.value.every((item) => {
     if (!item.productId || !item.materialId || item.quantity <= 0) return false
     if (variantsForProduct(item.productId).length > 0 && !item.variantId) return false
     return true
   })
+  return cartValid && lineItemsValid
 })
 
 async function handleSubmit() {
@@ -216,14 +261,21 @@ async function handleSubmit() {
       shipping_address: shippingMethod.value === 'address' ? shippingAddress.value : null,
       expected_delivery_date: expectedDeliveryDate.value,
       notes: notes.value.trim() || null,
-      items: lineItems.value.map((item) => ({
-        product_id: item.productId,
-        variant_id: item.variantId,
-        material_id: item.materialId,
-        quantity: item.quantity,
-      })),
+      items: [
+        ...cartRows.value.map((row) => ({
+          product_id: row.product.id,
+          quantity: row.item.quantity,
+        })),
+        ...lineItems.value.map((item) => ({
+          product_id: item.productId,
+          variant_id: item.variantId,
+          material_id: item.materialId,
+          quantity: item.quantity,
+        })),
+      ],
     })
     result.value = data
+    cart.clear()
     orderDraft.clear()
   } catch {
     submitError.value = '訂單送出失敗,請確認資料填寫正確後再試一次。'
@@ -236,7 +288,7 @@ async function handleSubmit() {
 <template>
   <main class="mx-auto max-w-3xl px-4 py-10">
     <h1 class="mb-6 flex items-center gap-2 text-2xl font-bold text-brown">
-      <span aria-hidden="true">🪡</span>訂購單
+      <span aria-hidden="true">🪡</span>訂購清單
     </h1>
 
     <div
@@ -283,7 +335,8 @@ async function handleSubmit() {
           />
           <span class="text-brown">
             {{ item.product_name_snapshot }}<template v-if="item.variant_name_snapshot"> - {{ item.variant_name_snapshot }}</template>
-            × {{ item.material_name_snapshot }} × {{ item.quantity }}
+            <template v-if="item.material_name_snapshot"> × {{ item.material_name_snapshot }}</template>
+            × {{ item.quantity }}
             — NT$ {{ item.subtotal }}
           </span>
         </div>
@@ -291,113 +344,116 @@ async function handleSubmit() {
 
       <p v-if="result.notes" class="mt-4 text-sm text-brown/80">備註:{{ result.notes }}</p>
       <p class="mt-4 text-lg font-bold text-terracotta-dark">總金額:NT$ {{ result.total_amount }}</p>
+
+      <div class="mt-4 flex gap-3">
+        <RouterLink
+          to="/instock"
+          class="inline-block rounded-full border border-terracotta px-4 py-1.5 text-sm text-terracotta transition hover:bg-terracotta-light"
+        >
+          繼續選購現貨商品
+        </RouterLink>
+        <RouterLink
+          to="/"
+          class="inline-block rounded-full border border-terracotta px-4 py-1.5 text-sm text-terracotta transition hover:bg-terracotta-light"
+        >
+          繼續選購訂製商品
+        </RouterLink>
+      </div>
     </div>
 
     <div v-else>
       <p v-if="loading" class="text-taupe">載入中...</p>
       <p v-else-if="loadError" class="text-red-600">{{ loadError }}</p>
 
+      <div
+        v-else-if="!hasAnyItems"
+        class="rounded-2xl border border-beige bg-white p-6 text-center text-taupe shadow-[0_2px_10px_rgba(180,140,110,0.08)]"
+      >
+        還沒有加入任何商品,
+        <RouterLink to="/" class="text-terracotta hover:underline">去看看訂製商品</RouterLink>
+        或
+        <RouterLink to="/instock" class="text-terracotta hover:underline">去逛逛現貨商品</RouterLink>
+      </div>
+
       <form v-else class="space-y-8" @submit.prevent="handleSubmit">
         <section class="rounded-2xl border border-beige bg-white p-5 shadow-[0_2px_10px_rgba(180,140,110,0.08)]">
-          <h2 class="mb-3 font-bold text-brown">聯絡資訊</h2>
-          <div class="grid gap-4 sm:grid-cols-2">
-            <label class="block text-sm text-brown">
-              通訊名字
-              <input
-                v-model="customerName"
-                type="text"
-                required
-                class="mt-1 w-full rounded-lg border border-beige px-3 py-2 focus:border-terracotta focus:outline-none focus:ring-1 focus:ring-terracotta"
-              />
-            </label>
-            <label class="block text-sm text-brown">
-              聯絡電話
-              <input
-                v-model="phone"
-                type="tel"
-                required
-                class="mt-1 w-full rounded-lg border border-beige px-3 py-2 focus:border-terracotta focus:outline-none focus:ring-1 focus:ring-terracotta"
-              />
-            </label>
+          <div class="mb-3 flex items-center justify-between">
+            <h2 class="font-bold text-brown">現貨商品</h2>
+            <button
+              v-if="cartRows.length > 0"
+              type="button"
+              class="rounded-full border border-taupe/40 px-3 py-1 text-sm text-taupe transition hover:border-red-400 hover:text-red-500"
+              @click="handleClearCart"
+            >
+              清空現貨
+            </button>
           </div>
-        </section>
 
-        <section class="rounded-2xl border border-beige bg-white p-5 shadow-[0_2px_10px_rgba(180,140,110,0.08)]">
-          <h2 class="mb-3 font-bold text-brown">寄送方式</h2>
-          <div class="flex flex-wrap gap-4 text-sm text-brown">
-            <label class="flex items-center gap-1">
-              <input v-model="shippingMethod" type="radio" value="family_mart" class="accent-terracotta" />
-              好賣家(全家)
-            </label>
-            <label class="flex items-center gap-1">
-              <input v-model="shippingMethod" type="radio" value="seven_eleven" class="accent-terracotta" />
-              賣貨便(7-11)
-            </label>
-            <label class="flex items-center gap-1">
-              <input v-model="shippingMethod" type="radio" value="address" class="accent-terracotta" />
-              地址配送
-            </label>
+          <p v-if="cartRows.length === 0" class="text-sm text-taupe">
+            還沒有現貨商品,<RouterLink to="/instock" class="text-terracotta hover:underline">去逛逛</RouterLink>
+          </p>
+
+          <div
+            v-for="row in cartRows"
+            :key="row.product.id"
+            class="mb-3 flex flex-col gap-3 rounded-xl border border-beige bg-cream/60 p-3 sm:flex-row sm:items-center"
+          >
+            <div class="flex items-center gap-3">
+              <img
+                v-if="row.product.primary_thumbnail ?? row.product.primary_image"
+                :src="imageUrl(row.product.primary_thumbnail ?? row.product.primary_image!)"
+                class="h-14 w-14 flex-none rounded-lg border border-beige object-cover"
+              />
+              <div class="flex-1 sm:w-40 sm:flex-none">
+                <p class="text-sm font-medium text-brown">{{ row.product.name }}</p>
+                <p class="text-xs text-taupe">
+                  <PriceTag
+                    :base-price="row.product.base_price"
+                    :effective-price="row.product.effective_price"
+                    :is-on-sale="row.product.is_on_sale"
+                  />
+                  / 件・庫存 {{ row.product.stock_quantity }}
+                </p>
+                <p v-if="row.item.quantity > row.product.stock_quantity" class="text-xs text-red-500">
+                  數量超過現有庫存,請調整
+                </p>
+              </div>
+            </div>
+            <div class="flex items-center justify-between gap-3 sm:flex-1 sm:justify-end">
+              <input
+                :value="row.item.quantity"
+                type="number"
+                min="1"
+                :max="row.product.stock_quantity"
+                class="w-16 rounded-lg border border-beige px-2 py-1 text-sm focus:border-terracotta focus:outline-none focus:ring-1 focus:ring-terracotta"
+                @change="updateCartQuantity(row.product.id, Number(($event.target as HTMLInputElement).value))"
+              />
+              <span class="text-right text-sm text-brown">NT$ {{ row.product.effective_price * row.item.quantity }}</span>
+              <button type="button" class="text-red-500 hover:underline" @click="cart.removeItem(row.product.id)">
+                移除
+              </button>
+            </div>
           </div>
-          <label v-if="shippingMethod !== 'address'" class="mt-3 block text-sm text-brown">
-            店號
-            <input
-              v-model="shippingStoreCode"
-              type="text"
-              required
-              placeholder="請輸入門市店號"
-              class="mt-1 w-full rounded-lg border border-beige px-3 py-2 focus:border-terracotta focus:outline-none focus:ring-1 focus:ring-terracotta"
-            />
-          </label>
-          <label v-else class="mt-3 block text-sm text-brown">
-            寄送地址
-            <input
-              v-model="shippingAddress"
-              type="text"
-              required
-              placeholder="請輸入完整收件地址"
-              class="mt-1 w-full rounded-lg border border-beige px-3 py-2 focus:border-terracotta focus:outline-none focus:ring-1 focus:ring-terracotta"
-            />
-          </label>
-        </section>
-
-        <section class="rounded-2xl border border-beige bg-white p-5 shadow-[0_2px_10px_rgba(180,140,110,0.08)]">
-          <h2 class="mb-3 font-bold text-brown">預期收到日期</h2>
-          <input
-            v-model="expectedDeliveryDate"
-            type="date"
-            required
-            :min="todayStr"
-            class="rounded-lg border border-beige px-3 py-2 focus:border-terracotta focus:outline-none focus:ring-1 focus:ring-terracotta"
-          />
-        </section>
-
-        <section class="rounded-2xl border border-beige bg-white p-5 shadow-[0_2px_10px_rgba(180,140,110,0.08)]">
-          <h2 class="mb-3 font-bold text-brown">備註(選填)</h2>
-          <textarea
-            v-model="notes"
-            rows="3"
-            placeholder="有其他需求嗎?例如指定包裝方式、尺寸調整等"
-            class="w-full rounded-lg border border-beige px-3 py-2 focus:border-terracotta focus:outline-none focus:ring-1 focus:ring-terracotta"
-          />
         </section>
 
         <section class="rounded-2xl border border-beige bg-white p-5 shadow-[0_2px_10px_rgba(180,140,110,0.08)]">
           <div class="mb-3 flex items-center justify-between">
-            <h2 class="font-bold text-brown">訂購項目</h2>
+            <h2 class="font-bold text-brown">訂製商品(需選規格/布料)</h2>
             <div class="flex gap-2">
               <button
+                v-if="lineItems.length > 0"
                 type="button"
                 class="rounded-full border border-taupe/40 px-3 py-1 text-sm text-taupe transition hover:border-red-400 hover:text-red-500"
                 @click="clearLineItems"
               >
-                清空清單
+                清空訂製
               </button>
               <button
                 type="button"
                 class="rounded-full border border-terracotta px-3 py-1 text-sm text-terracotta transition hover:bg-terracotta-light"
                 @click="addLineItem"
               >
-                + 新增項目
+                + 新增訂製項目
               </button>
             </div>
           </div>
@@ -491,16 +547,98 @@ async function handleSubmit() {
             </label>
             <div class="flex w-full items-center justify-between text-sm">
               <span class="text-taupe">小計:NT$ {{ itemSubtotal(item) }}</span>
-              <button
-                v-if="lineItems.length > 1"
-                type="button"
-                class="text-red-500 hover:underline"
-                @click="removeLineItem(index)"
-              >
+              <button type="button" class="text-red-500 hover:underline" @click="removeLineItem(index)">
                 移除
               </button>
             </div>
           </div>
+
+          <p v-if="lineItems.length === 0" class="text-sm text-taupe">
+            還沒有訂製商品,按「+ 新增訂製項目」開始選購
+          </p>
+        </section>
+
+        <section class="rounded-2xl border border-beige bg-white p-5 shadow-[0_2px_10px_rgba(180,140,110,0.08)]">
+          <h2 class="mb-3 font-bold text-brown">聯絡資訊</h2>
+          <div class="grid gap-4 sm:grid-cols-2">
+            <label class="block text-sm text-brown">
+              通訊名字
+              <input
+                v-model="customerName"
+                type="text"
+                required
+                class="mt-1 w-full rounded-lg border border-beige px-3 py-2 focus:border-terracotta focus:outline-none focus:ring-1 focus:ring-terracotta"
+              />
+            </label>
+            <label class="block text-sm text-brown">
+              聯絡電話
+              <input
+                v-model="phone"
+                type="tel"
+                required
+                class="mt-1 w-full rounded-lg border border-beige px-3 py-2 focus:border-terracotta focus:outline-none focus:ring-1 focus:ring-terracotta"
+              />
+            </label>
+          </div>
+        </section>
+
+        <section class="rounded-2xl border border-beige bg-white p-5 shadow-[0_2px_10px_rgba(180,140,110,0.08)]">
+          <h2 class="mb-3 font-bold text-brown">寄送方式</h2>
+          <div class="flex flex-wrap gap-4 text-sm text-brown">
+            <label class="flex items-center gap-1">
+              <input v-model="shippingMethod" type="radio" value="family_mart" class="accent-terracotta" />
+              好賣家(全家)
+            </label>
+            <label class="flex items-center gap-1">
+              <input v-model="shippingMethod" type="radio" value="seven_eleven" class="accent-terracotta" />
+              賣貨便(7-11)
+            </label>
+            <label class="flex items-center gap-1">
+              <input v-model="shippingMethod" type="radio" value="address" class="accent-terracotta" />
+              地址配送
+            </label>
+          </div>
+          <label v-if="shippingMethod !== 'address'" class="mt-3 block text-sm text-brown">
+            店號
+            <input
+              v-model="shippingStoreCode"
+              type="text"
+              required
+              placeholder="請輸入門市店號"
+              class="mt-1 w-full rounded-lg border border-beige px-3 py-2 focus:border-terracotta focus:outline-none focus:ring-1 focus:ring-terracotta"
+            />
+          </label>
+          <label v-else class="mt-3 block text-sm text-brown">
+            寄送地址
+            <input
+              v-model="shippingAddress"
+              type="text"
+              required
+              placeholder="請輸入完整收件地址"
+              class="mt-1 w-full rounded-lg border border-beige px-3 py-2 focus:border-terracotta focus:outline-none focus:ring-1 focus:ring-terracotta"
+            />
+          </label>
+        </section>
+
+        <section class="rounded-2xl border border-beige bg-white p-5 shadow-[0_2px_10px_rgba(180,140,110,0.08)]">
+          <h2 class="mb-3 font-bold text-brown">預期收到日期</h2>
+          <input
+            v-model="expectedDeliveryDate"
+            type="date"
+            required
+            :min="todayStr"
+            class="rounded-lg border border-beige px-3 py-2 focus:border-terracotta focus:outline-none focus:ring-1 focus:ring-terracotta"
+          />
+        </section>
+
+        <section class="rounded-2xl border border-beige bg-white p-5 shadow-[0_2px_10px_rgba(180,140,110,0.08)]">
+          <h2 class="mb-3 font-bold text-brown">備註(選填)</h2>
+          <textarea
+            v-model="notes"
+            rows="3"
+            placeholder="有其他需求嗎?例如指定包裝方式、尺寸調整等"
+            class="w-full rounded-lg border border-beige px-3 py-2 focus:border-terracotta focus:outline-none focus:ring-1 focus:ring-terracotta"
+          />
         </section>
 
         <div class="flex items-center justify-between border-t border-beige pt-4">

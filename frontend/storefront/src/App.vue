@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useCartStore } from './stores/cart'
 import { useOrderDraftStore } from './stores/orderDraft'
 import logo from './images/logo.png'
 
 const cart = useCartStore()
 const orderDraft = useOrderDraftStore()
+const checkoutCount = computed(() => cart.totalQuantity + orderDraft.totalQuantity)
 const adminUrl = import.meta.env.VITE_ADMIN_URL ?? 'http://localhost:5174'
 const mobileMenuOpen = ref(false)
 
@@ -63,10 +64,10 @@ function closeMobileMenu() {
           >
             立即訂購
             <span
-              v-if="orderDraft.totalQuantity > 0"
+              v-if="checkoutCount > 0"
               class="rounded-full bg-terracotta px-1.5 py-0.5 text-xs font-medium text-white"
             >
-              {{ orderDraft.totalQuantity }}
+              {{ checkoutCount }}
             </span>
           </RouterLink>
           <RouterLink
@@ -84,10 +85,10 @@ function closeMobileMenu() {
           >
             <span aria-hidden="true" class="text-lg">📝</span>
             <span
-              v-if="orderDraft.totalQuantity > 0"
+              v-if="checkoutCount > 0"
               class="rounded-full bg-terracotta px-1.5 py-0.5 text-xs font-medium text-white"
             >
-              {{ orderDraft.totalQuantity }}
+              {{ checkoutCount }}
             </span>
           </RouterLink>
           <RouterLink
@@ -98,10 +99,10 @@ function closeMobileMenu() {
             <span aria-hidden="true">🛒</span>
             購物車
             <span
-              v-if="cart.totalQuantity > 0"
+              v-if="checkoutCount > 0"
               class="rounded-full bg-terracotta px-1.5 py-0.5 text-xs font-medium text-white"
             >
-              {{ cart.totalQuantity }}
+              {{ checkoutCount }}
             </span>
           </RouterLink>
         </nav>
@@ -115,10 +116,10 @@ function closeMobileMenu() {
           >
             <span aria-hidden="true" class="text-xl">📝</span>
             <span
-              v-if="orderDraft.totalQuantity > 0"
+              v-if="checkoutCount > 0"
               class="absolute -right-2 -top-2 rounded-full bg-terracotta px-1.5 py-0.5 text-xs font-medium text-white"
             >
-              {{ orderDraft.totalQuantity }}
+              {{ checkoutCount }}
             </span>
           </RouterLink>
           <RouterLink
@@ -128,10 +129,10 @@ function closeMobileMenu() {
           >
             <span aria-hidden="true" class="text-xl">🛒</span>
             <span
-              v-if="cart.totalQuantity > 0"
+              v-if="checkoutCount > 0"
               class="absolute -right-2 -top-2 rounded-full bg-terracotta px-1.5 py-0.5 text-xs font-medium text-white"
             >
-              {{ cart.totalQuantity }}
+              {{ checkoutCount }}
             </span>
           </RouterLink>
           <button
@@ -188,10 +189,10 @@ function closeMobileMenu() {
         >
           立即訂購
           <span
-            v-if="orderDraft.totalQuantity > 0"
+            v-if="checkoutCount > 0"
             class="rounded-full bg-terracotta px-1.5 py-0.5 text-xs font-medium text-white"
           >
-            {{ orderDraft.totalQuantity }}
+            {{ checkoutCount }}
           </span>
         </RouterLink>
         <RouterLink
