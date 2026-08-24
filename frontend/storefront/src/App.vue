@@ -58,19 +58,6 @@ function closeMobileMenu() {
             布料列表
           </RouterLink>
           <RouterLink
-            to="/order"
-            class="flex items-center gap-1 text-taupe transition hover:text-terracotta"
-            active-class="font-medium text-terracotta"
-          >
-            立即訂購
-            <span
-              v-if="checkoutCount > 0"
-              class="rounded-full bg-terracotta px-1.5 py-0.5 text-xs font-medium text-white"
-            >
-              {{ checkoutCount }}
-            </span>
-          </RouterLink>
-          <RouterLink
             to="/order-lookup"
             class="text-taupe transition hover:text-terracotta"
             active-class="font-medium text-terracotta"
@@ -81,23 +68,9 @@ function closeMobileMenu() {
             to="/order"
             class="ml-auto flex items-center gap-1 text-taupe transition hover:text-terracotta"
             active-class="font-medium text-terracotta"
-            title="訂購清單"
-          >
-            <span aria-hidden="true" class="text-lg">📝</span>
-            <span
-              v-if="checkoutCount > 0"
-              class="rounded-full bg-terracotta px-1.5 py-0.5 text-xs font-medium text-white"
-            >
-              {{ checkoutCount }}
-            </span>
-          </RouterLink>
-          <RouterLink
-            to="/cart"
-            class="flex items-center gap-1 text-taupe transition hover:text-terracotta"
-            active-class="font-medium text-terracotta"
           >
             <span aria-hidden="true">🛒</span>
-            購物車
+            訂購清單
             <span
               v-if="checkoutCount > 0"
               class="rounded-full bg-terracotta px-1.5 py-0.5 text-xs font-medium text-white"
@@ -112,19 +85,6 @@ function closeMobileMenu() {
             to="/order"
             class="relative flex items-center text-taupe"
             title="訂購清單"
-            @click="closeMobileMenu"
-          >
-            <span aria-hidden="true" class="text-xl">📝</span>
-            <span
-              v-if="checkoutCount > 0"
-              class="absolute -right-2 -top-2 rounded-full bg-terracotta px-1.5 py-0.5 text-xs font-medium text-white"
-            >
-              {{ checkoutCount }}
-            </span>
-          </RouterLink>
-          <RouterLink
-            to="/cart"
-            class="relative flex items-center text-taupe"
             @click="closeMobileMenu"
           >
             <span aria-hidden="true" class="text-xl">🛒</span>
@@ -187,7 +147,8 @@ function closeMobileMenu() {
           active-class="font-medium text-terracotta"
           @click="closeMobileMenu"
         >
-          立即訂購
+          <span aria-hidden="true">🛒</span>
+          訂購清單
           <span
             v-if="checkoutCount > 0"
             class="rounded-full bg-terracotta px-1.5 py-0.5 text-xs font-medium text-white"
