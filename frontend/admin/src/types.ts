@@ -99,6 +99,7 @@ export interface Material {
   supplier: string | null
   notes: string | null
   status: string
+  sort_order: number
   custom_attributes: Record<string, string>
   images: MaterialImage[]
 }

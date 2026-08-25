@@ -25,6 +25,7 @@ const form = ref({
   supplier: '',
   notes: '',
   status: 'active',
+  sort_order: 0,
 })
 
 interface PendingImage {
@@ -69,6 +70,7 @@ async function loadMaterial() {
     supplier: data.supplier ?? '',
     notes: data.notes ?? '',
     status: data.status,
+    sort_order: data.sort_order,
   }
   customAttributePairs.value = Object.entries(data.custom_attributes).map(([key, value]) => ({
     key,
@@ -273,12 +275,17 @@ watch(materialId, (newId) => {
       <el-form-item label="備註">
         <el-input v-model="form.notes" type="textarea" :rows="3" />
       </el-form-item>
-      <el-form-item label="狀態">
-        <el-select v-model="form.status" class="w-40">
-          <el-option label="使用中" value="active" />
-          <el-option label="已停用" value="discontinued" />
-        </el-select>
-      </el-form-item>
+      <div class="grid grid-cols-2 gap-4">
+        <el-form-item label="狀態">
+          <el-select v-model="form.status" class="w-40">
+            <el-option label="使用中" value="active" />
+            <el-option label="已停用" value="discontinued" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="排序 (數字越小越優先顯示在前台布料列表,預設 0)">
+          <el-input-number v-model="form.sort_order" :precision="0" />
+        </el-form-item>
+      </div>
 
       <el-divider />
       <div class="mb-2 flex items-center justify-between">

@@ -28,7 +28,7 @@ def list_materials(db: Session, include_inactive: bool = True) -> list[Material]
     query = _material_query(db).filter(Material.deleted_at.is_(None))
     if not include_inactive:
         query = query.filter(Material.status == "active")
-    return query.order_by(Material.id.desc()).all()
+    return query.order_by(Material.sort_order.asc(), Material.id.desc()).all()
 
 
 def list_materials_page(
@@ -53,7 +53,7 @@ def list_materials_page(
 
     total = query.order_by(None).count()
     items = (
-        query.order_by(Material.id.desc())
+        query.order_by(Material.sort_order.asc(), Material.id.desc())
         .offset((page - 1) * page_size)
         .limit(page_size)
         .all()
@@ -76,7 +76,7 @@ def list_materials_public_page(
 
     total = query.order_by(None).count()
     items = (
-        query.order_by(Material.id.desc())
+        query.order_by(Material.sort_order.asc(), Material.id.desc())
         .offset((page - 1) * page_size)
         .limit(page_size)
         .all()

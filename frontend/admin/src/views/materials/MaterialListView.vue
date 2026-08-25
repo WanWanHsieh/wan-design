@@ -138,6 +138,7 @@ onMounted(loadMaterials)
         </template>
       </el-table-column>
       <el-table-column prop="code" label="編號" width="120" />
+      <el-table-column prop="sort_order" label="排序" width="80" sortable />
       <el-table-column prop="name" label="布料樣式" />
       <el-table-column label="進貨成本">
         <template #default="{ row }">NT$ {{ row.unit_cost }} / {{ UNIT_LABELS[row.unit] ?? row.unit }}</template>
@@ -178,7 +179,7 @@ onMounted(loadMaterials)
         />
         <div class="flex-1">
           <div class="font-medium text-brown">{{ row.name }}</div>
-          <div class="text-xs text-taupe/70">{{ row.code }}・{{ row.status }}</div>
+          <div class="text-xs text-taupe/70">{{ row.code }}・排序 {{ row.sort_order }}・{{ row.status }}</div>
           <div class="mt-1 text-sm text-taupe">
             成本 NT$ {{ row.unit_cost }} / {{ UNIT_LABELS[row.unit] ?? row.unit }}・加價 NT$ {{ row.price_addon }}
           </div>
