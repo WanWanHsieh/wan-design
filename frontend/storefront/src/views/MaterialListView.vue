@@ -121,6 +121,10 @@ function openLightbox(material: Material) {
       </button>
     </div>
 
+    <p v-if="!loading && !error && materials.length" class="mb-4 text-sm text-taupe">
+      💡 點進布料可查看實際作品參考圖(部分布料尚未提供參考圖)
+    </p>
+
     <p v-if="loading" class="text-taupe">載入中...</p>
     <p v-else-if="error" class="text-red-600">{{ error }}</p>
     <p v-else-if="materials.length === 0" class="text-taupe">這個篩選條件目前沒有布料。</p>
