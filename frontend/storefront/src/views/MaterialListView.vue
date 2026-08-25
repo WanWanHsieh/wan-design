@@ -180,7 +180,7 @@ function openLightbox(material: Material) {
               v-if="hasShowcaseImage(material)"
               class="absolute right-2 top-2 rounded-full bg-sage/90 px-2 py-0.5 text-xs font-medium text-white shadow"
             >
-              📷 有參考圖
+              有參考圖
             </span>
           </div>
           <div class="p-3">
