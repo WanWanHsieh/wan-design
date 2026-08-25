@@ -72,6 +72,10 @@ function primaryFabricImage(material: Material): MaterialImage | null {
   return fabricImages.find((img) => img.is_primary) ?? fabricImages[0] ?? null
 }
 
+function hasShowcaseImage(material: Material): boolean {
+  return material.images.some((img) => img.image_type === 'showcase')
+}
+
 function openLightbox(material: Material) {
   const image = primaryFabricImage(material)
   if (!image) return
@@ -171,6 +175,12 @@ function openLightbox(material: Material) {
               class="absolute left-2 top-2 rounded-full bg-white/90 px-2 py-0.5 text-xs font-medium text-brown shadow"
             >
               {{ material.code }}
+            </span>
+            <span
+              v-if="hasShowcaseImage(material)"
+              class="absolute right-2 top-2 rounded-full bg-sage/90 px-2 py-0.5 text-xs font-medium text-white shadow"
+            >
+              📷 有參考圖
             </span>
           </div>
           <div class="p-3">
