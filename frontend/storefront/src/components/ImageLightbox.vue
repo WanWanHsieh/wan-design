@@ -128,34 +128,36 @@ function onMouseUp() {
       >
         ×
       </button>
-      <button
-        v-if="hasPrev"
-        class="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-black/30 p-2 text-3xl leading-none text-white hover:bg-black/50 sm:left-4"
-        aria-label="上一張"
-        @click.stop="goPrev"
-      >
-        ‹
-      </button>
-      <button
-        v-if="hasNext"
-        class="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-black/30 p-2 text-3xl leading-none text-white hover:bg-black/50 sm:right-4"
-        aria-label="下一張"
-        @click.stop="goNext"
-      >
-        ›
-      </button>
-      <img
-        :src="src"
-        :alt="alt"
-        class="max-h-[90vh] max-w-[90vw] select-none rounded transition-transform duration-150"
-        :style="{
-          transform: `scale(${scale}) translate(${translateX}px, ${translateY}px)`,
-          cursor: scale > 1 ? 'grab' : 'zoom-in',
-        }"
-        draggable="false"
-        @click.stop="onImageClick"
-        @mousedown.stop="onMouseDown"
-      />
+      <div class="relative flex items-center justify-center">
+        <button
+          v-if="hasPrev"
+          class="absolute left-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/30 p-2 text-3xl leading-none text-white hover:bg-black/50 sm:left-4"
+          aria-label="上一張"
+          @click.stop="goPrev"
+        >
+          ‹
+        </button>
+        <button
+          v-if="hasNext"
+          class="absolute right-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/30 p-2 text-3xl leading-none text-white hover:bg-black/50 sm:right-4"
+          aria-label="下一張"
+          @click.stop="goNext"
+        >
+          ›
+        </button>
+        <img
+          :src="src"
+          :alt="alt"
+          class="max-h-[90vh] max-w-[90vw] select-none rounded transition-transform duration-150"
+          :style="{
+            transform: `scale(${scale}) translate(${translateX}px, ${translateY}px)`,
+            cursor: scale > 1 ? 'grab' : 'zoom-in',
+          }"
+          draggable="false"
+          @click.stop="onImageClick"
+          @mousedown.stop="onMouseDown"
+        />
+      </div>
     </div>
   </Teleport>
 </template>
