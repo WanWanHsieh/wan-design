@@ -25,11 +25,19 @@ const filters = ref({
 const page = ref(1)
 const pageSize = ref(20)
 const codeOrder = ref<'asc' | 'desc' | null>(null)
+const showcaseOrder = ref<'asc' | 'desc' | null>(null)
 
 let searchDebounce: ReturnType<typeof setTimeout> | null = null
 
-function handleSortChange({ order }: { order: 'ascending' | 'descending' | null }) {
-  codeOrder.value = order === 'ascending' ? 'asc' : order === 'descending' ? 'desc' : null
+function handleSortChange({ prop, order }: { prop: string; order: 'ascending' | 'descending' | null }) {
+  const value = order === 'ascending' ? 'asc' : order === 'descending' ? 'desc' : null
+  if (prop === 'showcase') {
+    showcaseOrder.value = value
+    codeOrder.value = null
+  } else {
+    codeOrder.value = value
+    showcaseOrder.value = null
+  }
   resetAndReload()
 }
 
@@ -49,6 +57,7 @@ async function loadMaterials() {
         page: page.value,
         page_size: pageSize.value,
         code_order: codeOrder.value ?? undefined,
+        showcase_order: showcaseOrder.value ?? undefined,
       },
     })
     materials.value = data.items
@@ -94,6 +103,10 @@ function fabricThumbnail(material: Material): string | null {
 function fabricFullImage(material: Material): string | null {
   const image = material.images.find((img) => img.image_type === 'fabric')
   return image ? image.storage_key : null
+}
+
+function hasShowcaseImage(material: Material): boolean {
+  return material.images.some((img) => img.image_type === 'showcase')
 }
 
 onMounted(loadMaterials)
@@ -146,6 +159,13 @@ onMounted(loadMaterials)
       </el-table-column>
       <el-table-column prop="code" label="編號" width="120" sortable="custom" />
       <el-table-column prop="sort_order" label="排序" width="80" sortable />
+      <el-table-column prop="showcase" label="作品參考圖" width="110" sortable="custom">
+        <template #default="{ row }">
+          <span :class="hasShowcaseImage(row) ? 'text-sage-dark' : 'text-taupe/60'">
+            {{ hasShowcaseImage(row) ? '✓ 有' : '✗ 無' }}
+          </span>
+        </template>
+      </el-table-column>
       <el-table-column prop="name" label="布料樣式" />
       <el-table-column label="進貨成本">
         <template #default="{ row }">NT$ {{ row.unit_cost }} / {{ UNIT_LABELS[row.unit] ?? row.unit }}</template>
@@ -186,7 +206,9 @@ onMounted(loadMaterials)
         />
         <div class="flex-1">
           <div class="font-medium text-brown">{{ row.name }}</div>
-          <div class="text-xs text-taupe/70">{{ row.code }}・排序 {{ row.sort_order }}・{{ row.status }}</div>
+          <div class="text-xs text-taupe/70">
+            {{ row.code }}・排序 {{ row.sort_order }}・{{ row.status }}・參考圖{{ hasShowcaseImage(row) ? '有' : '無' }}
+          </div>
           <div class="mt-1 text-sm text-taupe">
             成本 NT$ {{ row.unit_cost }} / {{ UNIT_LABELS[row.unit] ?? row.unit }}・加價 NT$ {{ row.price_addon }}
           </div>

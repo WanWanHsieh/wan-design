@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 
 from fastapi import HTTPException, status
-from sqlalchemy import or_
+from sqlalchemy import exists, or_
 from sqlalchemy.orm import Session, selectinload
 
 from app.models.material import Material, MaterialImage
@@ -31,11 +31,21 @@ def list_materials(db: Session, include_inactive: bool = True) -> list[Material]
     return query.order_by(Material.sort_order.asc(), Material.id.desc()).all()
 
 
-def _apply_code_order(query, code_order: str | None):
+def _has_showcase_expr():
+    return exists().where(
+        MaterialImage.material_id == Material.id, MaterialImage.image_type == "showcase"
+    )
+
+
+def _apply_order(query, code_order: str | None, showcase_order: str | None):
     if code_order == "asc":
         return query.order_by(Material.code.asc(), Material.id.asc())
     if code_order == "desc":
         return query.order_by(Material.code.desc(), Material.id.desc())
+    if showcase_order == "asc":
+        return query.order_by(_has_showcase_expr().asc(), Material.id.desc())
+    if showcase_order == "desc":
+        return query.order_by(_has_showcase_expr().desc(), Material.id.desc())
     return query.order_by(Material.sort_order.asc(), Material.id.desc())
 
 
@@ -48,6 +58,7 @@ def list_materials_page(
     page: int = 1,
     page_size: int = 20,
     code_order: str | None = None,
+    showcase_order: str | None = None,
 ) -> tuple[list[Material], int]:
     query = _material_query(db).filter(Material.deleted_at.is_(None))
     if search:
@@ -62,7 +73,7 @@ def list_materials_page(
 
     total = query.order_by(None).count()
     items = (
-        _apply_code_order(query, code_order)
+        _apply_order(query, code_order, showcase_order)
         .offset((page - 1) * page_size)
         .limit(page_size)
         .all()
@@ -86,7 +97,7 @@ def list_materials_public_page(
 
     total = query.order_by(None).count()
     items = (
-        _apply_code_order(query, code_order)
+        _apply_order(query, code_order, None)
         .offset((page - 1) * page_size)
         .limit(page_size)
         .all()

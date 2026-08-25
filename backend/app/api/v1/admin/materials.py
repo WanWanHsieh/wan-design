@@ -32,6 +32,7 @@ def list_materials(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=1000),
     code_order: str | None = Query(None, pattern="^(asc|desc)$"),
+    showcase_order: str | None = Query(None, pattern="^(asc|desc)$"),
     db: Session = Depends(get_db),
 ):
     items, total = material_service.list_materials_page(
@@ -43,6 +44,7 @@ def list_materials(
         page=page,
         page_size=page_size,
         code_order=code_order,
+        showcase_order=showcase_order,
     )
     return MaterialPageOut(items=items, total=total, page=page, page_size=page_size)
 
