@@ -24,8 +24,14 @@ const filters = ref({
 })
 const page = ref(1)
 const pageSize = ref(20)
+const codeOrder = ref<'asc' | 'desc' | null>(null)
 
 let searchDebounce: ReturnType<typeof setTimeout> | null = null
+
+function handleSortChange({ order }: { order: 'ascending' | 'descending' | null }) {
+  codeOrder.value = order === 'ascending' ? 'asc' : order === 'descending' ? 'desc' : null
+  resetAndReload()
+}
 
 async function loadMaterials() {
   loading.value = true
@@ -42,6 +48,7 @@ async function loadMaterials() {
         origin: filters.value.origin || undefined,
         page: page.value,
         page_size: pageSize.value,
+        code_order: codeOrder.value ?? undefined,
       },
     })
     materials.value = data.items
@@ -124,7 +131,7 @@ onMounted(loadMaterials)
       </div>
     </div>
 
-    <el-table :data="materials" v-loading="loading" stripe class="hidden sm:block">
+    <el-table :data="materials" v-loading="loading" stripe class="hidden sm:block" @sort-change="handleSortChange">
       <el-table-column label="照片" width="80">
         <template #default="{ row }">
           <el-image
@@ -137,7 +144,7 @@ onMounted(loadMaterials)
           />
         </template>
       </el-table-column>
-      <el-table-column prop="code" label="編號" width="120" />
+      <el-table-column prop="code" label="編號" width="120" sortable="custom" />
       <el-table-column prop="sort_order" label="排序" width="80" sortable />
       <el-table-column prop="name" label="布料樣式" />
       <el-table-column label="進貨成本">

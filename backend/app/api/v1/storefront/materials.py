@@ -14,10 +14,11 @@ def list_materials(
     origin: str | None = None,
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=1000),
+    code_order: str | None = Query(None, pattern="^(asc|desc)$"),
     db: Session = Depends(get_db),
 ):
     items, total = material_service.list_materials_public_page(
-        db, fabric_type=fabric_type, origin=origin, page=page, page_size=page_size
+        db, fabric_type=fabric_type, origin=origin, page=page, page_size=page_size, code_order=code_order
     )
     return MaterialPublicPageOut(
         items=[material_service.to_public_out(m) for m in items],

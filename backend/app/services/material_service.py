@@ -31,6 +31,14 @@ def list_materials(db: Session, include_inactive: bool = True) -> list[Material]
     return query.order_by(Material.sort_order.asc(), Material.id.desc()).all()
 
 
+def _apply_code_order(query, code_order: str | None):
+    if code_order == "asc":
+        return query.order_by(Material.code.asc(), Material.id.asc())
+    if code_order == "desc":
+        return query.order_by(Material.code.desc(), Material.id.desc())
+    return query.order_by(Material.sort_order.asc(), Material.id.desc())
+
+
 def list_materials_page(
     db: Session,
     search: str | None = None,
@@ -39,6 +47,7 @@ def list_materials_page(
     status: str | None = None,
     page: int = 1,
     page_size: int = 20,
+    code_order: str | None = None,
 ) -> tuple[list[Material], int]:
     query = _material_query(db).filter(Material.deleted_at.is_(None))
     if search:
@@ -53,7 +62,7 @@ def list_materials_page(
 
     total = query.order_by(None).count()
     items = (
-        query.order_by(Material.sort_order.asc(), Material.id.desc())
+        _apply_code_order(query, code_order)
         .offset((page - 1) * page_size)
         .limit(page_size)
         .all()
@@ -67,6 +76,7 @@ def list_materials_public_page(
     origin: str | None = None,
     page: int = 1,
     page_size: int = 20,
+    code_order: str | None = None,
 ) -> tuple[list[Material], int]:
     query = _material_query(db).filter(Material.deleted_at.is_(None), Material.status == "active")
     if fabric_type:
@@ -76,7 +86,7 @@ def list_materials_public_page(
 
     total = query.order_by(None).count()
     items = (
-        query.order_by(Material.sort_order.asc(), Material.id.desc())
+        _apply_code_order(query, code_order)
         .offset((page - 1) * page_size)
         .limit(page_size)
         .all()

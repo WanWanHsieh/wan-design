@@ -15,6 +15,7 @@ const loading = ref(true)
 const error = ref<string | null>(null)
 const selectedOrigin = ref<string | null>(null)
 const selectedFabricType = ref<string | null>(null)
+const codeOrder = ref<'asc' | 'desc' | null>(null)
 
 const totalPages = computed(() => Math.max(1, Math.ceil(total.value / pageSize)))
 
@@ -33,6 +34,7 @@ async function loadMaterials() {
           fabric_type: selectedFabricType.value ?? undefined,
           page: page.value,
           page_size: pageSize,
+          code_order: codeOrder.value ?? undefined,
         },
       },
     )
@@ -45,10 +47,16 @@ async function loadMaterials() {
   }
 }
 
-watch([selectedOrigin, selectedFabricType], () => {
+watch([selectedOrigin, selectedFabricType, codeOrder], () => {
   page.value = 1
   loadMaterials()
 })
+
+function toggleCodeOrder() {
+  if (codeOrder.value === 'asc') codeOrder.value = 'desc'
+  else if (codeOrder.value === 'desc') codeOrder.value = null
+  else codeOrder.value = 'asc'
+}
 
 function goToPage(newPage: number) {
   if (newPage < 1 || newPage > totalPages.value) return
@@ -121,9 +129,21 @@ function openLightbox(material: Material) {
       </button>
     </div>
 
-    <p v-if="!loading && !error && materials.length" class="mb-4 text-sm text-taupe">
-      💡 點進布料可查看實際作品參考圖(部分布料尚未提供參考圖)
-    </p>
+    <div class="mb-4 flex flex-wrap items-center justify-between gap-2">
+      <p v-if="!loading && !error && materials.length" class="text-sm text-taupe">
+        💡 點進布料可查看實際作品參考圖(部分布料尚未提供參考圖)
+      </p>
+      <button
+        type="button"
+        class="flex-none rounded-full border border-beige px-3 py-1 text-sm text-taupe transition hover:border-terracotta hover:text-terracotta"
+        @click="toggleCodeOrder"
+      >
+        編號排序
+        <template v-if="codeOrder === 'asc'">:小到大 ↑</template>
+        <template v-else-if="codeOrder === 'desc'">:大到小 ↓</template>
+        <template v-else>:預設</template>
+      </button>
+    </div>
 
     <p v-if="loading" class="text-taupe">載入中...</p>
     <p v-else-if="error" class="text-red-600">{{ error }}</p>
