@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { apiClient, imageUrl } from '../../api/client'
 import type { Material } from '../../types'
@@ -9,6 +9,7 @@ const materials = ref<Material[]>([])
 const total = ref(0)
 const loading = ref(true)
 const router = useRouter()
+const route = useRoute()
 
 const UNIT_LABELS: Record<string, string> = {
   meter: '公尺',
@@ -17,15 +18,20 @@ const UNIT_LABELS: Record<string, string> = {
   piece: '件',
 }
 
+function queryOrderValue(key: string): 'asc' | 'desc' | null {
+  const value = route.query[key]
+  return value === 'asc' || value === 'desc' ? value : null
+}
+
 const filters = ref({
-  search: '',
-  fabric_type: '',
-  origin: '',
+  search: (route.query.search as string) || '',
+  fabric_type: (route.query.fabric_type as string) || '',
+  origin: (route.query.origin as string) || '',
 })
-const page = ref(1)
-const pageSize = ref(20)
-const codeOrder = ref<'asc' | 'desc' | null>(null)
-const showcaseOrder = ref<'asc' | 'desc' | null>(null)
+const page = ref(Number(route.query.page) || 1)
+const pageSize = ref(Number(route.query.page_size) || 20)
+const codeOrder = ref<'asc' | 'desc' | null>(queryOrderValue('code_order'))
+const showcaseOrder = ref<'asc' | 'desc' | null>(queryOrderValue('showcase_order'))
 
 let searchDebounce: ReturnType<typeof setTimeout> | null = null
 
@@ -41,7 +47,22 @@ function handleSortChange({ prop, order }: { prop: string; order: 'ascending' | 
   resetAndReload()
 }
 
+function syncQuery() {
+  router.replace({
+    query: {
+      page: String(page.value),
+      page_size: String(pageSize.value),
+      search: filters.value.search || undefined,
+      fabric_type: filters.value.fabric_type || undefined,
+      origin: filters.value.origin || undefined,
+      code_order: codeOrder.value ?? undefined,
+      showcase_order: showcaseOrder.value ?? undefined,
+    },
+  })
+}
+
 async function loadMaterials() {
+  syncQuery()
   loading.value = true
   try {
     const { data } = await apiClient.get<{

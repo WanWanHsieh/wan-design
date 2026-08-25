@@ -132,13 +132,13 @@ async function submitOnce() {
   if (isEdit.value) {
     await apiClient.put(`/api/v1/admin/materials/${materialId.value}`, payload)
     ElMessage.success('已更新')
-    router.push({ name: 'material-list' })
+    router.back()
     return
   }
   const { data } = await apiClient.post<Material>('/api/v1/admin/materials', payload)
   await flushPendingImages(data.id)
   ElMessage.success('已建立')
-  router.push({ name: 'material-list' })
+  router.back()
 }
 
 async function handleSubmit() {
