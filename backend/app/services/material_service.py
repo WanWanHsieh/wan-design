@@ -28,7 +28,7 @@ def list_materials(db: Session, include_inactive: bool = True) -> list[Material]
     query = _material_query(db).filter(Material.deleted_at.is_(None))
     if not include_inactive:
         query = query.filter(Material.status == "active")
-    return query.order_by(Material.sort_order.asc(), Material.id.desc()).all()
+    return query.order_by(Material.id.desc()).all()
 
 
 def _has_showcase_expr():
@@ -46,7 +46,7 @@ def _apply_order(query, code_order: str | None, showcase_order: str | None):
         return query.order_by(_has_showcase_expr().asc(), Material.id.desc())
     if showcase_order == "desc":
         return query.order_by(_has_showcase_expr().desc(), Material.id.desc())
-    return query.order_by(Material.sort_order.asc(), Material.id.desc())
+    return query.order_by(Material.id.desc())
 
 
 def list_materials_page(

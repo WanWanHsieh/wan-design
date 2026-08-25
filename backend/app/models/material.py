@@ -20,7 +20,6 @@ class Material(Base, TimestampMixin, SoftDeleteMixin):
     supplier: Mapped[str | None] = mapped_column(String(255))
     notes: Mapped[str | None] = mapped_column(Text)
     status: Mapped[str] = mapped_column(String(20), default="active", nullable=False)  # active|discontinued
-    sort_order: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     custom_attributes: Mapped[dict] = mapped_column(JSONB, default=dict, nullable=False)
     created_by: Mapped[int | None] = mapped_column(ForeignKey("admin_users.id"))
 

@@ -26,7 +26,6 @@ class MaterialBase(BaseModel):
     supplier: str | None = None
     notes: str | None = None
     status: str = "active"
-    sort_order: int = 0
     custom_attributes: dict = Field(default_factory=dict)
 
 
@@ -46,7 +45,6 @@ class MaterialUpdate(BaseModel):
     supplier: str | None = None
     notes: str | None = None
     status: str | None = None
-    sort_order: int | None = None
     custom_attributes: dict | None = None
 
 

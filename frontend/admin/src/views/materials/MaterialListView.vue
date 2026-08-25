@@ -179,7 +179,6 @@ onMounted(loadMaterials)
         </template>
       </el-table-column>
       <el-table-column prop="code" label="編號" width="120" sortable="custom" />
-      <el-table-column prop="sort_order" label="排序" width="80" sortable />
       <el-table-column prop="showcase" label="作品參考圖" width="110" sortable="custom">
         <template #default="{ row }">
           <span :class="hasShowcaseImage(row) ? 'text-sage-dark' : 'text-taupe/60'">
@@ -228,7 +227,7 @@ onMounted(loadMaterials)
         <div class="flex-1">
           <div class="font-medium text-brown">{{ row.name }}</div>
           <div class="text-xs text-taupe/70">
-            {{ row.code }}・排序 {{ row.sort_order }}・{{ row.status }}・參考圖{{ hasShowcaseImage(row) ? '有' : '無' }}
+            {{ row.code }}・{{ row.status }}・參考圖{{ hasShowcaseImage(row) ? '有' : '無' }}
           </div>
           <div class="mt-1 text-sm text-taupe">
             成本 NT$ {{ row.unit_cost }} / {{ UNIT_LABELS[row.unit] ?? row.unit }}・加價 NT$ {{ row.price_addon }}
