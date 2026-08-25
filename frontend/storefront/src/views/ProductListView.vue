@@ -146,7 +146,8 @@ function openLightbox(product: ProductListItem) {
         </div>
 
         <div v-if="uncategorized.length" class="mt-10">
-          <h2 class="mb-3 text-sm font-medium text-taupe">未分類商品</h2>
+          <h2 class="mb-1 text-sm font-medium text-taupe">未分類商品</h2>
+          <p class="mb-3 text-sm text-taupe">💡 點進商品可查看更多花色參考圖</p>
           <div class="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4">
             <RouterLink
               v-for="product in uncategorized"
@@ -210,6 +211,9 @@ function openLightbox(product: ProductListItem) {
           </button>
         </div>
 
+        <p v-if="visibleProducts.length" class="mb-4 text-sm text-taupe">
+          💡 點進商品可查看更多花色參考圖
+        </p>
         <p v-if="visibleProducts.length === 0" class="text-taupe">這個分類目前還沒有商品。</p>
         <div v-else class="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4">
           <RouterLink
