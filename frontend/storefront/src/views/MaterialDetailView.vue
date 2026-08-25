@@ -82,7 +82,13 @@ function nextImage() {
           <div v-else class="flex h-full items-center justify-center text-taupe">無圖片</div>
         </div>
         <div>
-          <h1 class="text-2xl font-bold text-brown">{{ material.name }}</h1>
+          <span
+            v-if="material.code"
+            class="inline-block rounded-full bg-cream-dark px-2 py-0.5 text-xs font-medium text-brown"
+          >
+            {{ material.code }}
+          </span>
+          <h1 class="mt-2 text-2xl font-bold text-brown">{{ material.name }}</h1>
           <p v-if="material.origin || material.fabric_type" class="mt-2 text-sm text-taupe">
             <template v-if="material.origin">產地:{{ material.origin }}</template>
             <template v-if="material.origin && material.fabric_type"> ・ </template>

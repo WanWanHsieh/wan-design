@@ -530,7 +530,7 @@ async function handleSubmit() {
                 >
                   <option :value="null" disabled>請選擇</option>
                   <option v-for="m in materials" :key="m.id" :value="m.id">
-                    {{ m.name }}<template v-if="m.price_addon"> (+NT$ {{ m.price_addon }})</template>
+                    <template v-if="m.code">{{ m.code }} </template>{{ m.name }}<template v-if="m.price_addon"> (+NT$ {{ m.price_addon }})</template>
                   </option>
                 </select>
               </div>

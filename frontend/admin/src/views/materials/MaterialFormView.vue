@@ -43,8 +43,15 @@ const showcaseImages = computed(() => images.value.filter((img) => img.image_typ
 const pendingFabricImages = computed(() => pendingImages.value.filter((img) => img.imageType === 'fabric'))
 const pendingShowcaseImages = computed(() => pendingImages.value.filter((img) => img.imageType === 'showcase'))
 
-function regenerateCode() {
-  form.value.code = generateSku('FAB')
+async function regenerateCode() {
+  try {
+    const { data } = await apiClient.get<{ total: number }>('/api/v1/admin/materials', {
+      params: { page: 1, page_size: 1 },
+    })
+    form.value.code = `No.${String(data.total + 1).padStart(3, '0')}`
+  } catch {
+    form.value.code = generateSku('FAB')
+  }
 }
 
 async function loadMaterial() {
@@ -139,7 +146,7 @@ async function handleSubmit() {
       await submitOnce()
     } catch (err: any) {
       if (err?.response?.status === 409 && !isEdit.value) {
-        regenerateCode()
+        await regenerateCode()
         await submitOnce()
       } else {
         throw err

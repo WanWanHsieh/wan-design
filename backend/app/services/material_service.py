@@ -15,6 +15,7 @@ def _material_query(db: Session):
 def to_public_out(material: Material) -> MaterialPublicOut:
     return MaterialPublicOut(
         id=material.id,
+        code=material.code,
         name=material.name,
         price_addon=material.price_addon,
         origin=material.origin,

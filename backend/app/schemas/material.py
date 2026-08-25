@@ -67,6 +67,7 @@ class MaterialPublicOut(BaseModel):
     """Customer-facing view: name, photos, and the customer-facing price add-on only — no cost/supplier/stock data."""
 
     id: int
+    code: str | None = None
     name: str
     price_addon: float
     origin: str | None = None

@@ -75,6 +75,7 @@ export interface MaterialImage {
 
 export interface Material {
   id: number
+  code: string | null
   name: string
   price_addon: number
   origin: string | null

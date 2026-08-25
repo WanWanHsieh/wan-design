@@ -137,7 +137,7 @@ function openLightbox(material: Material) {
           :to="{ name: 'material-detail', params: { id: material.id } }"
           class="group block overflow-hidden rounded-2xl border border-beige bg-white shadow-[0_2px_10px_rgba(180,140,110,0.12)] transition hover:-translate-y-0.5 hover:shadow-[0_6px_16px_rgba(180,140,110,0.2)]"
         >
-          <div class="aspect-square bg-cream-dark">
+          <div class="relative aspect-square bg-cream-dark">
             <img
               v-if="primaryFabricImage(material)"
               :src="imageUrl(primaryFabricImage(material)!.thumbnail_key ?? primaryFabricImage(material)!.storage_key)"
@@ -146,6 +146,12 @@ function openLightbox(material: Material) {
               @click.stop.prevent="openLightbox(material)"
             />
             <div v-else class="flex h-full items-center justify-center text-taupe">無圖片</div>
+            <span
+              v-if="material.code"
+              class="absolute left-2 top-2 rounded-full bg-white/90 px-2 py-0.5 text-xs font-medium text-brown shadow"
+            >
+              {{ material.code }}
+            </span>
           </div>
           <div class="p-3">
             <p class="truncate text-sm text-brown group-hover:text-terracotta">{{ material.name }}</p>
