@@ -14,8 +14,7 @@ const error = ref<string | null>(null)
 const addedFlash = ref(false)
 
 const lightboxVisible = ref(false)
-const lightboxSrc = ref('')
-const lightboxAlt = ref('')
+const lightboxIndex = ref(0)
 
 const mainImage = computed(
   () => product.value?.images.find((img) => img.is_primary) ?? product.value?.images[0] ?? null,
@@ -23,12 +22,30 @@ const mainImage = computed(
 const otherImages = computed(
   () => product.value?.images.filter((img) => img.id !== mainImage.value?.id) ?? [],
 )
+const galleryImages = computed(() =>
+  mainImage.value ? [mainImage.value, ...otherImages.value] : [],
+)
+
+const lightboxSrc = computed(() => {
+  const image = galleryImages.value[lightboxIndex.value]
+  return image ? imageUrl(image.storage_key) : ''
+})
+const lightboxAlt = computed(() => product.value?.name ?? '')
+const hasPrevImage = computed(() => lightboxIndex.value > 0)
+const hasNextImage = computed(() => lightboxIndex.value < galleryImages.value.length - 1)
 
 function openLightbox(storageKey: string) {
-  if (!product.value) return
-  lightboxSrc.value = imageUrl(storageKey)
-  lightboxAlt.value = product.value.name
+  const index = galleryImages.value.findIndex((img) => img.storage_key === storageKey)
+  lightboxIndex.value = index >= 0 ? index : 0
   lightboxVisible.value = true
+}
+
+function prevImage() {
+  if (hasPrevImage.value) lightboxIndex.value -= 1
+}
+
+function nextImage() {
+  if (hasNextImage.value) lightboxIndex.value += 1
 }
 
 function addToOrderDraft() {
@@ -151,6 +168,14 @@ onMounted(async () => {
       </div>
     </div>
 
-    <ImageLightbox v-model="lightboxVisible" :src="lightboxSrc" :alt="lightboxAlt" />
+    <ImageLightbox
+      v-model="lightboxVisible"
+      :src="lightboxSrc"
+      :alt="lightboxAlt"
+      :has-prev="hasPrevImage"
+      :has-next="hasNextImage"
+      @prev="prevImage"
+      @next="nextImage"
+    />
   </main>
 </template>

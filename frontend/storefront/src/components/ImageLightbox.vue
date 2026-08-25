@@ -5,10 +5,14 @@ const props = defineProps<{
   modelValue: boolean
   src: string
   alt?: string
+  hasPrev?: boolean
+  hasNext?: boolean
 }>()
 
 const emit = defineEmits<{
   'update:modelValue': [value: boolean]
+  prev: []
+  next: []
 }>()
 
 const scale = ref(1)
@@ -31,8 +35,24 @@ function close() {
   emit('update:modelValue', false)
 }
 
+function goPrev() {
+  if (props.hasPrev) {
+    reset()
+    emit('prev')
+  }
+}
+
+function goNext() {
+  if (props.hasNext) {
+    reset()
+    emit('next')
+  }
+}
+
 function onKeydown(event: KeyboardEvent) {
   if (event.key === 'Escape') close()
+  else if (event.key === 'ArrowLeft') goPrev()
+  else if (event.key === 'ArrowRight') goNext()
 }
 
 watch(
@@ -107,6 +127,22 @@ function onMouseUp() {
         @click="close"
       >
         ×
+      </button>
+      <button
+        v-if="hasPrev"
+        class="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-black/30 p-2 text-3xl leading-none text-white hover:bg-black/50 sm:left-4"
+        aria-label="上一張"
+        @click.stop="goPrev"
+      >
+        ‹
+      </button>
+      <button
+        v-if="hasNext"
+        class="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-black/30 p-2 text-3xl leading-none text-white hover:bg-black/50 sm:right-4"
+        aria-label="下一張"
+        @click.stop="goNext"
+      >
+        ›
       </button>
       <img
         :src="src"

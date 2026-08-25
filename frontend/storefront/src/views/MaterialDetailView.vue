@@ -10,8 +10,7 @@ const material = ref<Material | null>(null)
 const error = ref<string | null>(null)
 
 const lightboxVisible = ref(false)
-const lightboxSrc = ref('')
-const lightboxAlt = ref('')
+const lightboxIndex = ref(0)
 
 const fabricImages = computed(
   () => material.value?.images.filter((img) => img.image_type === 'fabric') ?? [],
@@ -22,6 +21,17 @@ const showcaseImages = computed(
 const mainImage = computed(
   () => fabricImages.value.find((img) => img.is_primary) ?? fabricImages.value[0],
 )
+const galleryImages = computed(() =>
+  mainImage.value ? [mainImage.value, ...showcaseImages.value] : [],
+)
+
+const lightboxSrc = computed(() => {
+  const image = galleryImages.value[lightboxIndex.value]
+  return image ? imageUrl(image.storage_key) : ''
+})
+const lightboxAlt = computed(() => material.value?.name ?? '')
+const hasPrevImage = computed(() => lightboxIndex.value > 0)
+const hasNextImage = computed(() => lightboxIndex.value < galleryImages.value.length - 1)
 
 onMounted(async () => {
   try {
@@ -35,9 +45,17 @@ onMounted(async () => {
 })
 
 function openLightbox(storageKey: string) {
-  lightboxSrc.value = imageUrl(storageKey)
-  lightboxAlt.value = material.value?.name ?? ''
+  const index = galleryImages.value.findIndex((img) => img.storage_key === storageKey)
+  lightboxIndex.value = index >= 0 ? index : 0
   lightboxVisible.value = true
+}
+
+function prevImage() {
+  if (hasPrevImage.value) lightboxIndex.value -= 1
+}
+
+function nextImage() {
+  if (hasNextImage.value) lightboxIndex.value += 1
 }
 </script>
 
@@ -96,6 +114,14 @@ function openLightbox(storageKey: string) {
       </div>
     </div>
 
-    <ImageLightbox v-model="lightboxVisible" :src="lightboxSrc" :alt="lightboxAlt" />
+    <ImageLightbox
+      v-model="lightboxVisible"
+      :src="lightboxSrc"
+      :alt="lightboxAlt"
+      :has-prev="hasPrevImage"
+      :has-next="hasNextImage"
+      @prev="prevImage"
+      @next="nextImage"
+    />
   </main>
 </template>
