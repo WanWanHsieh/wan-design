@@ -7,7 +7,6 @@ import logo from './images/logo.png'
 const cart = useCartStore()
 const orderDraft = useOrderDraftStore()
 const checkoutCount = computed(() => cart.totalQuantity + orderDraft.totalQuantity)
-const adminUrl = import.meta.env.VITE_ADMIN_URL ?? 'http://localhost:5174'
 const mobileMenuOpen = ref(false)
 
 function closeMobileMenu() {
@@ -211,14 +210,6 @@ function closeMobileMenu() {
           <span aria-hidden="true">💬</span> LINE 私訊
         </a>
       </div>
-      <a
-        :href="adminUrl"
-        target="_blank"
-        rel="noopener"
-        class="text-xs text-taupe/60 transition hover:text-terracotta"
-      >
-        管理後台
-      </a>
     </footer>
   </div>
 </template>
