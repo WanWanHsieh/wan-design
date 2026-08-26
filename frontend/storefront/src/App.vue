@@ -167,7 +167,50 @@ function closeMobileMenu() {
       </nav>
     </header>
     <RouterView />
-    <footer class="mt-8 border-t border-beige py-4 text-center">
+    <footer class="mt-8 border-t border-beige py-6 text-center">
+      <p class="mb-3 text-sm font-medium text-brown">聯絡我們</p>
+      <div class="mb-4 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm text-taupe">
+        <a
+          href="https://instagram.com/wan_design_0304"
+          target="_blank"
+          rel="noopener"
+          class="transition hover:text-terracotta"
+        >
+          <span aria-hidden="true">📷</span> Instagram
+        </a>
+        <a
+          href="https://www.facebook.com/wandesign0304"
+          target="_blank"
+          rel="noopener"
+          class="transition hover:text-terracotta"
+        >
+          <span aria-hidden="true">👍</span> 粉絲團
+        </a>
+        <a
+          href="https://www.facebook.com/groups/157339132839155/"
+          target="_blank"
+          rel="noopener"
+          class="transition hover:text-terracotta"
+        >
+          <span aria-hidden="true">👥</span> 社團
+        </a>
+        <a
+          href="https://shopee.tw/wansdesign0304"
+          target="_blank"
+          rel="noopener"
+          class="transition hover:text-terracotta"
+        >
+          <span aria-hidden="true">🛍️</span> 蝦皮賣場
+        </a>
+        <a
+          href="https://liff.line.me/1645278921-kWRPP32q/?accountId=894onjvt"
+          target="_blank"
+          rel="noopener"
+          class="transition hover:text-terracotta"
+        >
+          <span aria-hidden="true">💬</span> LINE 私訊
+        </a>
+      </div>
       <a
         :href="adminUrl"
         target="_blank"
