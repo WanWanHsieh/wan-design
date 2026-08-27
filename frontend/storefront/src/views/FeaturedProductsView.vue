@@ -78,7 +78,6 @@ onMounted(async () => {
       <h1 class="flex items-center justify-center gap-2 text-2xl font-bold text-terracotta-dark">
         <span aria-hidden="true">💛</span>本週主打商品
       </h1>
-      <p class="mt-2 text-sm text-brown/80">精選手作,每件都可以挑選自己喜歡的布料花色訂製。</p>
     </div>
 
     <p v-if="loading" class="text-taupe">載入中...</p>
