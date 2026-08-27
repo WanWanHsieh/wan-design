@@ -17,7 +17,7 @@ SHIPPING_LABELS = {
 }
 
 
-def _build_order_summary(order: Order) -> str:
+def build_order_summary(order: Order) -> str:
     lines = [
         f"新訂單:{order.order_no}",
         f"收件人:{order.customer_name}({order.phone})",
@@ -43,7 +43,7 @@ def _build_order_summary(order: Order) -> str:
 
 
 def notify_new_order(order: Order) -> None:
-    summary = _build_order_summary(order)
+    summary = build_order_summary(order)
 
     if not settings.smtp_configured:
         logger.info("新訂單通知 (未設定 SMTP,僅記錄於 log):\n%s", summary)

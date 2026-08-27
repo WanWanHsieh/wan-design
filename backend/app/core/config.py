@@ -32,9 +32,17 @@ class Settings(BaseSettings):
     R2_BUCKET_NAME: str = ""
     R2_PUBLIC_URL: str = ""
 
+    LINE_CHANNEL_ACCESS_TOKEN: str = ""
+    LINE_CHANNEL_SECRET: str = ""
+    LINE_ADMIN_USER_ID: str = ""
+
     @property
     def smtp_configured(self) -> bool:
         return bool(self.SMTP_HOST and self.SMTP_USER and self.SMTP_PASSWORD and self.NOTIFY_TO_EMAIL)
+
+    @property
+    def line_configured(self) -> bool:
+        return bool(self.LINE_CHANNEL_ACCESS_TOKEN and self.LINE_ADMIN_USER_ID)
 
     @property
     def r2_configured(self) -> bool:

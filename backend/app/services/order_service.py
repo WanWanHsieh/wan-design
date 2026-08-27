@@ -5,12 +5,13 @@ from fastapi import HTTPException, status
 from sqlalchemy import func
 from sqlalchemy.orm import Session, selectinload
 
+from app.core.config import settings
 from app.models.material import Material
 from app.models.order import Order, OrderItem
 from app.models.product import Product
 from app.models.product_variant import ProductVariant
 from app.schemas.order import ORDER_STATUSES, OrderCreate, OrderItemIn, OrderUpdate, check_shipping_fields
-from app.services import notification_service
+from app.services import line_service, notification_service
 
 
 def _order_query(db: Session):
@@ -198,6 +199,8 @@ def create_order(db: Session, data: OrderCreate) -> Order:
     db.commit()
     created_order = get_order(db, order.id)
     notification_service.notify_new_order(created_order)
+    summary = notification_service.build_order_summary(created_order)
+    line_service.push_message(settings.LINE_ADMIN_USER_ID, f"🔔新訂單通知\n\n{summary}")
     return created_order
 
 

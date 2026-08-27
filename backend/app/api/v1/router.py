@@ -1,5 +1,6 @@
 from fastapi import APIRouter
 
+from app.api.v1 import line as line_webhook
 from app.api.v1.admin import announcement as admin_announcement
 from app.api.v1.admin import auth as admin_auth
 from app.api.v1.admin import categories as admin_categories
@@ -37,3 +38,4 @@ admin_router.include_router(admin_announcement.router)
 
 api_router.include_router(storefront_router)
 api_router.include_router(admin_router)
+api_router.include_router(line_webhook.router)
