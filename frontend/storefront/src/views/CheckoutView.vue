@@ -252,10 +252,28 @@ const canSubmit = computed(() => {
   return cartValid && lineItemsValid
 })
 
+async function refreshInStockProducts() {
+  const { data } = await apiClient.get<ProductListItem[]>('/api/v1/storefront/products', {
+    params: { track_stock: true },
+  })
+  inStockProducts.value = data
+}
+
 async function handleSubmit() {
   submitError.value = null
   submitting.value = true
   try {
+    try {
+      await refreshInStockProducts()
+    } catch {
+      // if the recheck itself fails, fall through and let the actual submit surface the error
+    }
+    const outOfStockRow = cartRows.value.find((row) => row.item.quantity > row.product.stock_quantity)
+    if (outOfStockRow) {
+      submitError.value = `商品「${outOfStockRow.product.name}」庫存不足,請調整數量或移除後再結帳。`
+      return
+    }
+
     const { data } = await apiClient.post<OrderResult>('/api/v1/storefront/orders', {
       real_name: realName.value,
       contact_source: contactSource.value,
@@ -282,8 +300,13 @@ async function handleSubmit() {
     result.value = data
     cart.clear()
     orderDraft.clear()
-  } catch {
-    submitError.value = '訂單送出失敗,請確認資料填寫正確後再試一次。'
+  } catch (err: any) {
+    const detail = err?.response?.data?.detail
+    submitError.value =
+      typeof detail === 'string' ? detail : '訂單送出失敗,請確認資料填寫正確後再試一次。'
+    if (err?.response?.status === 400) {
+      await refreshInStockProducts().catch(() => {})
+    }
   } finally {
     submitting.value = false
   }
