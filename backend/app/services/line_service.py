@@ -34,7 +34,7 @@ def _headers() -> dict[str, str]:
     }
 
 
-def reply_message(reply_token: str, text: str) -> None:
+def reply_message(reply_token: str, text: str) -> str:
     try:
         response = httpx.post(
             REPLY_URL,
@@ -44,8 +44,11 @@ def reply_message(reply_token: str, text: str) -> None:
         )
         if response.status_code >= 400:
             logger.error("LINE reply failed: %s %s", response.status_code, response.text)
-    except Exception:
+            return f"reply failed: {response.status_code} {response.text}"
+        return "reply ok"
+    except Exception as exc:
         logger.exception("LINE reply failed")
+        return f"reply exception: {exc!r}"
 
 
 def push_message(user_id: str, text: str) -> None:

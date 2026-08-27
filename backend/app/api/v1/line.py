@@ -24,6 +24,7 @@ async def line_webhook(request: Request, db: Session = Depends(get_db)):
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Invalid signature")
 
     payload = await request.json()
+    outcomes = []
     for event in payload.get("events", []):
         if event.get("type") != "message":
             continue
@@ -33,8 +34,13 @@ async def line_webhook(request: Request, db: Session = Depends(get_db)):
         reply_token = event.get("replyToken")
         user_id = event.get("source", {}).get("userId")
         if reply_token and user_id:
-            line_service.reply_message(
+            outcome = line_service.reply_message(
                 reply_token, f"你的 LINE User ID 是:\n{user_id}\n\n請把這串複製貼給小幫手設定訂單通知。"
             )
+            outcomes.append(outcome)
+
+    if outcomes:
+        log.note = " | ".join(outcomes)
+        db.commit()
 
     return {"status": "ok"}
