@@ -28,6 +28,19 @@
       </section>
 
       <section class="rounded-2xl border border-beige bg-white p-5 shadow-[0_2px_10px_rgba(180,140,110,0.08)]">
+        <h2 class="mb-3 font-bold text-brown">🧵 商品材質與保養方式</h2>
+        <p class="text-sm text-brown/80">
+          <span class="font-medium text-brown">材質：</span
+          >圍兜兜以純棉與二紗製作，質地適合寶寶細嫩肌膚，內夾六層紗（不含表布），厚度剛剛好。
+        </p>
+        <p class="mt-2 text-sm text-brown/80">
+          <span class="font-medium text-brown">清潔建議：</span
+          >圍兜兜請放入洗衣袋清洗；包包與帽子則建議以擦拭方式清潔髒污即可，不建議放入洗衣機洗滌。
+        </p>
+        <p class="mt-2 text-sm text-brown/80">所有手作商品皆不可烘乾。</p>
+      </section>
+
+      <section class="rounded-2xl border border-beige bg-white p-5 shadow-[0_2px_10px_rgba(180,140,110,0.08)]">
         <h2 class="mb-3 font-bold text-brown">↩️ 退換貨說明</h2>
         <p class="text-sm text-brown/80">手作商品皆為客製化製作，恕不提供退換貨，請下單前確認商品內容與規格。</p>
       </section>
