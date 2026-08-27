@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { apiClient, imageUrl } from '../api/client'
 import ImageLightbox from '../components/ImageLightbox.vue'
 import MaterialPickerModal from '../components/MaterialPickerModal.vue'
@@ -45,6 +45,20 @@ const submitError = ref<string | null>(null)
 const result = ref<OrderResult | null>(null)
 
 const todayStr = new Date().toISOString().slice(0, 10)
+const CUSTOM_ORDER_LEAD_DAYS = 21
+
+const minDeliveryDate = computed(() => {
+  if (lineItems.value.length === 0) return todayStr
+  const date = new Date()
+  date.setDate(date.getDate() + CUSTOM_ORDER_LEAD_DAYS)
+  return date.toISOString().slice(0, 10)
+})
+
+watch(minDeliveryDate, (newMin) => {
+  if (expectedDeliveryDate.value && expectedDeliveryDate.value < newMin) {
+    expectedDeliveryDate.value = ''
+  }
+})
 
 const lightboxVisible = ref(false)
 const lightboxSrc = ref('')
@@ -732,11 +746,14 @@ async function handleSubmit() {
 
         <section class="rounded-2xl border border-beige bg-white p-5 shadow-[0_2px_10px_rgba(180,140,110,0.08)]">
           <h2 class="mb-3 font-bold text-brown">預期收到日期</h2>
+          <p v-if="lineItems.length > 0" class="mb-2 text-sm text-taupe">
+            🧵 訂製商品製作期約需 3 週,請預留足夠時間;若能提早完成會另行通知。
+          </p>
           <input
             v-model="expectedDeliveryDate"
             type="date"
             required
-            :min="todayStr"
+            :min="minDeliveryDate"
             class="rounded-lg border border-beige px-3 py-2 focus:border-terracotta focus:outline-none focus:ring-1 focus:ring-terracotta"
           />
         </section>

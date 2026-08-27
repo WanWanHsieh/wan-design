@@ -131,6 +131,9 @@ onMounted(async () => {
         <p v-if="!product.track_stock" class="mt-2 text-xs text-taupe">
           此商品為訂製款,加入訂購清單後可繼續選購,最後一起前往訂購頁選布料下單。
         </p>
+        <p v-if="!product.track_stock" class="mt-1 text-xs text-taupe">
+          🧵 訂製品製作期約需 3 週,請預留足夠時間;若能提早完成會另行通知。
+        </p>
 
         <dl
           v-if="Object.keys(product.custom_attributes).length"
