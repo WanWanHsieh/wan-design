@@ -215,7 +215,7 @@ watch(materialId, (newId) => {
 
     <el-form label-position="top" @submit.prevent="handleSubmit">
       <p v-if="!isEdit" class="mb-2 text-xs text-gray-400">編號已自動產生,通常不需要手動修改。</p>
-      <div class="grid grid-cols-2 gap-4">
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <el-form-item label="編號 (選填)">
           <div class="flex gap-2">
             <el-input v-model="form.code" placeholder="例如:FAB-001" />
@@ -226,7 +226,7 @@ watch(materialId, (newId) => {
           <el-input v-model="form.name" placeholder="例如:粉紅棉麻格紋" />
         </el-form-item>
       </div>
-      <div class="grid grid-cols-2 gap-4">
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <el-form-item label="計價單位">
           <el-select v-model="form.unit">
             <el-option label="公尺" value="meter" />
@@ -239,7 +239,7 @@ watch(materialId, (newId) => {
           <el-input-number v-model="form.quantity_on_hand" :min="0" :precision="2" />
         </el-form-item>
       </div>
-      <div class="grid grid-cols-2 gap-4">
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <el-form-item label="進貨成本 (NT$,內部參考用,不會顯示給客人)">
           <el-input-number v-model="form.unit_cost" :min="0" :precision="2" />
         </el-form-item>
@@ -247,7 +247,7 @@ watch(materialId, (newId) => {
           <el-input-number v-model="form.price_addon" :min="0" :precision="2" />
         </el-form-item>
       </div>
-      <div class="grid grid-cols-2 gap-4">
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <el-form-item label="產地 (選填)">
           <el-select v-model="form.origin" clearable placeholder="請選擇產地">
             <el-option label="台灣" value="台灣" />
@@ -265,7 +265,7 @@ watch(materialId, (newId) => {
           </el-select>
         </el-form-item>
       </div>
-      <div class="grid grid-cols-2 gap-4">
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <el-form-item label="供應商 (選填)">
           <el-input v-model="form.supplier" />
         </el-form-item>

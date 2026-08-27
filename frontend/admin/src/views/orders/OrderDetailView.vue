@@ -231,7 +231,7 @@ async function handleDelete() {
           </el-select>
         </el-form-item>
 
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <el-form-item label="真實姓名">
             <el-input v-model="realName" />
           </el-form-item>

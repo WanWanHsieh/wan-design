@@ -234,7 +234,7 @@ watch(productId, (newId) => {
 
     <el-form label-position="top" @submit.prevent="handleSubmit">
       <p class="mb-2 text-xs text-gray-400">SKU / Slug 已自動產生,通常不需要手動修改。</p>
-      <div class="grid grid-cols-2 gap-4">
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <el-form-item label="SKU">
           <div class="flex gap-2">
             <el-input v-model="form.sku" />
@@ -254,7 +254,7 @@ watch(productId, (newId) => {
       <el-form-item label="描述">
         <el-input v-model="form.description" type="textarea" :rows="3" />
       </el-form-item>
-      <div class="grid grid-cols-3 gap-4">
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <el-form-item label="款式分類(可選,用來歸類同款式的現貨)">
           <el-select v-model="form.category_id" clearable placeholder="請選擇分類">
             <el-option v-for="c in selectableCategories" :key="c.id" :label="c.name" :value="c.id" />
@@ -284,7 +284,7 @@ watch(productId, (newId) => {
         <el-switch v-model="saleEnabled" />
         <span class="ml-2 text-sm text-brown">設定特價</span>
       </el-form-item>
-      <div v-if="saleEnabled" class="grid grid-cols-2 gap-4">
+      <div v-if="saleEnabled" class="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <el-form-item label="特價">
           <el-input-number v-model="form.sale_price" :min="0" />
         </el-form-item>

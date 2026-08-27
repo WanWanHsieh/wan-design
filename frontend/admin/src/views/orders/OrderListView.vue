@@ -312,7 +312,7 @@ async function toggleItemCompleted(orderId: number, item: OrderItem) {
       </div>
     </div>
 
-    <el-dialog v-model="mergeDialogVisible" title="合併訂單" width="500">
+    <el-dialog v-model="mergeDialogVisible" title="合併訂單" width="92%" class="sm:!w-[500px]">
       <p class="mb-3 text-sm text-gray-600">
         選擇要保留的主訂單,另一張訂單的商品會併入主訂單,原訂單將被刪除(此操作無法復原)。
       </p>
