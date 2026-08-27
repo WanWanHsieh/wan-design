@@ -31,6 +31,17 @@ async function loadProducts() {
   }
 }
 
+async function toggleFeatured(product: Product) {
+  const next = !product.is_featured
+  try {
+    await apiClient.put(`/api/v1/admin/products/${product.id}`, { is_featured: next })
+    product.is_featured = next
+    ElMessage.success(next ? '已設為主打商品' : '已取消主打')
+  } catch {
+    ElMessage.error('更新失敗,請稍後再試')
+  }
+}
+
 async function handleDelete(product: Product) {
   await ElMessageBox.confirm(`確定要刪除「${product.name}」嗎?`, '刪除現貨商品', { type: 'warning' })
   await apiClient.delete(`/api/v1/admin/products/${product.id}`)
@@ -66,6 +77,19 @@ onMounted(loadProducts)
             :src="imageUrl(row.images[0].thumbnail_key ?? row.images[0].storage_key)"
             class="h-12 w-12 rounded object-cover"
           />
+        </template>
+      </el-table-column>
+      <el-table-column label="主打" width="60">
+        <template #default="{ row }">
+          <button
+            type="button"
+            class="text-lg"
+            :class="row.is_featured ? 'text-amber-500' : 'text-gray-300'"
+            :title="row.is_featured ? '取消主打' : '設為主打'"
+            @click="toggleFeatured(row)"
+          >
+            ★
+          </button>
         </template>
       </el-table-column>
       <el-table-column prop="name" label="名稱" />
@@ -106,7 +130,18 @@ onMounted(loadProducts)
           class="h-16 w-16 flex-none rounded-lg object-cover"
         />
         <div class="flex-1">
-          <div class="font-medium text-brown">{{ row.name }}</div>
+          <div class="flex items-center gap-1 font-medium text-brown">
+            <button
+              type="button"
+              class="text-base"
+              :class="row.is_featured ? 'text-amber-500' : 'text-gray-300'"
+              :title="row.is_featured ? '取消主打' : '設為主打'"
+              @click="toggleFeatured(row)"
+            >
+              ★
+            </button>
+            {{ row.name }}
+          </div>
           <div class="mt-1 flex items-center gap-2 text-sm text-taupe">
             <span v-if="row.is_on_sale">
               <span class="text-taupe/60 line-through">NT$ {{ row.base_price }}</span>

@@ -3,6 +3,7 @@ import { onMounted, reactive, ref } from 'vue'
 import { apiClient, imageUrl } from '../api/client'
 import ImageLightbox from '../components/ImageLightbox.vue'
 import PriceTag from '../components/PriceTag.vue'
+import { useCartStore } from '../stores/cart'
 import { useOrderDraftStore } from '../stores/orderDraft'
 import type { ProductListItem } from '../types'
 
@@ -15,7 +16,9 @@ const lightboxSrc = ref('')
 const lightboxAlt = ref('')
 
 const orderDraft = useOrderDraftStore()
+const cart = useCartStore()
 const addedFlash = reactive<Record<number, boolean>>({})
+const quantities = reactive<Record<number, number>>({})
 
 function openLightbox(product: ProductListItem) {
   const image = product.primary_image ?? product.primary_thumbnail
@@ -33,10 +36,34 @@ function addToOrderDraft(product: ProductListItem) {
   }, 1200)
 }
 
+function availableStock(product: ProductListItem): number {
+  return Math.max(0, product.stock_quantity - cart.quantityOf(product.id))
+}
+
+function isSoldOut(product: ProductListItem): boolean {
+  return availableStock(product) <= 0
+}
+
+function addToCart(product: ProductListItem) {
+  const qty = Math.min(quantities[product.id] ?? 1, availableStock(product))
+  if (qty <= 0) return
+  cart.addItem(product.id, qty)
+  quantities[product.id] = 1
+  addedFlash[product.id] = true
+  setTimeout(() => {
+    addedFlash[product.id] = false
+  }, 1200)
+}
+
 onMounted(async () => {
   try {
-    const { data } = await apiClient.get<ProductListItem[]>('/api/v1/storefront/products')
-    products.value = data.filter((p) => p.is_featured)
+    const [orderProductsRes, inStockProductsRes] = await Promise.all([
+      apiClient.get<ProductListItem[]>('/api/v1/storefront/products'),
+      apiClient.get<ProductListItem[]>('/api/v1/storefront/products', { params: { track_stock: true } }),
+    ])
+    const all = [...orderProductsRes.data, ...inStockProductsRes.data]
+    products.value = all.filter((p) => p.is_featured)
+    for (const p of products.value) quantities[p.id] = 1
   } catch {
     error.value = '無法載入主打商品,請確認後端服務是否啟動。'
   } finally {
@@ -62,7 +89,7 @@ onMounted(async () => {
       <div
         v-for="product in products"
         :key="product.id"
-        class="group overflow-hidden rounded-3xl border border-beige bg-white shadow-[0_4px_14px_rgba(180,140,110,0.14)] transition duration-300 hover:-translate-y-1 hover:rotate-1 hover:shadow-[0_10px_24px_rgba(180,140,110,0.24)]"
+        class="group flex flex-col overflow-hidden rounded-3xl border border-beige bg-white shadow-[0_4px_14px_rgba(180,140,110,0.14)] transition duration-300 hover:-translate-y-1 hover:rotate-1 hover:shadow-[0_10px_24px_rgba(180,140,110,0.24)]"
       >
         <RouterLink :to="{ name: 'product-detail', params: { slug: product.slug } }" class="block">
           <div class="aspect-square bg-cream-dark">
@@ -77,25 +104,50 @@ onMounted(async () => {
           </div>
         </RouterLink>
         <div class="border-t-2 border-dashed border-terracotta/25"></div>
-        <div class="p-3">
+        <div class="flex flex-1 flex-col gap-1 p-3">
           <RouterLink :to="{ name: 'product-detail', params: { slug: product.slug } }">
             <p class="truncate text-sm text-brown group-hover:text-terracotta">{{ product.name }}</p>
           </RouterLink>
-          <p class="mt-1">
-            <PriceTag
-              :base-price="product.base_price"
-              :effective-price="product.effective_price"
-              :is-on-sale="product.is_on_sale"
-            />
-          </p>
-          <p class="mt-0.5 text-xs text-taupe">{{ product.track_stock ? '現貨' : '訂製・需選布料' }}</p>
+          <PriceTag
+            :base-price="product.base_price"
+            :effective-price="product.effective_price"
+            :is-on-sale="product.is_on_sale"
+          />
+          <p v-if="!product.track_stock" class="text-xs text-taupe">訂製・需選布料</p>
+          <p v-else-if="isSoldOut(product)" class="text-xs font-medium text-red-500">已售完</p>
+          <p v-else class="text-xs text-taupe">剩 {{ availableStock(product) }} 件</p>
+
           <button
             v-if="!product.track_stock"
             type="button"
-            class="mt-2 w-full rounded-full bg-terracotta px-3 py-1.5 text-xs font-medium text-white transition hover:bg-terracotta-dark"
+            class="mt-auto w-full rounded-full bg-terracotta px-3 py-1.5 text-xs font-medium text-white transition hover:bg-terracotta-dark"
             @click="addToOrderDraft(product)"
           >
             {{ addedFlash[product.id] ? '已加入!' : '加入訂購清單' }}
+          </button>
+          <div v-else-if="!isSoldOut(product)" class="mt-auto flex items-center gap-2">
+            <input
+              v-model.number="quantities[product.id]"
+              type="number"
+              min="1"
+              :max="availableStock(product)"
+              class="w-14 rounded-lg border border-beige px-2 py-1 text-sm focus:border-terracotta focus:outline-none focus:ring-1 focus:ring-terracotta"
+            />
+            <button
+              type="button"
+              class="flex-1 whitespace-nowrap rounded-full bg-terracotta px-3 py-1.5 text-xs font-medium text-white transition hover:bg-terracotta-dark"
+              @click="addToCart(product)"
+            >
+              {{ addedFlash[product.id] ? '已加入!' : '加入購物車' }}
+            </button>
+          </div>
+          <button
+            v-else
+            type="button"
+            disabled
+            class="mt-auto rounded-full bg-beige px-3 py-1.5 text-xs font-medium text-taupe"
+          >
+            已售完
           </button>
         </div>
       </div>
