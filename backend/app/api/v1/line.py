@@ -1,15 +1,26 @@
-from fastapi import APIRouter, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
+from sqlalchemy.orm import Session
 
+from app.api.deps import get_db
+from app.models.line_webhook_log import LineWebhookLog
 from app.services import line_service
 
 router = APIRouter(prefix="/line", tags=["line"])
 
 
 @router.post("/webhook")
-async def line_webhook(request: Request):
+async def line_webhook(request: Request, db: Session = Depends(get_db)):
     body = await request.body()
     signature = request.headers.get("X-Line-Signature")
+    note = None
     if not line_service.verify_signature(body, signature):
+        note = "signature verification failed"
+
+    log = LineWebhookLog(raw_payload=body.decode("utf-8", errors="replace"), note=note)
+    db.add(log)
+    db.commit()
+
+    if note is not None:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Invalid signature")
 
     payload = await request.json()
