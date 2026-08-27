@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { apiClient, imageUrl } from '../api/client'
 import ImageLightbox from '../components/ImageLightbox.vue'
 import MaterialPickerModal from '../components/MaterialPickerModal.vue'
 import PriceTag from '../components/PriceTag.vue'
 import { useCartStore } from '../stores/cart'
 import { useOrderDraftStore } from '../stores/orderDraft'
+import { useToastStore } from '../stores/toast'
 import type { Category, Material, OrderResult, ProductListItem } from '../types'
 
 interface LineItem {
@@ -20,6 +21,7 @@ const UNCATEGORIZED_TOP_ID = -1
 
 const cart = useCartStore()
 const orderDraft = useOrderDraftStore()
+const toast = useToastStore()
 
 const orderProducts = ref<ProductListItem[]>([])
 const inStockProducts = ref<ProductListItem[]>([])
@@ -195,8 +197,18 @@ function productRequiresMaterial(productId: number | null): boolean {
   return orderProducts.value.find((p) => p.id === productId)?.requires_material !== false
 }
 
+const lineItemRefs = ref<(HTMLElement | null)[]>([])
+
+function setLineItemRef(el: Element | null, index: number) {
+  lineItemRefs.value[index] = el as HTMLElement | null
+}
+
 function addLineItem() {
   lineItems.value.push({ topCategoryId: null, productId: null, variantId: null, materialId: null, quantity: 1 })
+  toast.show('已新增訂製項目 ✓')
+  nextTick(() => {
+    lineItemRefs.value[lineItems.value.length - 1]?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  })
 }
 
 function removeLineItem(index: number) {
@@ -591,6 +603,7 @@ async function handleSubmit() {
           <div
             v-for="(item, index) in lineItems"
             :key="index"
+            :ref="(el) => setLineItemRef(el as Element | null, index)"
             class="mb-3 flex flex-wrap items-end gap-3 rounded-xl border border-beige bg-cream/60 p-4"
           >
             <label class="block w-full text-sm text-brown sm:w-36">
