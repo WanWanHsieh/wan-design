@@ -165,6 +165,7 @@ onMounted(async () => {
               <img
                 :src="imageUrl(image.thumbnail_key ?? image.storage_key)"
                 :alt="product.name"
+                loading="lazy"
                 class="h-full w-full cursor-zoom-in object-cover"
                 @click="openLightbox(image.storage_key)"
               />

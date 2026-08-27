@@ -198,6 +198,7 @@ function close() {
                   v-if="primaryFabricImage(material)"
                   :src="imageUrl(primaryFabricImage(material)!.thumbnail_key ?? primaryFabricImage(material)!.storage_key)"
                   :alt="material.name"
+                  loading="lazy"
                   class="h-full w-full object-cover"
                 />
                 <div v-else class="flex h-full items-center justify-center text-xs text-taupe">無圖片</div>

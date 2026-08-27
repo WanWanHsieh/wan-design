@@ -135,6 +135,7 @@ function addToCart(product: ProductListItem) {
                 v-if="categoryThumbnail(cat.id)"
                 :src="imageUrl(categoryThumbnail(cat.id)!)"
                 :alt="cat.name"
+                loading="lazy"
                 class="h-full w-full object-cover"
               />
               <div v-else class="flex h-full items-center justify-center text-taupe">無圖片</div>
@@ -194,6 +195,7 @@ function addToCart(product: ProductListItem) {
                   v-if="product.primary_thumbnail ?? product.primary_image"
                   :src="imageUrl(product.primary_thumbnail ?? product.primary_image!)"
                   :alt="product.name"
+                  loading="lazy"
                   class="h-full w-full object-cover"
                 />
                 <div v-else class="flex h-full items-center justify-center text-taupe">無圖片</div>

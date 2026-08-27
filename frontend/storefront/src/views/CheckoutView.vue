@@ -438,12 +438,14 @@ async function handleSubmit() {
           <img
             v-if="item.product_thumbnail"
             :src="imageUrl(item.product_thumbnail)"
+            loading="lazy"
             class="h-12 w-12 flex-none cursor-zoom-in rounded-lg border border-beige object-cover"
             @click="openLightbox(item.product_image ?? item.product_thumbnail!, item.product_name_snapshot)"
           />
           <img
             v-if="item.material_thumbnail"
             :src="imageUrl(item.material_thumbnail)"
+            loading="lazy"
             class="h-12 w-12 flex-none cursor-zoom-in rounded-lg border border-beige object-cover"
             @click="openLightbox(item.material_image ?? item.material_thumbnail!, item.material_name_snapshot ?? '')"
           />
@@ -516,6 +518,7 @@ async function handleSubmit() {
               <img
                 v-if="row.product.primary_thumbnail ?? row.product.primary_image"
                 :src="imageUrl(row.product.primary_thumbnail ?? row.product.primary_image!)"
+                loading="lazy"
                 class="h-14 w-14 flex-none rounded-lg border border-beige object-cover"
               />
               <div class="flex-1 sm:w-40 sm:flex-none">
@@ -595,6 +598,7 @@ async function handleSubmit() {
                 <img
                   v-if="productThumbnail(item.productId)"
                   :src="imageUrl(productThumbnail(item.productId)!)"
+                  loading="lazy"
                   class="h-10 w-10 flex-none cursor-zoom-in rounded-lg border border-beige object-cover"
                   @click.stop.prevent="openLightbox(productFullImage(item.productId)!, '商品預覽')"
                 />
@@ -634,6 +638,7 @@ async function handleSubmit() {
                 <img
                   v-if="materialThumbnail(item.materialId)"
                   :src="imageUrl(materialThumbnail(item.materialId)!)"
+                  loading="lazy"
                   class="h-10 w-10 flex-none cursor-zoom-in rounded-lg border border-beige object-cover"
                   @click.stop.prevent="openLightbox(materialFullImage(item.materialId)!, '布料預覽')"
                 />

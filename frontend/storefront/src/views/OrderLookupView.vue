@@ -154,11 +154,13 @@ async function handleSearch() {
             <img
               v-if="item.product_thumbnail"
               :src="imageUrl(item.product_thumbnail)"
+              loading="lazy"
               class="h-12 w-12 flex-none cursor-zoom-in rounded-lg border border-beige object-cover"
               @click="openLightbox(item.product_image ?? item.product_thumbnail!, item.product_name_snapshot)"
             />
             <img
               v-if="item.material_thumbnail"
+              loading="lazy"
               :src="imageUrl(item.material_thumbnail)"
               class="h-12 w-12 flex-none cursor-zoom-in rounded-lg border border-beige object-cover"
               @click="openLightbox(item.material_image ?? item.material_thumbnail!, item.material_name_snapshot!)"
