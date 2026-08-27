@@ -77,7 +77,18 @@ function openLightbox(product: ProductListItem) {
 
 <template>
   <main class="mx-auto max-w-6xl px-4 py-10">
-    <h1 class="mb-2 flex items-center gap-2 text-2xl font-bold text-brown">
+    <div
+      class="mb-8 rounded-3xl border border-beige bg-white/70 px-6 py-8 text-center shadow-[0_4px_20px_rgba(180,140,110,0.12)] sm:px-10"
+    >
+      <p class="font-accent text-3xl text-terracotta-dark sm:text-4xl">Wan's Design</p>
+      <p class="mt-2 text-sm text-taupe">🧵 丸藝手作坊・一針一線,手作的溫度</p>
+      <div
+        class="mx-auto mt-4 h-0 w-24 border-t-2 border-dashed border-terracotta/40"
+        aria-hidden="true"
+      ></div>
+    </div>
+
+    <h1 class="mb-2 flex items-center gap-2 font-accent text-2xl text-brown">
       <span aria-hidden="true">🌿</span>商品列表
     </h1>
 
@@ -120,7 +131,7 @@ function openLightbox(product: ProductListItem) {
             v-for="cat in visibleTopCategories"
             :key="cat.id"
             type="button"
-            class="group block overflow-hidden rounded-2xl border border-beige bg-white text-left shadow-[0_2px_10px_rgba(180,140,110,0.12)] transition hover:-translate-y-0.5 hover:shadow-[0_6px_16px_rgba(180,140,110,0.2)]"
+            class="group block overflow-hidden rounded-3xl border border-beige bg-white text-left shadow-[0_4px_14px_rgba(180,140,110,0.14)] transition duration-300 hover:-translate-y-1 hover:rotate-1 hover:shadow-[0_10px_24px_rgba(180,140,110,0.24)]"
             @click="nav.selectTop(cat.slug)"
           >
             <div class="aspect-square bg-cream-dark">
@@ -132,13 +143,14 @@ function openLightbox(product: ProductListItem) {
               />
               <div v-else class="flex h-full items-center justify-center text-taupe">無圖片</div>
             </div>
+            <div class="border-t-2 border-dashed border-terracotta/25"></div>
             <div class="p-3">
               <p class="truncate text-sm font-medium text-brown group-hover:text-terracotta">{{ cat.name }}</p>
             </div>
           </button>
           <button
             type="button"
-            class="flex items-center justify-center rounded-2xl border border-dashed border-taupe/40 bg-cream/60 p-6 text-sm text-taupe transition hover:border-terracotta hover:text-terracotta"
+            class="flex items-center justify-center rounded-3xl border-2 border-dashed border-taupe/40 bg-cream/60 p-6 font-accent text-sm text-taupe transition hover:border-terracotta hover:text-terracotta"
             @click="nav.selectAll()"
           >
             瀏覽全部商品 →
@@ -146,14 +158,14 @@ function openLightbox(product: ProductListItem) {
         </div>
 
         <div v-if="uncategorized.length" class="mt-10">
-          <h2 class="mb-1 text-sm font-medium text-taupe">未分類商品</h2>
+          <h2 class="mb-1 font-accent text-base text-brown">未分類商品</h2>
           <p class="mb-3 text-sm text-taupe">💡 點進商品可查看更多花色參考圖</p>
           <div class="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4">
             <RouterLink
               v-for="product in uncategorized"
               :key="product.id"
               :to="{ name: 'product-detail', params: { slug: product.slug } }"
-              class="group block overflow-hidden rounded-2xl border border-beige bg-white shadow-[0_2px_10px_rgba(180,140,110,0.12)] transition hover:-translate-y-0.5 hover:shadow-[0_6px_16px_rgba(180,140,110,0.2)]"
+              class="group block overflow-hidden rounded-3xl border border-beige bg-white shadow-[0_4px_14px_rgba(180,140,110,0.14)] transition duration-300 hover:-translate-y-1 hover:rotate-1 hover:shadow-[0_10px_24px_rgba(180,140,110,0.24)]"
             >
               <div class="aspect-square bg-cream-dark">
                 <img
@@ -165,6 +177,7 @@ function openLightbox(product: ProductListItem) {
                 />
                 <div v-else class="flex h-full items-center justify-center text-taupe">無圖片</div>
               </div>
+              <div class="border-t-2 border-dashed border-terracotta/25"></div>
               <div class="p-3">
                 <p class="truncate text-sm text-brown group-hover:text-terracotta">{{ product.name }}</p>
                 <p class="mt-1">
@@ -220,7 +233,7 @@ function openLightbox(product: ProductListItem) {
             v-for="product in visibleProducts"
             :key="product.id"
             :to="{ name: 'product-detail', params: { slug: product.slug } }"
-            class="group block overflow-hidden rounded-2xl border border-beige bg-white shadow-[0_2px_10px_rgba(180,140,110,0.12)] transition hover:-translate-y-0.5 hover:shadow-[0_6px_16px_rgba(180,140,110,0.2)]"
+            class="group block overflow-hidden rounded-3xl border border-beige bg-white shadow-[0_4px_14px_rgba(180,140,110,0.14)] transition duration-300 hover:-translate-y-1 hover:rotate-1 hover:shadow-[0_10px_24px_rgba(180,140,110,0.24)]"
           >
             <div class="aspect-square bg-cream-dark">
               <img
@@ -232,6 +245,7 @@ function openLightbox(product: ProductListItem) {
               />
               <div v-else class="flex h-full items-center justify-center text-taupe">無圖片</div>
             </div>
+            <div class="border-t-2 border-dashed border-terracotta/25"></div>
             <div class="p-3">
               <p class="truncate text-sm text-brown group-hover:text-terracotta">{{ product.name }}</p>
               <p class="mt-1">

@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@import url("https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;600&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;600&family=Klee+One:wght@400;600&display=swap");
 
 @theme {
   --color-cream: #fbf6ef;
@@ -14,11 +14,14 @@
   --color-beige: #eae0d3;
 
   --font-display: "Zen Maru Gothic", "Noto Sans TC", sans-serif;
+  --font-accent: "Klee One", "Zen Maru Gothic", "Noto Sans TC", sans-serif;
 }
 
 body {
   margin: 0;
   font-family: var(--font-display);
   background-color: var(--color-cream);
+  background-image: radial-gradient(circle, rgba(74, 55, 40, 0.06) 1px, transparent 1px);
+  background-size: 22px 22px;
   color: var(--color-brown);
 }
