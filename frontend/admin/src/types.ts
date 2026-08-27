@@ -48,6 +48,7 @@ export interface Product {
   track_stock: boolean
   stock_quantity: number
   is_featured: boolean
+  requires_material: boolean
   sale_price: number | null
   sale_starts_at: string | null
   sale_ends_at: string | null

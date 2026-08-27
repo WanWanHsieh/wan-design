@@ -191,6 +191,10 @@ function variantsForProduct(productId: number | null) {
   return orderProducts.value.find((p) => p.id === productId)?.variants ?? []
 }
 
+function productRequiresMaterial(productId: number | null): boolean {
+  return orderProducts.value.find((p) => p.id === productId)?.requires_material !== false
+}
+
 function addLineItem() {
   lineItems.value.push({ topCategoryId: null, productId: null, variantId: null, materialId: null, quantity: 1 })
 }
@@ -207,14 +211,19 @@ function clearLineItems() {
 
 function itemUnitPrice(item: LineItem): number {
   const product = orderProducts.value.find((p) => p.id === item.productId)
-  const material = materials.value.find((m) => m.id === item.materialId)
-  if (!product || !material) return 0
+  if (!product) return 0
+  let materialAddon = 0
+  if (product.requires_material !== false) {
+    const material = materials.value.find((m) => m.id === item.materialId)
+    if (!material) return 0
+    materialAddon = material.price_addon
+  }
   if (product.has_variants) {
     const variant = product.variants.find((v) => v.id === item.variantId)
     if (!variant) return 0
-    return variant.price + material.price_addon
+    return variant.price + materialAddon
   }
-  return product.effective_price + material.price_addon
+  return product.effective_price + materialAddon
 }
 
 function itemSubtotal(item: LineItem): number {
@@ -225,7 +234,7 @@ function lineItemIsIncomplete(item: LineItem): boolean {
   if (!item.productId) return true
   const product = orderProducts.value.find((p) => p.id === item.productId)
   if (product?.has_variants && !item.variantId) return true
-  if (!item.materialId) return true
+  if (product?.requires_material !== false && !item.materialId) return true
   return false
 }
 
@@ -233,7 +242,7 @@ function itemSubtotalLabel(item: LineItem): string {
   if (!item.productId) return '請先選擇商品'
   const product = orderProducts.value.find((p) => p.id === item.productId)
   if (product?.has_variants && !item.variantId) return '尚未選規格'
-  if (!item.materialId) return '尚未選布料'
+  if (product?.requires_material !== false && !item.materialId) return '尚未選布料'
   return `NT$ ${itemSubtotal(item)}`
 }
 
@@ -313,7 +322,8 @@ const canSubmit = computed(() => {
     (row) => row.item.quantity > 0 && row.item.quantity <= row.product.stock_quantity,
   )
   const lineItemsValid = lineItems.value.every((item) => {
-    if (!item.productId || !item.materialId || item.quantity <= 0) return false
+    if (!item.productId || item.quantity <= 0) return false
+    if (productRequiresMaterial(item.productId) && !item.materialId) return false
     if (variantsForProduct(item.productId).length > 0 && !item.variantId) return false
     return true
   })
@@ -635,7 +645,10 @@ async function handleSubmit() {
                 </option>
               </select>
             </label>
-            <label class="block w-full text-sm text-brown sm:min-w-[220px] sm:flex-1">
+            <label
+              v-if="productRequiresMaterial(item.productId)"
+              class="block w-full text-sm text-brown sm:min-w-[220px] sm:flex-1"
+            >
               選擇布料
               <div class="mt-1 flex items-center gap-2">
                 <img
@@ -658,6 +671,9 @@ async function handleSubmit() {
                 </button>
               </div>
             </label>
+            <p v-else-if="item.productId" class="w-full text-sm text-taupe sm:min-w-[220px] sm:flex-1">
+              此商品為加購商品,免選布料
+            </p>
             <label class="block w-full text-sm text-brown sm:w-24">
               數量
               <input

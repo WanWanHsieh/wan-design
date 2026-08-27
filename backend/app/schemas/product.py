@@ -58,6 +58,7 @@ class ProductBase(BaseModel):
     custom_attributes: dict = Field(default_factory=dict)
     track_stock: bool = False
     stock_quantity: int = Field(default=0, ge=0)
+    requires_material: bool = True
     is_featured: bool = False
     sale_price: float | None = None
     sale_starts_at: date | None = None
@@ -80,6 +81,7 @@ class ProductUpdate(BaseModel):
     custom_attributes: dict | None = None
     track_stock: bool | None = None
     stock_quantity: int | None = Field(default=None, ge=0)
+    requires_material: bool | None = None
     is_featured: bool | None = None
     sale_price: float | None = None
     sale_starts_at: date | None = None
@@ -112,6 +114,7 @@ class ProductListItemOut(BaseModel):
     track_stock: bool
     stock_quantity: int
     is_featured: bool
+    requires_material: bool = True
     sale_price: float | None = None
     sale_starts_at: date | None = None
     sale_ends_at: date | None = None

@@ -22,6 +22,7 @@ const form = ref({
   base_price: 0,
   status: 'draft',
   is_featured: false,
+  requires_material: true,
   sale_price: null as number | null,
   sale_starts_at: null as string | null,
   sale_ends_at: null as string | null,
@@ -101,6 +102,7 @@ async function loadProduct() {
     base_price: data.base_price,
     status: data.status,
     is_featured: data.is_featured,
+    requires_material: data.requires_material,
     sale_price: data.sale_price,
     sale_starts_at: data.sale_starts_at,
     sale_ends_at: data.sale_ends_at,
@@ -316,6 +318,13 @@ watch(productId, (newId) => {
       <el-form-item>
         <el-switch v-model="form.is_featured" />
         <span class="ml-2 text-sm text-brown">設為本週主打商品(顯示在前台「主打商品」頁面)</span>
+      </el-form-item>
+
+      <el-form-item>
+        <el-switch v-model="form.requires_material" />
+        <span class="ml-2 text-sm text-brown">
+          訂購時需要選擇布料(關閉後視為加購商品,客人下單時不需選布料)
+        </span>
       </el-form-item>
 
       <el-form-item v-if="variants.length === 0">

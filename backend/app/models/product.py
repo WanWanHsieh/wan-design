@@ -21,6 +21,7 @@ class Product(Base, TimestampMixin, SoftDeleteMixin):
     custom_attributes: Mapped[dict] = mapped_column(JSONB, default=dict, nullable=False)
     track_stock: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     stock_quantity: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    requires_material: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     is_featured: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     sale_price: Mapped[float | None] = mapped_column(Numeric(12, 2))
     sale_starts_at: Mapped[date | None] = mapped_column(Date)

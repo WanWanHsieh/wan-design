@@ -109,11 +109,11 @@ def _build_order_items(
         custom_note = getattr(item, "custom_note", None)
 
         if item.material_id is None:
-            if not stock_target.track_stock:
+            if not stock_target.track_stock and product.requires_material:
                 raise HTTPException(
-                    status.HTTP_400_BAD_REQUEST, f"商品「{product.name}」非現貨販售商品"
+                    status.HTTP_400_BAD_REQUEST, f"商品「{product.name}」需要選擇布料"
                 )
-            if adjust_stock:
+            if stock_target.track_stock and adjust_stock:
                 if stock_target.stock_quantity < item.quantity:
                     raise HTTPException(
                         status.HTTP_400_BAD_REQUEST, f"商品「{product.name}」庫存不足"

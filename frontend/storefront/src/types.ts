@@ -20,6 +20,7 @@ export interface ProductListItem {
   track_stock: boolean
   stock_quantity: number
   is_featured: boolean
+  requires_material: boolean
   sale_price: number | null
   sale_starts_at: string | null
   sale_ends_at: string | null
@@ -53,6 +54,7 @@ export interface ProductDetail {
   custom_attributes: Record<string, unknown>
   track_stock: boolean
   stock_quantity: number
+  requires_material: boolean
   sale_price: number | null
   sale_starts_at: string | null
   sale_ends_at: string | null

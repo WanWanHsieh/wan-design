@@ -37,6 +37,14 @@ const lightboxAlt = computed(() => product.value?.name ?? '')
 const hasPrevImage = computed(() => lightboxIndex.value > 0)
 const hasNextImage = computed(() => lightboxIndex.value < galleryImages.value.length - 1)
 
+const priceRange = computed(() => {
+  if (!product.value?.has_variants || product.value.variants.length === 0) return null
+  const prices = product.value.variants.map((v) => v.price)
+  const min = Math.min(...prices)
+  const max = Math.max(...prices)
+  return min === max ? null : { min, max }
+})
+
 function openLightbox(storageKey: string) {
   const index = galleryImages.value.findIndex((img) => img.storage_key === storageKey)
   lightboxIndex.value = index >= 0 ? index : 0
@@ -101,7 +109,13 @@ onMounted(async () => {
           class="inline-block rounded-full px-2 py-0.5 text-xs font-medium"
           :class="product.track_stock ? 'bg-sage/15 text-sage-dark' : 'bg-terracotta-light text-terracotta-dark'"
         >
-          {{ product.track_stock ? '現貨' : '訂製商品・需選布料' }}
+          {{
+            product.track_stock
+              ? '現貨'
+              : product.requires_material === false
+                ? '加購商品'
+                : '訂製商品・需選布料'
+          }}
         </span>
         <h1 class="mt-2 text-2xl font-bold text-brown">{{ product.name }}</h1>
         <p class="mt-2">
@@ -109,6 +123,7 @@ onMounted(async () => {
             :base-price="product.base_price"
             :effective-price="product.effective_price"
             :is-on-sale="product.is_on_sale"
+            :price-range="priceRange"
             size="lg"
           />
         </p>
@@ -134,7 +149,11 @@ onMounted(async () => {
           {{ addedFlash ? '已加入!' : '加入訂購清單' }}
         </button>
         <p v-if="!product.track_stock" class="mt-2 text-xs text-taupe">
-          此商品為訂製款,加入訂購清單後可繼續選購,最後一起前往訂購頁選布料下單。
+          {{
+            product.requires_material === false
+              ? '此商品為加購商品,加入訂購清單後可繼續選購,最後一起前往訂購頁下單,不需選布料。'
+              : '此商品為訂製款,加入訂購清單後可繼續選購,最後一起前往訂購頁選布料下單。'
+          }}
         </p>
         <p v-if="!product.track_stock" class="mt-1 text-xs text-taupe">
           🧵 訂製品製作期約需 3 週,請預留足夠時間;若能提早完成會另行通知。

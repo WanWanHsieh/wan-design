@@ -112,7 +112,9 @@ onMounted(async () => {
             :is-on-sale="product.is_on_sale"
             :price-range="priceRange(product)"
           />
-          <p v-if="!product.track_stock" class="text-xs text-taupe">訂製・需選布料</p>
+          <p v-if="!product.track_stock" class="text-xs text-taupe">
+            {{ product.requires_material === false ? '加購商品' : '訂製・需選布料' }}
+          </p>
           <p v-else-if="isSoldOut(product)" class="text-xs font-medium text-red-500">已售完</p>
           <p v-else class="text-xs text-taupe">剩 {{ availableStock(product) }} 件</p>
 

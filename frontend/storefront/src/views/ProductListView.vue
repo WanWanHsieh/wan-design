@@ -179,7 +179,9 @@ function priceRange(product: ProductListItem): { min: number; max: number } | nu
                     :price-range="priceRange(product)"
                   />
                 </p>
-                <p class="mt-0.5 text-xs text-taupe">訂製・需選布料</p>
+                <p class="mt-0.5 text-xs text-taupe">
+                  {{ product.requires_material === false ? '加購商品' : '訂製・需選布料' }}
+                </p>
                 <button
                   type="button"
                   class="mt-2 w-full rounded-full bg-terracotta px-3 py-1.5 text-xs font-medium text-white transition hover:bg-terracotta-dark"
