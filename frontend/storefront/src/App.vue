@@ -1,21 +1,39 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
+import { apiClient } from './api/client'
 import { useCartStore } from './stores/cart'
 import { useOrderDraftStore } from './stores/orderDraft'
+import type { Announcement } from './types'
 import logo from './images/logo.png'
 
 const cart = useCartStore()
 const orderDraft = useOrderDraftStore()
 const checkoutCount = computed(() => cart.totalQuantity + orderDraft.totalQuantity)
 const mobileMenuOpen = ref(false)
+const announcement = ref<Announcement | null>(null)
 
 function closeMobileMenu() {
   mobileMenuOpen.value = false
 }
+
+onMounted(async () => {
+  try {
+    const { data } = await apiClient.get<Announcement>('/api/v1/storefront/announcement')
+    announcement.value = data
+  } catch {
+    announcement.value = null
+  }
+})
 </script>
 
 <template>
   <div class="min-h-screen bg-cream">
+    <div
+      v-if="announcement?.is_active && announcement.message.trim()"
+      class="bg-terracotta px-4 py-2 text-center text-sm text-white"
+    >
+      <p class="whitespace-pre-line">{{ announcement.message }}</p>
+    </div>
     <header class="border-b border-beige bg-cream/80 backdrop-blur-sm">
       <div class="mx-auto flex max-w-6xl items-center gap-6 px-4 py-4">
         <RouterLink

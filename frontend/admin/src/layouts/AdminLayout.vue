@@ -110,6 +110,7 @@ function closeMobileMenu() {
         <el-menu-item index="category-list" :route="{ name: 'category-list' }">分類管理</el-menu-item>
         <el-menu-item index="material-list" :route="{ name: 'material-list' }">原材料管理</el-menu-item>
         <el-menu-item index="order-list" :route="{ name: 'order-list' }">訂單管理</el-menu-item>
+        <el-menu-item index="announcement" :route="{ name: 'announcement' }">網站公告</el-menu-item>
         <el-menu-item index="role-list" :route="{ name: 'role-list' }">角色權限</el-menu-item>
         <el-menu-item index="user-list" :route="{ name: 'user-list' }">後台人員</el-menu-item>
       </el-menu>
@@ -183,6 +184,14 @@ function closeMobileMenu() {
             @click="closeMobileMenu"
           >
             訂單管理
+          </RouterLink>
+          <RouterLink
+            :to="{ name: 'announcement' }"
+            class="rounded-lg px-2 py-2 text-taupe transition hover:bg-beige/40 hover:text-terracotta"
+            active-class="font-medium text-terracotta"
+            @click="closeMobileMenu"
+          >
+            網站公告
           </RouterLink>
           <RouterLink
             :to="{ name: 'role-list' }"

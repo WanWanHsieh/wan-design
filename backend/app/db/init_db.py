@@ -19,6 +19,8 @@ DEFAULT_PERMISSIONS = [
     ("users.write", "新增/編輯後台使用者"),
     ("roles.read", "檢視角色與權限"),
     ("roles.write", "新增/編輯角色與權限"),
+    ("settings.read", "檢視網站設定(公告等)"),
+    ("settings.write", "編輯網站設定(公告等)"),
 ]
 
 DEFAULT_ROLES = {

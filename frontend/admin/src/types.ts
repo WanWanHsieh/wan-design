@@ -157,3 +157,10 @@ export interface OrderListItem {
 }
 
 export type Order = OrderListItem
+
+export interface Announcement {
+  id: number
+  message: string
+  is_active: boolean
+  updated_at: string
+}

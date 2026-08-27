@@ -15,6 +15,7 @@ import OrderListView from '../views/orders/OrderListView.vue'
 import OrderDetailView from '../views/orders/OrderDetailView.vue'
 import RoleListView from '../views/roles/RoleListView.vue'
 import UserListView from '../views/users/UserListView.vue'
+import AnnouncementView from '../views/settings/AnnouncementView.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -111,6 +112,12 @@ const router = createRouter({
           name: 'order-detail',
           component: OrderDetailView,
           meta: { permission: 'orders.read' },
+        },
+        {
+          path: 'announcement',
+          name: 'announcement',
+          component: AnnouncementView,
+          meta: { permission: 'settings.read' },
         },
         {
           path: 'roles',

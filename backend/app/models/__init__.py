@@ -1,4 +1,5 @@
 from app.models.admin_user import AdminUser, RefreshToken
+from app.models.announcement import Announcement
 from app.models.attribute import AttributeDefinition, ProductAttributeValue
 from app.models.category import Category
 from app.models.customer import Address, Customer
@@ -12,6 +13,7 @@ from app.models.rbac import AdminUserRole, Permission, Role, RolePermission
 __all__ = [
     "AdminUser",
     "RefreshToken",
+    "Announcement",
     "AttributeDefinition",
     "ProductAttributeValue",
     "Category",

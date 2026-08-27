@@ -120,6 +120,11 @@ export interface OrderResult {
   items: OrderItemResult[]
 }
 
+export interface Announcement {
+  message: string
+  is_active: boolean
+}
+
 export interface Category {
   id: number
   name: string
