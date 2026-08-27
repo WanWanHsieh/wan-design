@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { apiClient, imageUrl } from '../api/client'
 import ImageLightbox from '../components/ImageLightbox.vue'
+import MaterialPickerModal from '../components/MaterialPickerModal.vue'
 import PriceTag from '../components/PriceTag.vue'
 import { useCartStore } from '../stores/cart'
 import { useOrderDraftStore } from '../stores/orderDraft'
@@ -212,6 +213,29 @@ function materialThumbnail(materialId: number | null): string | null {
 function materialFullImage(materialId: number | null): string | null {
   const primary = primaryFabricImage(materialId)
   return primary ? primary.storage_key : null
+}
+
+function materialById(materialId: number | null) {
+  return materials.value.find((m) => m.id === materialId) ?? null
+}
+
+function materialLabel(materialId: number | null): string {
+  const material = materialById(materialId)
+  if (!material) return '請選擇布料'
+  return material.code ? `${material.code} ${material.name}` : material.name
+}
+
+const materialPickerVisible = ref(false)
+const materialPickerTargetIndex = ref<number | null>(null)
+
+function openMaterialPicker(index: number) {
+  materialPickerTargetIndex.value = index
+  materialPickerVisible.value = true
+}
+
+function handleMaterialSelect(materialId: number) {
+  if (materialPickerTargetIndex.value === null) return
+  lineItems.value[materialPickerTargetIndex.value].materialId = materialId
 }
 
 function productThumbnail(productId: number | null): string | null {
@@ -551,16 +575,17 @@ async function handleSubmit() {
                   class="h-10 w-10 flex-none cursor-zoom-in rounded-lg border border-beige object-cover"
                   @click.stop.prevent="openLightbox(materialFullImage(item.materialId)!, '布料預覽')"
                 />
-                <select
-                  v-model="item.materialId"
-                  required
-                  class="w-full rounded-lg border border-beige bg-white px-2 py-2 focus:border-terracotta focus:outline-none focus:ring-1 focus:ring-terracotta"
+                <button
+                  type="button"
+                  class="w-full truncate rounded-lg border border-beige bg-white px-2 py-2 text-left focus:border-terracotta focus:outline-none focus:ring-1 focus:ring-terracotta"
+                  :class="item.materialId ? 'text-brown' : 'text-taupe'"
+                  @click="openMaterialPicker(index)"
                 >
-                  <option :value="null" disabled>請選擇</option>
-                  <option v-for="m in materials" :key="m.id" :value="m.id">
-                    <template v-if="m.code">{{ m.code }} </template>{{ m.name }}<template v-if="m.price_addon"> (+NT$ {{ m.price_addon }})</template>
-                  </option>
-                </select>
+                  {{ materialLabel(item.materialId) }}
+                  <template v-if="item.materialId && materialById(item.materialId)?.price_addon">
+                    (+NT$ {{ materialById(item.materialId)!.price_addon }})
+                  </template>
+                </button>
               </div>
             </label>
             <label class="block w-full text-sm text-brown sm:w-24">
@@ -706,5 +731,11 @@ async function handleSubmit() {
     </div>
 
     <ImageLightbox v-model="lightboxVisible" :src="lightboxSrc" :alt="lightboxAlt" />
+    <MaterialPickerModal
+      v-model="materialPickerVisible"
+      :materials="materials"
+      :selected-id="materialPickerTargetIndex !== null ? lineItems[materialPickerTargetIndex]?.materialId ?? null : null"
+      @select="handleMaterialSelect"
+    />
   </main>
 </template>
