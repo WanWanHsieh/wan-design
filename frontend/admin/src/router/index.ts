@@ -19,6 +19,10 @@ import AnnouncementView from '../views/settings/AnnouncementView.vue'
 
 const router = createRouter({
   history: createWebHistory(),
+  scrollBehavior(_to, _from, savedPosition) {
+    if (savedPosition) return savedPosition
+    return { top: 0 }
+  },
   routes: [
     { path: '/login', name: 'login', component: LoginView, meta: { public: true } },
     {

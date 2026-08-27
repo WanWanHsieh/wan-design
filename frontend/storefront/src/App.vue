@@ -232,14 +232,6 @@ onMounted(async () => {
           <span aria-hidden="true">👥</span> 社團
         </a>
         <a
-          href="https://shopee.tw/wansdesign0304"
-          target="_blank"
-          rel="noopener"
-          class="transition hover:text-terracotta"
-        >
-          <span aria-hidden="true">🛍️</span> 蝦皮賣場
-        </a>
-        <a
           href="https://liff.line.me/1645278921-kWRPP32q/?accountId=894onjvt"
           target="_blank"
           rel="noopener"

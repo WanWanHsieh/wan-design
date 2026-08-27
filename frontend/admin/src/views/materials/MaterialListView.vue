@@ -1,15 +1,25 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue'
+import { nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { apiClient, imageUrl } from '../../api/client'
 import type { Material } from '../../types'
+
+// Module-scope so it survives this component being unmounted while editing a
+// material and remounted when the admin navigates back to the list.
+let savedScrollTop = 0
 
 const materials = ref<Material[]>([])
 const total = ref(0)
 const loading = ref(true)
 const router = useRouter()
 const route = useRoute()
+
+function editMaterial(id: number) {
+  const scrollContainer = document.querySelector('.el-main')
+  savedScrollTop = scrollContainer?.scrollTop ?? 0
+  router.push({ name: 'material-edit', params: { id } })
+}
 
 const defaultCodeOrder = ref<'asc' | 'desc'>('desc')
 const savingDefaultCodeOrder = ref(false)
@@ -152,9 +162,15 @@ function hasShowcaseImage(material: Material): boolean {
   return material.images.some((img) => img.image_type === 'showcase')
 }
 
-onMounted(() => {
-  loadMaterials()
+onMounted(async () => {
+  await loadMaterials()
   loadDefaultCodeOrder()
+  if (savedScrollTop > 0) {
+    const restoreTo = savedScrollTop
+    savedScrollTop = 0
+    await nextTick()
+    document.querySelector('.el-main')?.scrollTo({ top: restoreTo })
+  }
 })
 </script>
 
@@ -241,7 +257,7 @@ onMounted(() => {
       <el-table-column prop="status" label="狀態" width="100" />
       <el-table-column label="操作" width="160">
         <template #default="{ row }">
-          <el-button size="small" @click="router.push({ name: 'material-edit', params: { id: row.id } })">
+          <el-button size="small" @click="editMaterial(row.id)">
             編輯
           </el-button>
           <el-button size="small" type="danger" @click="handleDelete(row)">刪除</el-button>
@@ -282,7 +298,7 @@ onMounted(() => {
             <template v-if="row.supplier">供應商:{{ row.supplier }}</template>
           </div>
           <div class="mt-2 flex gap-2">
-            <el-button size="small" class="flex-1" @click="router.push({ name: 'material-edit', params: { id: row.id } })">
+            <el-button size="small" class="flex-1" @click="editMaterial(row.id)">
               編輯
             </el-button>
             <el-button size="small" type="danger" class="flex-1" @click="handleDelete(row)">刪除</el-button>
