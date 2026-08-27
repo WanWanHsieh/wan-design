@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { apiClient } from './api/client'
+import ToastNotification from './components/ToastNotification.vue'
 import { useCartStore } from './stores/cart'
 import { useOrderDraftStore } from './stores/orderDraft'
 import type { Announcement } from './types'
@@ -229,5 +230,7 @@ onMounted(async () => {
         </a>
       </div>
     </footer>
+
+    <ToastNotification />
   </div>
 </template>

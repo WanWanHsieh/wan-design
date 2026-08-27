@@ -5,10 +5,12 @@ import { apiClient, imageUrl } from '../api/client'
 import ImageLightbox from '../components/ImageLightbox.vue'
 import PriceTag from '../components/PriceTag.vue'
 import { useOrderDraftStore } from '../stores/orderDraft'
+import { useToastStore } from '../stores/toast'
 import type { ProductDetail } from '../types'
 
 const route = useRoute()
 const orderDraft = useOrderDraftStore()
+const toast = useToastStore()
 const product = ref<ProductDetail | null>(null)
 const error = ref<string | null>(null)
 const addedFlash = ref(false)
@@ -55,6 +57,7 @@ function addToOrderDraft() {
   setTimeout(() => {
     addedFlash.value = false
   }, 1200)
+  toast.show('已加入訂購清單 ✓', { label: '前往結帳', to: '/order' })
 }
 
 onMounted(async () => {

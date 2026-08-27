@@ -5,6 +5,7 @@ import ImageLightbox from '../components/ImageLightbox.vue'
 import PriceTag from '../components/PriceTag.vue'
 import { useCartStore } from '../stores/cart'
 import { useOrderDraftStore } from '../stores/orderDraft'
+import { useToastStore } from '../stores/toast'
 import type { ProductListItem } from '../types'
 
 const products = ref<ProductListItem[]>([])
@@ -17,6 +18,7 @@ const lightboxAlt = ref('')
 
 const orderDraft = useOrderDraftStore()
 const cart = useCartStore()
+const toast = useToastStore()
 const addedFlash = reactive<Record<number, boolean>>({})
 const quantities = reactive<Record<number, number>>({})
 
@@ -42,6 +44,7 @@ function addToOrderDraft(product: ProductListItem) {
   setTimeout(() => {
     addedFlash[product.id] = false
   }, 1200)
+  toast.show('已加入訂購清單 ✓', { label: '前往結帳', to: '/order' })
 }
 
 function availableStock(product: ProductListItem): number {
@@ -61,6 +64,7 @@ function addToCart(product: ProductListItem) {
   setTimeout(() => {
     addedFlash[product.id] = false
   }, 1200)
+  toast.show('已加入購物車 ✓', { label: '前往結帳', to: '/order' })
 }
 
 onMounted(async () => {

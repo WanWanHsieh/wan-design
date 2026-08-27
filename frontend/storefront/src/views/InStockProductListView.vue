@@ -3,6 +3,7 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { apiClient, imageUrl } from '../api/client'
 import PriceTag from '../components/PriceTag.vue'
 import { useCartStore } from '../stores/cart'
+import { useToastStore } from '../stores/toast'
 import { useCategoryNav } from '../composables/useCategoryNav'
 import type { Category, ProductListItem } from '../types'
 
@@ -11,6 +12,7 @@ const categories = ref<Category[]>([])
 const loading = ref(true)
 const error = ref<string | null>(null)
 const cart = useCartStore()
+const toast = useToastStore()
 
 const quantities = reactive<Record<number, number>>({})
 const addedFlash = reactive<Record<number, boolean>>({})
@@ -77,6 +79,7 @@ function addToCart(product: ProductListItem) {
   setTimeout(() => {
     addedFlash[product.id] = false
   }, 1200)
+  toast.show('已加入購物車 ✓', { label: '前往結帳', to: '/order' })
 }
 </script>
 

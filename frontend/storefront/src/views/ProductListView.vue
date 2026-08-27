@@ -6,6 +6,7 @@ import ImageLightbox from '../components/ImageLightbox.vue'
 import PriceTag from '../components/PriceTag.vue'
 import { useCategoryNav } from '../composables/useCategoryNav'
 import { useOrderDraftStore } from '../stores/orderDraft'
+import { useToastStore } from '../stores/toast'
 import type { Category, ProductListItem } from '../types'
 
 const products = ref<ProductListItem[]>([])
@@ -18,6 +19,7 @@ const lightboxSrc = ref('')
 const lightboxAlt = ref('')
 
 const orderDraft = useOrderDraftStore()
+const toast = useToastStore()
 const addedFlash = reactive<Record<number, boolean>>({})
 
 function addToOrderDraft(product: ProductListItem) {
@@ -26,6 +28,7 @@ function addToOrderDraft(product: ProductListItem) {
   setTimeout(() => {
     addedFlash[product.id] = false
   }, 1200)
+  toast.show('已加入訂購清單 ✓', { label: '前往結帳', to: '/order' })
 }
 
 const nav = useCategoryNav(categories)
