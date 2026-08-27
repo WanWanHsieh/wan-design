@@ -197,6 +197,22 @@ function itemSubtotal(item: LineItem): number {
   return itemUnitPrice(item) * (item.quantity || 0)
 }
 
+function lineItemIsIncomplete(item: LineItem): boolean {
+  if (!item.productId) return true
+  const product = orderProducts.value.find((p) => p.id === item.productId)
+  if (product?.has_variants && !item.variantId) return true
+  if (!item.materialId) return true
+  return false
+}
+
+function itemSubtotalLabel(item: LineItem): string {
+  if (!item.productId) return '請先選擇商品'
+  const product = orderProducts.value.find((p) => p.id === item.productId)
+  if (product?.has_variants && !item.variantId) return '尚未選規格'
+  if (!item.materialId) return '尚未選布料'
+  return `NT$ ${itemSubtotal(item)}`
+}
+
 function primaryFabricImage(materialId: number | null) {
   const material = materials.value.find((m) => m.id === materialId)
   if (!material) return null
@@ -274,6 +290,25 @@ const canSubmit = computed(() => {
     return true
   })
   return cartValid && lineItemsValid
+})
+
+const missingFieldsLabel = computed(() => {
+  const missing: string[] = []
+  if (!hasAnyItems.value) missing.push('商品')
+  if (lineItems.value.some(lineItemIsIncomplete)) missing.push('訂製商品的商品/規格/布料')
+  if (
+    cartRows.value.some((row) => row.item.quantity <= 0 || row.item.quantity > row.product.stock_quantity)
+  ) {
+    missing.push('現貨商品數量')
+  }
+  if (!realName.value.trim()) missing.push('真實姓名')
+  if (!contactSource.value) missing.push('通訊來源')
+  if (!customerName.value.trim()) missing.push('通訊名字')
+  if (!phone.value.trim()) missing.push('聯絡電話')
+  if (shippingMethod.value === 'address' && !shippingAddress.value.trim()) missing.push('寄送地址')
+  if (shippingMethod.value !== 'address' && !shippingStoreCode.value.trim()) missing.push('店號')
+  if (!expectedDeliveryDate.value) missing.push('預期收到日期')
+  return missing
 })
 
 async function refreshInStockProducts() {
@@ -599,7 +634,7 @@ async function handleSubmit() {
               />
             </label>
             <div class="flex w-full items-center justify-between text-sm">
-              <span class="text-taupe">小計:NT$ {{ itemSubtotal(item) }}</span>
+              <span class="text-taupe">小計:{{ itemSubtotalLabel(item) }}</span>
               <button type="button" class="text-red-500 hover:underline" @click="removeLineItem(index)">
                 移除
               </button>
@@ -716,15 +751,25 @@ async function handleSubmit() {
           />
         </section>
 
-        <div class="flex items-center justify-between border-t border-beige pt-4">
-          <span class="text-lg font-bold text-brown">總價:NT$ {{ totalAmount }}</span>
-          <button
-            type="submit"
-            :disabled="!canSubmit || submitting"
-            class="rounded-full bg-terracotta px-6 py-2 font-medium text-white transition hover:bg-terracotta-dark disabled:opacity-40"
-          >
-            {{ submitting ? '送出中...' : '送出訂單' }}
-          </button>
+        <div class="flex flex-col gap-2 border-t border-beige pt-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <span class="text-lg font-bold text-brown">總價:NT$ {{ totalAmount }}</span>
+            <span v-if="lineItems.some(lineItemIsIncomplete)" class="ml-2 text-xs text-taupe">
+              (部分訂製商品尚未選完,金額會再更新)
+            </span>
+          </div>
+          <div class="text-right">
+            <button
+              type="submit"
+              :disabled="!canSubmit || submitting"
+              class="rounded-full bg-terracotta px-6 py-2 font-medium text-white transition hover:bg-terracotta-dark disabled:opacity-40"
+            >
+              {{ submitting ? '送出中...' : '送出訂單' }}
+            </button>
+            <p v-if="!canSubmit && missingFieldsLabel.length" class="mt-1 text-xs text-red-500">
+              還需填寫:{{ missingFieldsLabel.join('、') }}
+            </p>
+          </div>
         </div>
         <p v-if="submitError" class="text-right text-sm text-red-600">{{ submitError }}</p>
       </form>
