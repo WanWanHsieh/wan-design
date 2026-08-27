@@ -27,6 +27,8 @@ const categories = ref<Category[]>([])
 const loading = ref(true)
 const loadError = ref<string | null>(null)
 
+const realName = ref('')
+const contactSource = ref<'ig' | 'line' | 'fb' | ''>('')
 const customerName = ref('')
 const phone = ref('')
 const shippingMethod = ref<'family_mart' | 'seven_eleven' | 'address'>('family_mart')
@@ -235,6 +237,7 @@ const totalAmount = computed(() => cartTotalAmount.value + orderTotalAmount.valu
 
 const canSubmit = computed(() => {
   if (!hasAnyItems.value) return false
+  if (!realName.value.trim() || !contactSource.value) return false
   if (!customerName.value.trim() || !phone.value.trim() || !expectedDeliveryDate.value) return false
   if (shippingMethod.value === 'address' && !shippingAddress.value.trim()) return false
   if (shippingMethod.value !== 'address' && !shippingStoreCode.value.trim()) return false
@@ -254,6 +257,8 @@ async function handleSubmit() {
   submitting.value = true
   try {
     const { data } = await apiClient.post<OrderResult>('/api/v1/storefront/orders', {
+      real_name: realName.value,
+      contact_source: contactSource.value,
       customer_name: customerName.value,
       phone: phone.value,
       shipping_method: shippingMethod.value,
@@ -562,9 +567,9 @@ async function handleSubmit() {
           <h2 class="mb-3 font-bold text-brown">聯絡資訊</h2>
           <div class="grid gap-4 sm:grid-cols-2">
             <label class="block text-sm text-brown">
-              通訊名字
+              真實姓名
               <input
-                v-model="customerName"
+                v-model="realName"
                 type="text"
                 required
                 class="mt-1 w-full rounded-lg border border-beige px-3 py-2 focus:border-terracotta focus:outline-none focus:ring-1 focus:ring-terracotta"
@@ -575,6 +580,28 @@ async function handleSubmit() {
               <input
                 v-model="phone"
                 type="tel"
+                required
+                class="mt-1 w-full rounded-lg border border-beige px-3 py-2 focus:border-terracotta focus:outline-none focus:ring-1 focus:ring-terracotta"
+              />
+            </label>
+            <label class="block text-sm text-brown">
+              通訊來源
+              <select
+                v-model="contactSource"
+                required
+                class="mt-1 w-full rounded-lg border border-beige bg-white px-3 py-2 focus:border-terracotta focus:outline-none focus:ring-1 focus:ring-terracotta"
+              >
+                <option value="" disabled>請選擇</option>
+                <option value="ig">IG</option>
+                <option value="line">LINE</option>
+                <option value="fb">FB</option>
+              </select>
+            </label>
+            <label class="block text-sm text-brown">
+              通訊名字
+              <input
+                v-model="customerName"
+                type="text"
                 required
                 class="mt-1 w-full rounded-lg border border-beige px-3 py-2 focus:border-terracotta focus:outline-none focus:ring-1 focus:ring-terracotta"
               />

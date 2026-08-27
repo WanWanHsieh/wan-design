@@ -11,6 +11,8 @@ class Order(Base, TimestampMixin):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     order_no: Mapped[str] = mapped_column(String(40), unique=True, nullable=False, index=True)
+    real_name: Mapped[str | None] = mapped_column(String(100))
+    contact_source: Mapped[str | None] = mapped_column(String(20))  # ig|line|fb
     customer_name: Mapped[str] = mapped_column(String(100), nullable=False)
     phone: Mapped[str] = mapped_column(String(20), nullable=False)
     shipping_method: Mapped[str] = mapped_column(String(20), nullable=False)  # family_mart|seven_eleven|address

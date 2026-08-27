@@ -182,6 +182,8 @@ def create_order(db: Session, data: OrderCreate) -> Order:
 
     order = Order(
         order_no=_generate_order_no(),
+        real_name=data.real_name,
+        contact_source=data.contact_source,
         customer_name=data.customer_name,
         phone=data.phone,
         shipping_method=data.shipping_method,

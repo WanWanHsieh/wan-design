@@ -103,6 +103,8 @@ export interface OrderItemResult {
 export interface OrderResult {
   id: number
   order_no: string
+  real_name: string | null
+  contact_source: string | null
   customer_name: string
   phone: string
   shipping_method: string

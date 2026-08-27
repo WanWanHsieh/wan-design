@@ -24,6 +24,8 @@ const materials = ref<Material[]>([])
 const loading = ref(true)
 const saving = ref(false)
 
+const realName = ref('')
+const contactSource = ref<'ig' | 'line' | 'fb' | ''>('')
 const customerName = ref('')
 const phone = ref('')
 const shippingMethod = ref<'family_mart' | 'seven_eleven' | 'address'>('family_mart')
@@ -56,6 +58,8 @@ async function loadAll() {
     products.value = productsRes.data
     materials.value = materialsRes.data.items
 
+    realName.value = orderRes.data.real_name ?? ''
+    contactSource.value = (orderRes.data.contact_source as typeof contactSource.value) ?? ''
     customerName.value = orderRes.data.customer_name
     phone.value = orderRes.data.phone
     shippingMethod.value = orderRes.data.shipping_method as typeof shippingMethod.value
@@ -158,6 +162,8 @@ async function handleSave() {
   saving.value = true
   try {
     await apiClient.put(`/api/v1/admin/orders/${orderId.value}`, {
+      real_name: realName.value.trim() || null,
+      contact_source: contactSource.value || null,
       customer_name: customerName.value,
       phone: phone.value,
       shipping_method: shippingMethod.value,
@@ -226,11 +232,21 @@ async function handleDelete() {
         </el-form-item>
 
         <div class="grid grid-cols-2 gap-4">
-          <el-form-item label="收件人">
-            <el-input v-model="customerName" />
+          <el-form-item label="真實姓名">
+            <el-input v-model="realName" />
           </el-form-item>
           <el-form-item label="電話">
             <el-input v-model="phone" />
+          </el-form-item>
+          <el-form-item label="通訊來源">
+            <el-select v-model="contactSource" placeholder="請選擇" class="w-full">
+              <el-option label="IG" value="ig" />
+              <el-option label="LINE" value="line" />
+              <el-option label="FB" value="fb" />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="通訊名字(收件人)">
+            <el-input v-model="customerName" />
           </el-form-item>
         </div>
 

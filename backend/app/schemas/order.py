@@ -4,6 +4,7 @@ from pydantic import BaseModel, Field, model_validator
 
 SHIPPING_METHODS = {"family_mart", "seven_eleven", "address"}
 ORDER_STATUSES = {"pending", "shipped", "completed", "cancelled"}
+CONTACT_SOURCES = {"ig", "line", "fb"}
 
 
 class OrderItemIn(BaseModel):
@@ -59,6 +60,8 @@ def check_shipping_fields(
 
 
 class OrderCreate(BaseModel):
+    real_name: str = Field(min_length=1, max_length=100)
+    contact_source: str
     customer_name: str = Field(min_length=1, max_length=100)
     phone: str = Field(min_length=1, max_length=20)
     shipping_method: str
@@ -71,10 +74,14 @@ class OrderCreate(BaseModel):
     @model_validator(mode="after")
     def validate_shipping_fields(self) -> "OrderCreate":
         check_shipping_fields(self.shipping_method, self.shipping_store_code, self.shipping_address)
+        if self.contact_source not in CONTACT_SOURCES:
+            raise ValueError("Invalid contact_source")
         return self
 
 
 class OrderUpdate(BaseModel):
+    real_name: str | None = Field(default=None, min_length=1, max_length=100)
+    contact_source: str | None = None
     customer_name: str | None = Field(default=None, min_length=1, max_length=100)
     phone: str | None = Field(default=None, min_length=1, max_length=20)
     shipping_method: str | None = None
@@ -91,6 +98,8 @@ class OrderUpdate(BaseModel):
 class OrderOut(BaseModel):
     id: int
     order_no: str
+    real_name: str | None = None
+    contact_source: str | None = None
     customer_name: str
     phone: str
     shipping_method: str
@@ -112,6 +121,8 @@ class OrderOut(BaseModel):
 class OrderListItemOut(BaseModel):
     id: int
     order_no: str
+    real_name: str | None = None
+    contact_source: str | None = None
     customer_name: str
     phone: str
     shipping_method: str
