@@ -5,9 +5,11 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { apiClient, imageUrl } from '../../api/client'
 import type { Material } from '../../types'
 
-// Module-scope so it survives this component being unmounted while editing a
-// material and remounted when the admin navigates back to the list.
-let savedScrollTop = 0
+// sessionStorage (not a plain module-level variable) because this component
+// is fully unmounted while editing a material and a new instance is created
+// when the admin navigates back — a `<script setup>` top-level `let` lives
+// inside that per-instance setup() closure and would reset to 0 each time.
+const SCROLL_STORAGE_KEY = 'material-list-scroll-top'
 
 const materials = ref<Material[]>([])
 const total = ref(0)
@@ -17,7 +19,7 @@ const route = useRoute()
 
 function editMaterial(id: number) {
   const scrollContainer = document.querySelector('.el-main')
-  savedScrollTop = scrollContainer?.scrollTop ?? 0
+  sessionStorage.setItem(SCROLL_STORAGE_KEY, String(scrollContainer?.scrollTop ?? 0))
   router.push({ name: 'material-edit', params: { id } })
 }
 
@@ -165,9 +167,10 @@ function hasShowcaseImage(material: Material): boolean {
 onMounted(async () => {
   await loadMaterials()
   loadDefaultCodeOrder()
-  if (savedScrollTop > 0) {
-    const restoreTo = savedScrollTop
-    savedScrollTop = 0
+  const saved = sessionStorage.getItem(SCROLL_STORAGE_KEY)
+  if (saved) {
+    sessionStorage.removeItem(SCROLL_STORAGE_KEY)
+    const restoreTo = Number(saved)
     await nextTick()
     document.querySelector('.el-main')?.scrollTo({ top: restoreTo })
   }
