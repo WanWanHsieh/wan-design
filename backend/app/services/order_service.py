@@ -264,12 +264,15 @@ def delete_order(db: Session, order_id: int) -> None:
     db.commit()
 
 
-def lookup_orders(db: Session, phone: str, customer_name: str) -> list[Order]:
+def lookup_orders(db: Session, phone: str, real_name: str) -> list[Order]:
+    # Orders placed before the real_name field existed have no real_name on file,
+    # so fall back to customer_name for those so old orders stay findable.
+    name_on_file = func.lower(func.coalesce(Order.real_name, Order.customer_name))
     orders = (
         _order_query(db)
         .filter(
             Order.phone == phone.strip(),
-            func.lower(Order.customer_name) == customer_name.strip().lower(),
+            name_on_file == real_name.strip().lower(),
         )
         .order_by(Order.id.desc())
         .all()

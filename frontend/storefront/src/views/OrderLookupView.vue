@@ -4,7 +4,7 @@ import { apiClient, imageUrl } from '../api/client'
 import ImageLightbox from '../components/ImageLightbox.vue'
 import type { OrderResult } from '../types'
 
-const customerName = ref('')
+const realName = ref('')
 const phone = ref('')
 const loading = ref(false)
 const error = ref<string | null>(null)
@@ -48,7 +48,7 @@ async function handleSearch() {
   loading.value = true
   try {
     const { data } = await apiClient.get<OrderResult[]>('/api/v1/storefront/orders/lookup', {
-      params: { customer_name: customerName.value.trim(), phone: phone.value.trim() },
+      params: { real_name: realName.value.trim(), phone: phone.value.trim() },
     })
     results.value = data
   } catch {
@@ -70,12 +70,12 @@ async function handleSearch() {
       @submit.prevent="handleSearch"
     >
       <label class="block text-sm text-brown sm:col-span-1">
-        通訊名字
+        真實姓名
         <input
-          v-model="customerName"
+          v-model="realName"
           type="text"
           required
-          placeholder="下單時填寫的名字"
+          placeholder="下單時填寫的真實姓名"
           class="mt-1 w-full rounded-lg border border-beige px-3 py-2 focus:border-terracotta focus:outline-none focus:ring-1 focus:ring-terracotta"
         />
       </label>
