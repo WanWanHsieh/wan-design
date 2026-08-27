@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
 import { apiClient, imageUrl } from '../api/client'
-import ImageLightbox from '../components/ImageLightbox.vue'
 import type { Material, MaterialImage } from '../types'
 
 const ORIGINS = ['台灣', '韓國', '美國', '日本', '其他']
@@ -18,10 +17,6 @@ const selectedFabricType = ref<string | null>(null)
 const codeOrder = ref<'asc' | 'desc' | null>(null)
 
 const totalPages = computed(() => Math.max(1, Math.ceil(total.value / pageSize)))
-
-const lightboxVisible = ref(false)
-const lightboxSrc = ref('')
-const lightboxAlt = ref('')
 
 async function loadMaterials() {
   loading.value = true
@@ -74,14 +69,6 @@ function primaryFabricImage(material: Material): MaterialImage | null {
 
 function hasShowcaseImage(material: Material): boolean {
   return material.images.some((img) => img.image_type === 'showcase')
-}
-
-function openLightbox(material: Material) {
-  const image = primaryFabricImage(material)
-  if (!image) return
-  lightboxSrc.value = imageUrl(image.storage_key)
-  lightboxAlt.value = material.name
-  lightboxVisible.value = true
 }
 </script>
 
@@ -166,8 +153,7 @@ function openLightbox(material: Material) {
               v-if="primaryFabricImage(material)"
               :src="imageUrl(primaryFabricImage(material)!.thumbnail_key ?? primaryFabricImage(material)!.storage_key)"
               :alt="material.name"
-              class="h-full w-full cursor-zoom-in object-cover"
-              @click.stop.prevent="openLightbox(material)"
+              class="h-full w-full object-cover"
             />
             <div v-else class="flex h-full items-center justify-center text-taupe">無圖片</div>
             <span
@@ -215,7 +201,5 @@ function openLightbox(material: Material) {
         </button>
       </div>
     </template>
-
-    <ImageLightbox v-model="lightboxVisible" :src="lightboxSrc" :alt="lightboxAlt" />
   </main>
 </template>

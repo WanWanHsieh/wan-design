@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://wan-design-storefront-sable.vercel.app/sitemap.xml
