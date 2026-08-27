@@ -73,6 +73,14 @@ function openLightbox(product: ProductListItem) {
   lightboxAlt.value = product.name
   lightboxVisible.value = true
 }
+
+function priceRange(product: ProductListItem): { min: number; max: number } | null {
+  if (!product.has_variants || product.variants.length === 0) return null
+  const prices = product.variants.map((v) => v.price)
+  const min = Math.min(...prices)
+  const max = Math.max(...prices)
+  return min === max ? null : { min, max }
+}
 </script>
 
 <template>
@@ -174,6 +182,7 @@ function openLightbox(product: ProductListItem) {
                     :base-price="product.base_price"
                     :effective-price="product.effective_price"
                     :is-on-sale="product.is_on_sale"
+                    :price-range="priceRange(product)"
                   />
                 </p>
                 <p class="mt-0.5 text-xs text-taupe">訂製・需選布料</p>
@@ -242,6 +251,7 @@ function openLightbox(product: ProductListItem) {
                   :base-price="product.base_price"
                   :effective-price="product.effective_price"
                   :is-on-sale="product.is_on_sale"
+                  :price-range="priceRange(product)"
                 />
               </p>
               <p class="mt-0.5 text-xs text-taupe">訂製・需選布料</p>

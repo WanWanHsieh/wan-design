@@ -28,6 +28,14 @@ function openLightbox(product: ProductListItem) {
   lightboxVisible.value = true
 }
 
+function priceRange(product: ProductListItem): { min: number; max: number } | null {
+  if (!product.has_variants || product.variants.length === 0) return null
+  const prices = product.variants.map((v) => v.price)
+  const min = Math.min(...prices)
+  const max = Math.max(...prices)
+  return min === max ? null : { min, max }
+}
+
 function addToOrderDraft(product: ProductListItem) {
   orderDraft.addItem(product.id, 1)
   addedFlash[product.id] = true
@@ -109,6 +117,7 @@ onMounted(async () => {
             :base-price="product.base_price"
             :effective-price="product.effective_price"
             :is-on-sale="product.is_on_sale"
+            :price-range="priceRange(product)"
           />
           <p v-if="!product.track_stock" class="text-xs text-taupe">訂製・需選布料</p>
           <p v-else-if="isSoldOut(product)" class="text-xs font-medium text-red-500">已售完</p>

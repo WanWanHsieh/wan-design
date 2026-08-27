@@ -4,11 +4,15 @@ defineProps<{
   effectivePrice: number
   isOnSale: boolean
   size?: 'sm' | 'lg'
+  priceRange?: { min: number; max: number } | null
 }>()
 </script>
 
 <template>
-  <span class="inline-flex flex-wrap items-baseline gap-1.5">
+  <span v-if="priceRange" class="font-semibold text-terracotta-dark" :class="size === 'lg' ? 'text-xl' : ''">
+    NT$ {{ priceRange.min }} - {{ priceRange.max }}
+  </span>
+  <span v-else class="inline-flex flex-wrap items-baseline gap-1.5">
     <span v-if="isOnSale" class="text-taupe/60 line-through" :class="size === 'lg' ? 'text-sm' : 'text-xs'">
       NT$ {{ basePrice }}
     </span>
