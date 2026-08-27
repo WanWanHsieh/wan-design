@@ -289,10 +289,14 @@ const hasAnyItems = computed(() => cartRows.value.length > 0 || lineItems.value.
 
 const totalAmount = computed(() => cartTotalAmount.value + orderTotalAmount.value)
 
+const dateMeetsMinimum = computed(
+  () => !!expectedDeliveryDate.value && expectedDeliveryDate.value >= minDeliveryDate.value,
+)
+
 const canSubmit = computed(() => {
   if (!hasAnyItems.value) return false
   if (!realName.value.trim() || !contactSource.value) return false
-  if (!customerName.value.trim() || !phone.value.trim() || !expectedDeliveryDate.value) return false
+  if (!customerName.value.trim() || !phone.value.trim() || !dateMeetsMinimum.value) return false
   if (shippingMethod.value === 'address' && !shippingAddress.value.trim()) return false
   if (shippingMethod.value !== 'address' && !shippingStoreCode.value.trim()) return false
   const cartValid = cartRows.value.every(
@@ -321,7 +325,7 @@ const missingFieldsLabel = computed(() => {
   if (!phone.value.trim()) missing.push('聯絡電話')
   if (shippingMethod.value === 'address' && !shippingAddress.value.trim()) missing.push('寄送地址')
   if (shippingMethod.value !== 'address' && !shippingStoreCode.value.trim()) missing.push('店號')
-  if (!expectedDeliveryDate.value) missing.push('預期收到日期')
+  if (!dateMeetsMinimum.value) missing.push('預期收到日期(須符合最早可選日期)')
   return missing
 })
 
@@ -767,6 +771,11 @@ async function handleSubmit() {
             class="w-full rounded-lg border border-beige px-3 py-2 focus:border-terracotta focus:outline-none focus:ring-1 focus:ring-terracotta"
           />
         </section>
+
+        <div class="rounded-xl border border-terracotta/30 bg-terracotta-light/40 p-3 text-sm text-brown">
+          📦 送出後我們會透過 LINE 與您確認訂單內容,並提供匯款或貨到付款資訊。手作商品皆為客製化製作,恕不提供退換貨。
+          <RouterLink to="/shopping-guide" class="text-terracotta-dark hover:underline">查看完整購物須知(運費・付款方式)→</RouterLink>
+        </div>
 
         <div class="flex flex-col gap-2 border-t border-beige pt-4 sm:flex-row sm:items-center sm:justify-between">
           <div>

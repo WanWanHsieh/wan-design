@@ -186,6 +186,9 @@ onMounted(async () => {
     </header>
     <RouterView />
     <footer class="mt-8 border-t border-beige py-6 text-center">
+      <RouterLink to="/shopping-guide" class="mb-3 inline-block text-sm text-terracotta-dark hover:underline">
+        📖 購物須知(運費・付款方式・退換貨說明・關於我們)
+      </RouterLink>
       <p class="mb-3 text-sm font-medium text-brown">聯絡我們</p>
       <div class="mb-4 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm text-taupe">
         <a
