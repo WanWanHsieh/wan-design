@@ -325,7 +325,7 @@ const missingFieldsLabel = computed(() => {
   if (!phone.value.trim()) missing.push('聯絡電話')
   if (shippingMethod.value === 'address' && !shippingAddress.value.trim()) missing.push('寄送地址')
   if (shippingMethod.value !== 'address' && !shippingStoreCode.value.trim()) missing.push('店號')
-  if (!dateMeetsMinimum.value) missing.push('預期收到日期(須符合最早可選日期)')
+  if (!dateMeetsMinimum.value) missing.push('預期收到日期（須符合最早可選日期）')
   return missing
 })
 
@@ -401,22 +401,22 @@ async function handleSubmit() {
       class="rounded-2xl border border-sage/30 bg-sage/10 p-6 shadow-[0_2px_10px_rgba(180,140,110,0.12)]"
     >
       <p class="flex items-center gap-2 text-lg font-bold text-sage-dark">
-        <span aria-hidden="true">🎉</span>訂單已送出!
+        <span aria-hidden="true">🎉</span>訂單已送出！
       </p>
-      <p class="mt-2 text-sm text-brown/80">訂單編號:{{ result.order_no }}</p>
+      <p class="mt-2 text-sm text-brown/80">訂單編號：{{ result.order_no }}</p>
       <p class="mt-1 text-sm text-brown/80">
-        {{ result.customer_name }} 您好,請加入下方官方 LINE,我們會與您聯繫確認訂單與付款方式。
+        {{ result.customer_name }} 您好，請加入下方官方 LINE，我們會與您聯繫確認訂單與付款方式。
       </p>
 
       <div class="mt-4 rounded-xl border border-terracotta/30 bg-white/70 p-3 text-sm text-brown">
-        <p class="font-medium">📱 訂購完成後,請加入官方 LINE 與小編確認訂單</p>
+        <p class="font-medium">📱 訂購完成後，請加入官方 LINE 與小編確認訂單</p>
         <a
           href="https://line.me/R/ti/p/@894onjvt?from=page&searchId=894onjvt"
           target="_blank"
           rel="noopener noreferrer"
           class="mt-2 inline-block rounded-full bg-[#06C755] px-4 py-1.5 text-sm font-medium text-white transition hover:opacity-90"
         >
-          加入 LINE 好友(ID:@894onjvt)
+          加入 LINE 好友（ID:@894onjvt）
         </a>
       </div>
 
@@ -447,8 +447,8 @@ async function handleSubmit() {
         </div>
       </div>
 
-      <p v-if="result.notes" class="mt-4 text-sm text-brown/80">備註:{{ result.notes }}</p>
-      <p class="mt-4 text-lg font-bold text-terracotta-dark">總金額:NT$ {{ result.total_amount }}</p>
+      <p v-if="result.notes" class="mt-4 text-sm text-brown/80">備註：{{ result.notes }}</p>
+      <p class="mt-4 text-lg font-bold text-terracotta-dark">總金額：NT$ {{ result.total_amount }}</p>
 
       <div class="mt-4 flex gap-3">
         <RouterLink
@@ -474,7 +474,7 @@ async function handleSubmit() {
         v-else-if="!hasAnyItems"
         class="rounded-2xl border border-beige bg-white p-6 text-center text-taupe shadow-[0_2px_10px_rgba(180,140,110,0.08)]"
       >
-        還沒有加入任何商品,
+        還沒有加入任何商品，
         <RouterLink to="/" class="text-terracotta hover:underline">去看看訂製商品</RouterLink>
         或
         <RouterLink to="/instock" class="text-terracotta hover:underline">去逛逛現貨商品</RouterLink>
@@ -495,7 +495,7 @@ async function handleSubmit() {
           </div>
 
           <p v-if="cartRows.length === 0" class="text-sm text-taupe">
-            還沒有現貨商品,<RouterLink to="/instock" class="text-terracotta hover:underline">去逛逛</RouterLink>
+            還沒有現貨商品，<RouterLink to="/instock" class="text-terracotta hover:underline">去逛逛</RouterLink>
           </p>
 
           <div
@@ -520,7 +520,7 @@ async function handleSubmit() {
                   / 件・庫存 {{ row.product.stock_quantity }}
                 </p>
                 <p v-if="row.item.quantity > row.product.stock_quantity" class="text-xs text-red-500">
-                  數量超過現有庫存,請調整
+                  數量超過現有庫存，請調整
                 </p>
               </div>
             </div>
@@ -543,7 +543,7 @@ async function handleSubmit() {
 
         <section class="rounded-2xl border border-beige bg-white p-5 shadow-[0_2px_10px_rgba(180,140,110,0.08)]">
           <div class="mb-3 flex items-center justify-between">
-            <h2 class="font-bold text-brown">訂製商品(需選規格/布料)</h2>
+            <h2 class="font-bold text-brown">訂製商品（需選規格/布料）</h2>
             <div class="flex gap-2">
               <button
                 v-if="lineItems.length > 0"
@@ -652,7 +652,7 @@ async function handleSubmit() {
               />
             </label>
             <div class="flex w-full items-center justify-between text-sm">
-              <span class="text-taupe">小計:{{ itemSubtotalLabel(item) }}</span>
+              <span class="text-taupe">小計：{{ itemSubtotalLabel(item) }}</span>
               <button type="button" class="text-red-500 hover:underline" @click="removeLineItem(index)">
                 移除
               </button>
@@ -660,7 +660,7 @@ async function handleSubmit() {
           </div>
 
           <p v-if="lineItems.length === 0" class="text-sm text-taupe">
-            還沒有訂製商品,按「+ 新增訂製項目」開始選購
+            還沒有訂製商品，按「+ 新增訂製項目」開始選購
           </p>
         </section>
 
@@ -715,17 +715,18 @@ async function handleSubmit() {
           <div class="flex flex-wrap gap-4 text-sm text-brown">
             <label class="flex items-center gap-1">
               <input v-model="shippingMethod" type="radio" value="family_mart" class="accent-terracotta" />
-              好賣家(全家)
+              好賣家（全家）NT$ 35
             </label>
             <label class="flex items-center gap-1">
               <input v-model="shippingMethod" type="radio" value="seven_eleven" class="accent-terracotta" />
-              賣貨便(7-11)
+              賣貨便（7-11）NT$ 38
             </label>
             <label class="flex items-center gap-1">
               <input v-model="shippingMethod" type="radio" value="address" class="accent-terracotta" />
-              地址配送
+              地址配送（依實際運費）
             </label>
           </div>
+          <p class="mt-2 text-xs text-taupe">單筆訂單滿 NT$ 2,000 免運。</p>
           <label v-if="shippingMethod !== 'address'" class="mt-3 block text-sm text-brown">
             店號
             <input
@@ -751,7 +752,7 @@ async function handleSubmit() {
         <section class="rounded-2xl border border-beige bg-white p-5 shadow-[0_2px_10px_rgba(180,140,110,0.08)]">
           <h2 class="mb-3 font-bold text-brown">預期收到日期</h2>
           <p v-if="lineItems.length > 0" class="mb-2 text-sm text-taupe">
-            🧵 訂製商品製作期約需 3 週,請預留足夠時間;若能提早完成會另行通知。
+            🧵 訂製商品製作期約需 3 週，請預留足夠時間；若能提早完成會另行通知。
           </p>
           <input
             v-model="expectedDeliveryDate"
@@ -763,7 +764,7 @@ async function handleSubmit() {
         </section>
 
         <section class="rounded-2xl border border-beige bg-white p-5 shadow-[0_2px_10px_rgba(180,140,110,0.08)]">
-          <h2 class="mb-3 font-bold text-brown">備註(選填)</h2>
+          <h2 class="mb-3 font-bold text-brown">備註（選填）</h2>
           <textarea
             v-model="notes"
             rows="3"
@@ -773,15 +774,15 @@ async function handleSubmit() {
         </section>
 
         <div class="rounded-xl border border-terracotta/30 bg-terracotta-light/40 p-3 text-sm text-brown">
-          📦 送出後我們會透過 LINE 與您確認訂單內容,並提供匯款或貨到付款資訊。手作商品皆為客製化製作,恕不提供退換貨。
-          <RouterLink to="/shopping-guide" class="text-terracotta-dark hover:underline">查看完整購物須知(運費・付款方式)→</RouterLink>
+          📦 送出後我們會透過 LINE 與您確認訂單內容，並提供匯款或貨到付款資訊。手作商品皆為客製化製作，恕不提供退換貨。
+          <RouterLink to="/shopping-guide" class="text-terracotta-dark hover:underline">查看完整購物須知（運費・付款方式）→</RouterLink>
         </div>
 
         <div class="flex flex-col gap-2 border-t border-beige pt-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <span class="text-lg font-bold text-brown">總價:NT$ {{ totalAmount }}</span>
+            <span class="text-lg font-bold text-brown">總價：NT$ {{ totalAmount }}</span>
             <span v-if="lineItems.some(lineItemIsIncomplete)" class="ml-2 text-xs text-taupe">
-              (部分訂製商品尚未選完,金額會再更新)
+              （部分訂製商品尚未選完，金額會再更新）
             </span>
           </div>
           <div class="text-right">
@@ -793,7 +794,7 @@ async function handleSubmit() {
               {{ submitting ? '送出中...' : '送出訂單' }}
             </button>
             <p v-if="!canSubmit && missingFieldsLabel.length" class="mt-1 text-xs text-red-500">
-              還需填寫:{{ missingFieldsLabel.join('、') }}
+              還需填寫：{{ missingFieldsLabel.join('、') }}
             </p>
           </div>
         </div>

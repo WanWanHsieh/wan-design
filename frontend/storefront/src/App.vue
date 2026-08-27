@@ -83,6 +83,13 @@ onMounted(async () => {
             查詢訂單
           </RouterLink>
           <RouterLink
+            to="/shopping-guide"
+            class="text-taupe transition hover:text-terracotta"
+            active-class="font-medium text-terracotta"
+          >
+            📖購物須知
+          </RouterLink>
+          <RouterLink
             to="/order"
             class="ml-auto flex items-center gap-1 text-taupe transition hover:text-terracotta"
             active-class="font-medium text-terracotta"
@@ -182,13 +189,18 @@ onMounted(async () => {
         >
           查詢訂單
         </RouterLink>
+        <RouterLink
+          to="/shopping-guide"
+          class="rounded-lg px-2 py-2 text-taupe transition hover:bg-beige/40 hover:text-terracotta"
+          active-class="font-medium text-terracotta"
+          @click="closeMobileMenu"
+        >
+          📖購物須知
+        </RouterLink>
       </nav>
     </header>
     <RouterView />
     <footer class="mt-8 border-t border-beige py-6 text-center">
-      <RouterLink to="/shopping-guide" class="mb-3 inline-block text-sm text-terracotta-dark hover:underline">
-        📖 購物須知(運費・付款方式・退換貨說明・關於我們)
-      </RouterLink>
       <p class="mb-3 text-sm font-medium text-brown">聯絡我們</p>
       <div class="mb-4 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm text-taupe">
         <a
