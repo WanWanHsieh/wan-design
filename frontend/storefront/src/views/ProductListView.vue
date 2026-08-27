@@ -77,18 +77,7 @@ function openLightbox(product: ProductListItem) {
 
 <template>
   <main class="mx-auto max-w-6xl px-4 py-10">
-    <div
-      class="mb-8 rounded-3xl border border-beige bg-white/70 px-6 py-8 text-center shadow-[0_4px_20px_rgba(180,140,110,0.12)] sm:px-10"
-    >
-      <p class="font-accent text-3xl text-terracotta-dark sm:text-4xl">Wan's Design</p>
-      <p class="mt-2 text-sm text-taupe">🧵 丸藝手作坊・一針一線,手作的溫度</p>
-      <div
-        class="mx-auto mt-4 h-0 w-24 border-t-2 border-dashed border-terracotta/40"
-        aria-hidden="true"
-      ></div>
-    </div>
-
-    <h1 class="mb-2 flex items-center gap-2 font-accent text-2xl text-brown">
+    <h1 class="mb-2 flex items-center gap-2 text-2xl font-bold text-brown">
       <span aria-hidden="true">🌿</span>商品列表
     </h1>
 
@@ -150,7 +139,7 @@ function openLightbox(product: ProductListItem) {
           </button>
           <button
             type="button"
-            class="flex items-center justify-center rounded-3xl border-2 border-dashed border-taupe/40 bg-cream/60 p-6 font-accent text-sm text-taupe transition hover:border-terracotta hover:text-terracotta"
+            class="flex items-center justify-center rounded-3xl border-2 border-dashed border-taupe/40 bg-cream/60 p-6 text-sm text-taupe transition hover:border-terracotta hover:text-terracotta"
             @click="nav.selectAll()"
           >
             瀏覽全部商品 →
@@ -158,7 +147,7 @@ function openLightbox(product: ProductListItem) {
         </div>
 
         <div v-if="uncategorized.length" class="mt-10">
-          <h2 class="mb-1 font-accent text-base text-brown">未分類商品</h2>
+          <h2 class="mb-1 text-sm font-medium text-taupe">未分類商品</h2>
           <p class="mb-3 text-sm text-taupe">💡 點進商品可查看更多花色參考圖</p>
           <div class="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4">
             <RouterLink

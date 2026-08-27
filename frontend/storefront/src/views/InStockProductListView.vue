@@ -124,7 +124,7 @@ function addToCart(product: ProductListItem) {
             v-for="cat in visibleTopCategories"
             :key="cat.id"
             type="button"
-            class="group block overflow-hidden rounded-2xl border border-beige bg-white text-left shadow-[0_2px_10px_rgba(180,140,110,0.12)] transition hover:-translate-y-0.5 hover:shadow-[0_6px_16px_rgba(180,140,110,0.2)]"
+            class="group block overflow-hidden rounded-3xl border border-beige bg-white text-left shadow-[0_4px_14px_rgba(180,140,110,0.14)] transition duration-300 hover:-translate-y-1 hover:rotate-1 hover:shadow-[0_10px_24px_rgba(180,140,110,0.24)]"
             @click="nav.selectTop(cat.slug)"
           >
             <div class="aspect-square bg-cream-dark">
@@ -136,13 +136,14 @@ function addToCart(product: ProductListItem) {
               />
               <div v-else class="flex h-full items-center justify-center text-taupe">無圖片</div>
             </div>
+            <div class="border-t-2 border-dashed border-terracotta/25"></div>
             <div class="p-3">
               <p class="truncate text-sm font-medium text-brown group-hover:text-terracotta">{{ cat.name }}</p>
             </div>
           </button>
           <button
             type="button"
-            class="flex items-center justify-center rounded-2xl border border-dashed border-taupe/40 bg-cream/60 p-6 text-sm text-taupe transition hover:border-terracotta hover:text-terracotta"
+            class="flex items-center justify-center rounded-3xl border-2 border-dashed border-taupe/40 bg-cream/60 p-6 text-sm text-taupe transition hover:border-terracotta hover:text-terracotta"
             @click="nav.selectAll()"
           >
             瀏覽全部現貨 →
@@ -182,7 +183,7 @@ function addToCart(product: ProductListItem) {
           <div
             v-for="product in visibleProducts"
             :key="product.id"
-            class="flex flex-col overflow-hidden rounded-2xl border border-beige bg-white shadow-[0_2px_10px_rgba(180,140,110,0.12)]"
+            class="flex flex-col overflow-hidden rounded-3xl border border-beige bg-white shadow-[0_4px_14px_rgba(180,140,110,0.14)] transition duration-300 hover:-translate-y-1 hover:rotate-1 hover:shadow-[0_10px_24px_rgba(180,140,110,0.24)]"
           >
             <RouterLink :to="{ name: 'product-detail', params: { slug: product.slug } }" class="block">
               <div class="aspect-square bg-cream-dark">
@@ -195,6 +196,7 @@ function addToCart(product: ProductListItem) {
                 <div v-else class="flex h-full items-center justify-center text-taupe">無圖片</div>
               </div>
             </RouterLink>
+            <div class="border-t-2 border-dashed border-terracotta/25"></div>
             <div class="flex flex-1 flex-col gap-2 p-3">
               <p class="truncate text-sm font-medium text-brown">{{ product.name }}</p>
               <PriceTag

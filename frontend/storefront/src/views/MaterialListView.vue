@@ -159,7 +159,7 @@ function openLightbox(material: Material) {
           v-for="material in materials"
           :key="material.id"
           :to="{ name: 'material-detail', params: { id: material.id } }"
-          class="group block overflow-hidden rounded-2xl border border-beige bg-white shadow-[0_2px_10px_rgba(180,140,110,0.12)] transition hover:-translate-y-0.5 hover:shadow-[0_6px_16px_rgba(180,140,110,0.2)]"
+          class="group block overflow-hidden rounded-3xl border border-beige bg-white shadow-[0_4px_14px_rgba(180,140,110,0.14)] transition duration-300 hover:-translate-y-1 hover:rotate-1 hover:shadow-[0_10px_24px_rgba(180,140,110,0.24)]"
         >
           <div class="relative aspect-square bg-cream-dark">
             <img
@@ -183,6 +183,7 @@ function openLightbox(material: Material) {
               有參考圖
             </span>
           </div>
+          <div class="border-t-2 border-dashed border-terracotta/25"></div>
           <div class="p-3">
             <p class="truncate text-sm text-brown group-hover:text-terracotta">{{ material.name }}</p>
             <p v-if="material.origin || material.fabric_type" class="mt-0.5 text-xs text-taupe">

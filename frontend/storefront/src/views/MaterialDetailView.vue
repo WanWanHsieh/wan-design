@@ -105,7 +105,7 @@ function nextImage() {
           <div
             v-for="image in showcaseImages"
             :key="image.id"
-            class="overflow-hidden rounded-2xl border border-beige bg-white shadow-[0_2px_10px_rgba(180,140,110,0.12)]"
+            class="overflow-hidden rounded-3xl border border-beige bg-white shadow-[0_4px_14px_rgba(180,140,110,0.14)] transition duration-300 hover:-translate-y-1 hover:rotate-1 hover:shadow-[0_10px_24px_rgba(180,140,110,0.24)]"
           >
             <div class="aspect-square bg-cream-dark">
               <img

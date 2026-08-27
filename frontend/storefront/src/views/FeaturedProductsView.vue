@@ -62,7 +62,7 @@ onMounted(async () => {
       <div
         v-for="product in products"
         :key="product.id"
-        class="group overflow-hidden rounded-2xl border border-beige bg-white shadow-[0_2px_10px_rgba(180,140,110,0.12)]"
+        class="group overflow-hidden rounded-3xl border border-beige bg-white shadow-[0_4px_14px_rgba(180,140,110,0.14)] transition duration-300 hover:-translate-y-1 hover:rotate-1 hover:shadow-[0_10px_24px_rgba(180,140,110,0.24)]"
       >
         <RouterLink :to="{ name: 'product-detail', params: { slug: product.slug } }" class="block">
           <div class="aspect-square bg-cream-dark">
@@ -76,6 +76,7 @@ onMounted(async () => {
             <div v-else class="flex h-full items-center justify-center text-taupe">無圖片</div>
           </div>
         </RouterLink>
+        <div class="border-t-2 border-dashed border-terracotta/25"></div>
         <div class="p-3">
           <RouterLink :to="{ name: 'product-detail', params: { slug: product.slug } }">
             <p class="truncate text-sm text-brown group-hover:text-terracotta">{{ product.name }}</p>
