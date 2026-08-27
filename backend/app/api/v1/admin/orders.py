@@ -6,6 +6,7 @@ from app.schemas.order import (
     OrderItemCompletionUpdate,
     OrderItemOut,
     OrderListItemOut,
+    OrderMergeIn,
     OrderOut,
     OrderUpdate,
 )
@@ -40,6 +41,13 @@ def update_order(order_id: int, payload: OrderUpdate, db: Session = Depends(get_
 )
 def delete_order(order_id: int, db: Session = Depends(get_db)):
     order_service.delete_order(db, order_id)
+
+
+@router.post(
+    "/{order_id}/merge", response_model=OrderOut, dependencies=[Depends(require_permission("orders.write"))]
+)
+def merge_orders(order_id: int, payload: OrderMergeIn, db: Session = Depends(get_db)):
+    return order_service.merge_orders(db, order_id, payload.secondary_order_id)
 
 
 @router.put(

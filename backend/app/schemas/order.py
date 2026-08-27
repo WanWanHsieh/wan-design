@@ -46,6 +46,10 @@ class OrderItemCompletionUpdate(BaseModel):
     is_completed: bool
 
 
+class OrderMergeIn(BaseModel):
+    secondary_order_id: int
+
+
 def check_shipping_fields(
     shipping_method: str, shipping_store_code: str | None, shipping_address: str | None
 ) -> None:

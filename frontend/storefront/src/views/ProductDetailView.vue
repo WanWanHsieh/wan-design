@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { apiClient, imageUrl } from '../api/client'
 import ImageLightbox from '../components/ImageLightbox.vue'
 import PriceTag from '../components/PriceTag.vue'
@@ -9,6 +9,7 @@ import { useToastStore } from '../stores/toast'
 import type { ProductDetail } from '../types'
 
 const route = useRoute()
+const router = useRouter()
 const orderDraft = useOrderDraftStore()
 const toast = useToastStore()
 const product = ref<ProductDetail | null>(null)
@@ -74,9 +75,13 @@ onMounted(async () => {
 
 <template>
   <main class="mx-auto max-w-4xl px-4 py-10">
-    <RouterLink to="/" class="mb-6 inline-flex items-center gap-1 text-sm text-taupe hover:text-terracotta">
+    <button
+      type="button"
+      class="mb-6 inline-flex items-center gap-1 text-sm text-taupe hover:text-terracotta"
+      @click="router.back()"
+    >
       ← 返回商品列表
-    </RouterLink>
+    </button>
 
     <p v-if="error" class="text-red-600">{{ error }}</p>
     <div v-else-if="product">

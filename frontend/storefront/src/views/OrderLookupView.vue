@@ -6,7 +6,6 @@ import type { OrderResult } from '../types'
 
 const realName = ref('')
 const phone = ref('')
-const orderNo = ref('')
 const loading = ref(false)
 const error = ref<string | null>(null)
 const results = ref<OrderResult[]>([])
@@ -49,11 +48,11 @@ async function handleSearch() {
   loading.value = true
   try {
     const { data } = await apiClient.get<OrderResult[]>('/api/v1/storefront/orders/lookup', {
-      params: { real_name: realName.value.trim(), phone: phone.value.trim(), order_no: orderNo.value.trim() },
+      params: { real_name: realName.value.trim(), phone: phone.value.trim() },
     })
     results.value = data
   } catch {
-    error.value = '找不到符合的訂單,請確認姓名、電話與訂單編號是否輸入正確。'
+    error.value = '找不到符合的訂單,請確認姓名與電話是否輸入正確。'
   } finally {
     loading.value = false
   }
@@ -90,19 +89,6 @@ async function handleSearch() {
           class="mt-1 w-full rounded-lg border border-beige px-3 py-2 focus:border-terracotta focus:outline-none focus:ring-1 focus:ring-terracotta"
         />
       </label>
-      <label class="block text-sm text-brown sm:col-span-1">
-        訂單編號
-        <input
-          v-model="orderNo"
-          type="text"
-          required
-          placeholder="例如 ORD-20260827-A1B2C3"
-          class="mt-1 w-full rounded-lg border border-beige px-3 py-2 focus:border-terracotta focus:outline-none focus:ring-1 focus:ring-terracotta"
-        />
-      </label>
-      <p class="text-xs text-taupe sm:col-span-2">
-        訂單編號會顯示在下單成功頁面,建議下單後截圖保存。
-      </p>
       <button
         type="submit"
         :disabled="loading"

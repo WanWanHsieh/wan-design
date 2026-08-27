@@ -8,6 +8,8 @@ import { useOrderDraftStore } from '../stores/orderDraft'
 import { useToastStore } from '../stores/toast'
 import type { Category, ProductListItem } from '../types'
 
+defineOptions({ name: 'ProductListView' })
+
 const products = ref<ProductListItem[]>([])
 const categories = ref<Category[]>([])
 const loading = ref(true)

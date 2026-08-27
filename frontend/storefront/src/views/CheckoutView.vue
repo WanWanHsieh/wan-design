@@ -46,9 +46,10 @@ const result = ref<OrderResult | null>(null)
 
 const todayStr = new Date().toISOString().slice(0, 10)
 const CUSTOM_ORDER_LEAD_DAYS = 21
+const isRushOrder = ref(false)
 
 const minDeliveryDate = computed(() => {
-  if (lineItems.value.length === 0) return todayStr
+  if (lineItems.value.length === 0 || isRushOrder.value) return todayStr
   const date = new Date()
   date.setDate(date.getDate() + CUSTOM_ORDER_LEAD_DAYS)
   return date.toISOString().slice(0, 10)
@@ -369,7 +370,9 @@ async function handleSubmit() {
       shipping_store_code: shippingMethod.value === 'address' ? null : shippingStoreCode.value,
       shipping_address: shippingMethod.value === 'address' ? shippingAddress.value : null,
       expected_delivery_date: expectedDeliveryDate.value,
-      notes: notes.value.trim() || null,
+      notes: [isRushOrder.value ? '【急件】客人已勾選急件,請與客人確認是否能提前完成' : null, notes.value.trim() || null]
+        .filter(Boolean)
+        .join('\n') || null,
       items: [
         ...cartRows.value.map((row) => ({
           product_id: row.product.id,
@@ -414,7 +417,7 @@ async function handleSubmit() {
       </p>
       <p class="mt-2 text-sm text-brown/80">訂單編號：{{ result.order_no }}</p>
       <p class="mt-1 text-sm text-brown/80">
-        {{ result.customer_name }} 您好，請加入下方官方 LINE，我們會與您聯繫確認訂單與付款方式。
+        {{ result.customer_name }} 您好，請主動加入下方官方 LINE 聯繫小幫手，確認訂單與付款方式。
       </p>
 
       <div class="mt-4 rounded-xl border border-terracotta/30 bg-white/70 p-3 text-sm text-brown">
@@ -786,6 +789,10 @@ async function handleSubmit() {
           <p v-if="lineItems.length > 0" class="mb-2 text-sm text-taupe">
             🧵 訂製商品製作期約需 3 週，請預留足夠時間；若能提早完成會另行通知。
           </p>
+          <label v-if="lineItems.length > 0" class="mb-2 flex items-center gap-2 text-sm text-brown">
+            <input v-model="isRushOrder" type="checkbox" class="accent-terracotta" />
+            急件(需與小幫手討論是否能提前完成,勾選後可自由選擇日期)
+          </label>
           <input
             v-model="expectedDeliveryDate"
             type="date"
@@ -807,7 +814,7 @@ async function handleSubmit() {
         </section>
 
         <div class="rounded-xl border border-terracotta/30 bg-terracotta-light/40 p-3 text-sm text-brown">
-          📦 送出後我們會透過 LINE 與您確認訂單內容，並提供匯款或貨到付款資訊。手作商品皆為客製化製作，恕不提供退換貨。
+          📦 送出後請主動加入官方 LINE 聯繫小幫手確認訂單內容，並索取匯款或貨到付款資訊。手作商品皆為客製化製作，恕不提供退換貨。
           <RouterLink to="/shopping-guide" class="text-terracotta-dark hover:underline">查看完整購物須知（運費・付款方式）→</RouterLink>
         </div>
 

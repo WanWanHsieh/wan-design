@@ -259,6 +259,37 @@ def update_order(db: Session, order_id: int, data: OrderUpdate) -> Order:
     return get_order(db, order_id)
 
 
+def merge_orders(db: Session, primary_order_id: int, secondary_order_id: int) -> Order:
+    if primary_order_id == secondary_order_id:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "不能合併同一張訂單")
+
+    primary = get_order(db, primary_order_id)
+    secondary = get_order(db, secondary_order_id)
+
+    if primary.status == "cancelled" or secondary.status == "cancelled":
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "已取消的訂單無法合併")
+
+    for item in list(secondary.items):
+        secondary.items.remove(item)
+        primary.items.append(item)
+
+    primary.adjustment_amount = round(
+        float(primary.adjustment_amount) + float(secondary.adjustment_amount), 2
+    )
+    primary.adjustment_note = "\n".join(
+        note for note in [primary.adjustment_note, secondary.adjustment_note] if note
+    ) or None
+    merge_note = f"【已合併訂單 {secondary.order_no}】"
+    primary.notes = "\n".join(note for note in [primary.notes, secondary.notes, merge_note] if note)
+    primary.total_amount = round(
+        sum(float(item.subtotal) for item in primary.items) + float(primary.adjustment_amount), 2
+    )
+
+    db.delete(secondary)
+    db.commit()
+    return get_order(db, primary.id)
+
+
 def delete_order(db: Session, order_id: int) -> None:
     order = get_order(db, order_id)
     if order.status != "cancelled":
@@ -267,7 +298,7 @@ def delete_order(db: Session, order_id: int) -> None:
     db.commit()
 
 
-def lookup_orders(db: Session, phone: str, real_name: str, order_no: str) -> list[Order]:
+def lookup_orders(db: Session, phone: str, real_name: str) -> list[Order]:
     # Orders placed before the real_name field existed have no real_name on file,
     # so fall back to customer_name for those so old orders stay findable.
     name_on_file = func.lower(func.coalesce(Order.real_name, Order.customer_name))
@@ -276,13 +307,12 @@ def lookup_orders(db: Session, phone: str, real_name: str, order_no: str) -> lis
         .filter(
             Order.phone == phone.strip(),
             name_on_file == real_name.strip().lower(),
-            Order.order_no == order_no.strip().upper(),
         )
         .order_by(Order.id.desc())
         .all()
     )
     if not orders:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "找不到符合的訂單,請確認姓名、電話與訂單編號是否正確")
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "找不到符合的訂單,請確認姓名與電話是否正確")
     return orders
 
 

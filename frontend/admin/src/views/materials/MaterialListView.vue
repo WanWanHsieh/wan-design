@@ -11,6 +11,28 @@ const loading = ref(true)
 const router = useRouter()
 const route = useRoute()
 
+const defaultCodeOrder = ref<'asc' | 'desc'>('desc')
+const savingDefaultCodeOrder = ref(false)
+
+async function loadDefaultCodeOrder() {
+  const { data } = await apiClient.get<{ default_code_order: 'asc' | 'desc' }>(
+    '/api/v1/admin/materials/settings',
+  )
+  defaultCodeOrder.value = data.default_code_order
+}
+
+async function handleDefaultCodeOrderChange(value: string | number | boolean | undefined) {
+  savingDefaultCodeOrder.value = true
+  try {
+    await apiClient.put('/api/v1/admin/materials/settings', { default_code_order: value })
+    ElMessage.success('已儲存')
+  } catch {
+    ElMessage.error('儲存失敗')
+  } finally {
+    savingDefaultCodeOrder.value = false
+  }
+}
+
 const UNIT_LABELS: Record<string, string> = {
   meter: '公尺',
   yard: '碼',
@@ -130,7 +152,10 @@ function hasShowcaseImage(material: Material): boolean {
   return material.images.some((img) => img.image_type === 'showcase')
 }
 
-onMounted(loadMaterials)
+onMounted(() => {
+  loadMaterials()
+  loadDefaultCodeOrder()
+})
 </script>
 
 <template>
@@ -141,6 +166,20 @@ onMounted(loadMaterials)
         <el-button @click="router.push({ name: 'material-bulk-import' })">批量匯入</el-button>
         <el-button type="primary" @click="router.push({ name: 'material-new' })">新增原材料</el-button>
       </div>
+    </div>
+
+    <div class="mb-4 flex flex-wrap items-center gap-2 rounded-lg border border-beige bg-cream/40 p-3">
+      <span class="text-sm text-taupe">前台布料列表預設顯示順序:</span>
+      <el-radio-group
+        v-model="defaultCodeOrder"
+        size="small"
+        :disabled="savingDefaultCodeOrder"
+        @change="handleDefaultCodeOrderChange"
+      >
+        <el-radio-button value="asc">編號小到大</el-radio-button>
+        <el-radio-button value="desc">編號大到小</el-radio-button>
+      </el-radio-group>
+      <span class="text-xs text-taupe/70">(客人在前台沒有自己切換排序前,看到的就是這個順序)</span>
     </div>
 
     <div class="mb-4 flex flex-wrap items-center gap-2">

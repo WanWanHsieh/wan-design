@@ -9,6 +9,11 @@ const orders = ref<OrderListItem[]>([])
 const loading = ref(true)
 const router = useRouter()
 
+const selectedOrders = ref<OrderListItem[]>([])
+const mergeDialogVisible = ref(false)
+const primaryOrderId = ref<number | null>(null)
+const merging = ref(false)
+
 const SHIPPING_LABELS: Record<string, string> = {
   family_mart: '好賣家(全家)',
   seven_eleven: '賣貨便(7-11)',
@@ -60,6 +65,36 @@ async function updateStatus(order: OrderListItem, nextStatus: string) {
   }
 }
 
+function handleSelectionChange(rows: OrderListItem[]) {
+  selectedOrders.value = rows
+}
+
+function openMergeDialog() {
+  if (selectedOrders.value.length !== 2) return
+  primaryOrderId.value = selectedOrders.value[0].id
+  mergeDialogVisible.value = true
+}
+
+async function handleConfirmMerge() {
+  if (primaryOrderId.value === null || selectedOrders.value.length !== 2) return
+  const [a, b] = selectedOrders.value
+  const secondaryId = primaryOrderId.value === a.id ? b.id : a.id
+  merging.value = true
+  try {
+    await apiClient.post(`/api/v1/admin/orders/${primaryOrderId.value}/merge`, {
+      secondary_order_id: secondaryId,
+    })
+    ElMessage.success('已合併訂單')
+    mergeDialogVisible.value = false
+    selectedOrders.value = []
+    await loadOrders()
+  } catch (err: any) {
+    ElMessage.error(err?.response?.data?.detail ?? '合併失敗,請稍後再試')
+  } finally {
+    merging.value = false
+  }
+}
+
 const mobileExpandedIds = ref<Record<number, boolean>>({})
 
 function toggleMobileExpand(id: number) {
@@ -89,9 +124,27 @@ async function toggleItemCompleted(orderId: number, item: OrderItem) {
 
 <template>
   <div>
-    <h1 class="mb-4 text-xl font-semibold">訂單管理</h1>
+    <div class="mb-4 flex items-center justify-between">
+      <h1 class="text-xl font-semibold">訂單管理</h1>
+      <el-button
+        v-if="selectedOrders.length > 0"
+        type="primary"
+        :disabled="selectedOrders.length !== 2"
+        @click="openMergeDialog"
+      >
+        合併選中的訂單({{ selectedOrders.length }}/2)
+      </el-button>
+    </div>
 
-    <el-table :data="orders" v-loading="loading" stripe row-key="id" class="hidden sm:block">
+    <el-table
+      :data="orders"
+      v-loading="loading"
+      stripe
+      row-key="id"
+      class="hidden sm:block"
+      @selection-change="handleSelectionChange"
+    >
+      <el-table-column type="selection" width="45" />
       <el-table-column type="expand">
         <template #default="{ row }">
           <div class="bg-gray-50 px-6 py-3">
@@ -258,5 +311,30 @@ async function toggleItemCompleted(orderId: number, item: OrderItem) {
         </el-button>
       </div>
     </div>
+
+    <el-dialog v-model="mergeDialogVisible" title="合併訂單" width="500">
+      <p class="mb-3 text-sm text-gray-600">
+        選擇要保留的主訂單,另一張訂單的商品會併入主訂單,原訂單將被刪除(此操作無法復原)。
+      </p>
+      <el-radio-group v-model="primaryOrderId" class="flex w-full flex-col gap-2">
+        <label
+          v-for="o in selectedOrders"
+          :key="o.id"
+          class="flex cursor-pointer items-start gap-2 rounded-lg border border-gray-200 p-3 hover:border-terracotta"
+        >
+          <el-radio :value="o.id" class="mt-0.5" />
+          <div>
+            <div class="font-medium">{{ o.order_no }}(NT$ {{ o.total_amount }})</div>
+            <div class="text-sm text-gray-500">
+              {{ o.customer_name }}・{{ o.phone }}・{{ o.items.length }} 項商品
+            </div>
+          </div>
+        </label>
+      </el-radio-group>
+      <template #footer>
+        <el-button @click="mergeDialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="merging" @click="handleConfirmMerge">確認合併</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>

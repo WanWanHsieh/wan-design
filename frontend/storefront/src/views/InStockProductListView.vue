@@ -7,6 +7,8 @@ import { useToastStore } from '../stores/toast'
 import { useCategoryNav } from '../composables/useCategoryNav'
 import type { Category, ProductListItem } from '../types'
 
+defineOptions({ name: 'InStockProductListView' })
+
 const products = ref<ProductListItem[]>([])
 const categories = ref<Category[]>([])
 const loading = ref(true)

@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { apiClient, imageUrl } from '../api/client'
 import ImageLightbox from '../components/ImageLightbox.vue'
 import type { Material } from '../types'
 
 const route = useRoute()
+const router = useRouter()
 const material = ref<Material | null>(null)
 const error = ref<string | null>(null)
 
@@ -61,12 +62,13 @@ function nextImage() {
 
 <template>
   <main class="mx-auto max-w-4xl px-4 py-10">
-    <RouterLink
-      to="/materials"
+    <button
+      type="button"
       class="mb-6 inline-flex items-center gap-1 text-sm text-taupe hover:text-terracotta"
+      @click="router.back()"
     >
       ← 返回布料列表
-    </RouterLink>
+    </button>
 
     <p v-if="error" class="text-red-600">{{ error }}</p>
     <div v-else-if="material">

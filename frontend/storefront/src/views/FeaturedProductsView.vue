@@ -7,6 +7,8 @@ import { useOrderDraftStore } from '../stores/orderDraft'
 import { useToastStore } from '../stores/toast'
 import type { ProductListItem } from '../types'
 
+defineOptions({ name: 'FeaturedProductsView' })
+
 const products = ref<ProductListItem[]>([])
 const loading = ref(true)
 const error = ref<string | null>(null)

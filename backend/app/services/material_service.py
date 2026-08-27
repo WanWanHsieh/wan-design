@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session, selectinload
 
 from app.models.material import Material, MaterialImage
 from app.schemas.material import MaterialCreate, MaterialImageOut, MaterialPublicOut, MaterialUpdate
+from app.services import material_settings_service
 
 
 def _material_query(db: Session):
@@ -37,7 +38,7 @@ def _has_showcase_expr():
     )
 
 
-def _apply_order(query, code_order: str | None, showcase_order: str | None):
+def _apply_order(query, code_order: str | None, showcase_order: str | None, default_code_order: str = "desc"):
     if code_order == "asc":
         return query.order_by(Material.code.asc(), Material.id.asc())
     if code_order == "desc":
@@ -46,6 +47,8 @@ def _apply_order(query, code_order: str | None, showcase_order: str | None):
         return query.order_by(_has_showcase_expr().asc(), Material.id.desc())
     if showcase_order == "desc":
         return query.order_by(_has_showcase_expr().desc(), Material.id.desc())
+    if default_code_order == "asc":
+        return query.order_by(Material.code.asc(), Material.id.asc())
     return query.order_by(Material.id.desc())
 
 
@@ -96,8 +99,9 @@ def list_materials_public_page(
         query = query.filter(Material.origin == origin)
 
     total = query.order_by(None).count()
+    default_code_order = material_settings_service.get_material_settings(db).default_code_order
     items = (
-        _apply_order(query, code_order, None)
+        _apply_order(query, code_order, None, default_code_order)
         .offset((page - 1) * page_size)
         .limit(page_size)
         .all()

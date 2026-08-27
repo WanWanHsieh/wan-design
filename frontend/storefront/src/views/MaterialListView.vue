@@ -3,6 +3,8 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { apiClient, imageUrl } from '../api/client'
 import type { Material, MaterialImage } from '../types'
 
+defineOptions({ name: 'MaterialListView' })
+
 const ORIGINS = ['台灣', '韓國', '美國', '日本', '其他']
 const FABRIC_TYPES = ['二紗', '棉布', '厚棉']
 

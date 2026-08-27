@@ -11,6 +11,10 @@ import ShoppingGuideView from '../views/ShoppingGuideView.vue'
 
 const router = createRouter({
   history: createWebHistory(),
+  scrollBehavior(_to, _from, savedPosition) {
+    if (savedPosition) return savedPosition
+    return { top: 0 }
+  },
   routes: [
     { path: '/', name: 'products', component: ProductListView },
     { path: '/featured', name: 'featured-products', component: FeaturedProductsView },

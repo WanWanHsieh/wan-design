@@ -13,12 +13,31 @@ from app.schemas.material import (
     MaterialPageOut,
     MaterialUpdate,
 )
-from app.services import bulk_import_service, image_service, material_service, storage_service
+from app.schemas.material_settings import MaterialSettingsOut, MaterialSettingsUpdate
+from app.services import bulk_import_service, image_service, material_service, material_settings_service, storage_service
 
 router = APIRouter(prefix="/materials", tags=["admin-materials"])
 
 ALLOWED_IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
 MAX_IMAGE_BYTES = 15 * 1024 * 1024
+
+
+@router.get(
+    "/settings",
+    response_model=MaterialSettingsOut,
+    dependencies=[Depends(require_permission("materials.read"))],
+)
+def get_material_settings(db: Session = Depends(get_db)):
+    return material_settings_service.get_material_settings(db)
+
+
+@router.put(
+    "/settings",
+    response_model=MaterialSettingsOut,
+    dependencies=[Depends(require_permission("materials.write"))],
+)
+def update_material_settings(payload: MaterialSettingsUpdate, db: Session = Depends(get_db)):
+    return material_settings_service.update_material_settings(db, payload)
 
 
 @router.get(
