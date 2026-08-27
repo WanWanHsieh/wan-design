@@ -14,5 +14,5 @@ def create_order(payload: OrderCreate, db: Session = Depends(get_db)):
 
 
 @router.get("/lookup", response_model=list[OrderOut])
-def lookup_orders(phone: str, real_name: str, db: Session = Depends(get_db)):
-    return order_service.lookup_orders(db, phone, real_name)
+def lookup_orders(phone: str, real_name: str, order_no: str, db: Session = Depends(get_db)):
+    return order_service.lookup_orders(db, phone, real_name, order_no)

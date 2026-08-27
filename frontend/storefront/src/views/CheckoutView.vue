@@ -60,6 +60,15 @@ watch(minDeliveryDate, (newMin) => {
   }
 })
 
+const WEEKDAY_LABELS = ['日', '一', '二', '三', '四', '五', '六']
+function formatDateLabel(dateStr: string): string {
+  const date = new Date(`${dateStr}T00:00:00`)
+  return `${date.getFullYear()} 年 ${date.getMonth() + 1} 月 ${date.getDate()} 日（週${WEEKDAY_LABELS[date.getDay()]}）`
+}
+const deliveryDateLabel = computed(() =>
+  expectedDeliveryDate.value ? formatDateLabel(expectedDeliveryDate.value) : '',
+)
+
 const lightboxVisible = ref(false)
 const lightboxSrc = ref('')
 const lightboxAlt = ref('')
@@ -736,6 +745,24 @@ async function handleSubmit() {
               placeholder="請輸入門市店號"
               class="mt-1 w-full rounded-lg border border-beige px-3 py-2 focus:border-terracotta focus:outline-none focus:ring-1 focus:ring-terracotta"
             />
+            <a
+              v-if="shippingMethod === 'family_mart'"
+              href="https://www.family.com.tw/Marketing/zh/Map"
+              target="_blank"
+              rel="noopener"
+              class="mt-1 inline-block text-xs text-terracotta-dark hover:underline"
+            >
+              不知道店號?點此查詢全家門市 →
+            </a>
+            <a
+              v-else
+              href="https://www.ibon.com.tw/retail_inquiry.aspx"
+              target="_blank"
+              rel="noopener"
+              class="mt-1 inline-block text-xs text-terracotta-dark hover:underline"
+            >
+              不知道店號?點此查詢 7-11 門市 →
+            </a>
           </label>
           <label v-else class="mt-3 block text-sm text-brown">
             寄送地址
@@ -761,6 +788,7 @@ async function handleSubmit() {
             :min="minDeliveryDate"
             class="rounded-lg border border-beige px-3 py-2 focus:border-terracotta focus:outline-none focus:ring-1 focus:ring-terracotta"
           />
+          <p v-if="deliveryDateLabel" class="mt-2 text-sm text-taupe">您選擇的日期是：{{ deliveryDateLabel }}</p>
         </section>
 
         <section class="rounded-2xl border border-beige bg-white p-5 shadow-[0_2px_10px_rgba(180,140,110,0.08)]">

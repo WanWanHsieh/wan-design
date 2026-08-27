@@ -267,7 +267,7 @@ def delete_order(db: Session, order_id: int) -> None:
     db.commit()
 
 
-def lookup_orders(db: Session, phone: str, real_name: str) -> list[Order]:
+def lookup_orders(db: Session, phone: str, real_name: str, order_no: str) -> list[Order]:
     # Orders placed before the real_name field existed have no real_name on file,
     # so fall back to customer_name for those so old orders stay findable.
     name_on_file = func.lower(func.coalesce(Order.real_name, Order.customer_name))
@@ -276,12 +276,13 @@ def lookup_orders(db: Session, phone: str, real_name: str) -> list[Order]:
         .filter(
             Order.phone == phone.strip(),
             name_on_file == real_name.strip().lower(),
+            Order.order_no == order_no.strip().upper(),
         )
         .order_by(Order.id.desc())
         .all()
     )
     if not orders:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "找不到符合的訂單,請確認姓名與電話是否正確")
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "找不到符合的訂單,請確認姓名、電話與訂單編號是否正確")
     return orders
 
 

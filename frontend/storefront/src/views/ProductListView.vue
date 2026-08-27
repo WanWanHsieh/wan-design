@@ -2,7 +2,6 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import { apiClient, imageUrl } from '../api/client'
-import ImageLightbox from '../components/ImageLightbox.vue'
 import PriceTag from '../components/PriceTag.vue'
 import { useCategoryNav } from '../composables/useCategoryNav'
 import { useOrderDraftStore } from '../stores/orderDraft'
@@ -13,10 +12,6 @@ const products = ref<ProductListItem[]>([])
 const categories = ref<Category[]>([])
 const loading = ref(true)
 const error = ref<string | null>(null)
-
-const lightboxVisible = ref(false)
-const lightboxSrc = ref('')
-const lightboxAlt = ref('')
 
 const orderDraft = useOrderDraftStore()
 const toast = useToastStore()
@@ -68,13 +63,6 @@ function categoryThumbnail(categoryId: number): string | null {
     (p) => p.category_id !== null && scope.includes(p.category_id) && (p.primary_thumbnail || p.primary_image),
   )
   return match ? (match.primary_thumbnail ?? match.primary_image) : null
-}
-
-function openLightbox(product: ProductListItem) {
-  if (!product.primary_image) return
-  lightboxSrc.value = imageUrl(product.primary_image)
-  lightboxAlt.value = product.name
-  lightboxVisible.value = true
 }
 
 function priceRange(product: ProductListItem): { min: number; max: number } | null {
@@ -172,8 +160,7 @@ function priceRange(product: ProductListItem): { min: number; max: number } | nu
                   v-if="product.primary_thumbnail || product.primary_image"
                   :src="imageUrl(product.primary_thumbnail ?? product.primary_image!)"
                   :alt="product.name"
-                  class="h-full w-full cursor-zoom-in object-cover"
-                  @click.stop.prevent="openLightbox(product)"
+                  class="h-full w-full object-cover"
                 />
                 <div v-else class="flex h-full items-center justify-center text-taupe">無圖片</div>
               </div>
@@ -241,8 +228,7 @@ function priceRange(product: ProductListItem): { min: number; max: number } | nu
                 v-if="product.primary_thumbnail || product.primary_image"
                 :src="imageUrl(product.primary_thumbnail ?? product.primary_image!)"
                 :alt="product.name"
-                class="h-full w-full cursor-zoom-in object-cover"
-                @click.stop.prevent="openLightbox(product)"
+                class="h-full w-full object-cover"
               />
               <div v-else class="flex h-full items-center justify-center text-taupe">無圖片</div>
             </div>
@@ -270,7 +256,5 @@ function priceRange(product: ProductListItem): { min: number; max: number } | nu
         </div>
       </div>
     </template>
-
-    <ImageLightbox v-model="lightboxVisible" :src="lightboxSrc" :alt="lightboxAlt" />
   </main>
 </template>

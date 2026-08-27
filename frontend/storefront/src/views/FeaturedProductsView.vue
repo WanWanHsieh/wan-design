@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
 import { apiClient, imageUrl } from '../api/client'
-import ImageLightbox from '../components/ImageLightbox.vue'
 import PriceTag from '../components/PriceTag.vue'
 import { useCartStore } from '../stores/cart'
 import { useOrderDraftStore } from '../stores/orderDraft'
@@ -12,23 +11,11 @@ const products = ref<ProductListItem[]>([])
 const loading = ref(true)
 const error = ref<string | null>(null)
 
-const lightboxVisible = ref(false)
-const lightboxSrc = ref('')
-const lightboxAlt = ref('')
-
 const orderDraft = useOrderDraftStore()
 const cart = useCartStore()
 const toast = useToastStore()
 const addedFlash = reactive<Record<number, boolean>>({})
 const quantities = reactive<Record<number, number>>({})
-
-function openLightbox(product: ProductListItem) {
-  const image = product.primary_image ?? product.primary_thumbnail
-  if (!image) return
-  lightboxSrc.value = imageUrl(image)
-  lightboxAlt.value = product.name
-  lightboxVisible.value = true
-}
 
 function priceRange(product: ProductListItem): { min: number; max: number } | null {
   if (!product.has_variants || product.variants.length === 0) return null
@@ -106,8 +93,7 @@ onMounted(async () => {
               v-if="product.primary_thumbnail || product.primary_image"
               :src="imageUrl(product.primary_thumbnail ?? product.primary_image!)"
               :alt="product.name"
-              class="h-full w-full cursor-zoom-in object-cover"
-              @click.stop.prevent="openLightbox(product)"
+              class="h-full w-full object-cover"
             />
             <div v-else class="flex h-full items-center justify-center text-taupe">無圖片</div>
           </div>
@@ -162,7 +148,5 @@ onMounted(async () => {
         </div>
       </div>
     </div>
-
-    <ImageLightbox v-model="lightboxVisible" :src="lightboxSrc" :alt="lightboxAlt" />
   </main>
 </template>
