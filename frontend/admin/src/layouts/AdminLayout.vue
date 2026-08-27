@@ -2,6 +2,7 @@
 import { onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { Bell, Box, Goods, List, Lock, Menu as MenuIcon, Scissor, User } from '@element-plus/icons-vue'
 import { useAuthStore } from '../stores/auth'
 import { apiClient } from '../api/client'
 import type { Product } from '../types'
@@ -100,19 +101,41 @@ function closeMobileMenu() {
         後台管理
       </div>
       <el-menu :default-active="$route.name as string" router background-color="transparent">
-        <el-menu-item index="product-list" :route="{ name: 'product-list' }">商品管理</el-menu-item>
+        <el-menu-item index="product-list" :route="{ name: 'product-list' }">
+          <el-icon><Goods /></el-icon>
+          商品管理
+        </el-menu-item>
         <el-menu-item index="ready-stock-list" :route="{ name: 'ready-stock-list' }">
+          <el-icon><Box /></el-icon>
           <span class="flex w-full items-center justify-between">
             現貨管理
             <el-tag v-if="lowStockCount > 0" type="warning" size="small" round>{{ lowStockCount }}</el-tag>
           </span>
         </el-menu-item>
-        <el-menu-item index="category-list" :route="{ name: 'category-list' }">分類管理</el-menu-item>
-        <el-menu-item index="material-list" :route="{ name: 'material-list' }">原材料管理</el-menu-item>
-        <el-menu-item index="order-list" :route="{ name: 'order-list' }">訂單管理</el-menu-item>
-        <el-menu-item index="announcement" :route="{ name: 'announcement' }">網站公告</el-menu-item>
-        <el-menu-item index="role-list" :route="{ name: 'role-list' }">角色權限</el-menu-item>
-        <el-menu-item index="user-list" :route="{ name: 'user-list' }">後台人員</el-menu-item>
+        <el-menu-item index="category-list" :route="{ name: 'category-list' }">
+          <el-icon><MenuIcon /></el-icon>
+          分類管理
+        </el-menu-item>
+        <el-menu-item index="material-list" :route="{ name: 'material-list' }">
+          <el-icon><Scissor /></el-icon>
+          原材料管理
+        </el-menu-item>
+        <el-menu-item index="order-list" :route="{ name: 'order-list' }">
+          <el-icon><List /></el-icon>
+          訂單管理
+        </el-menu-item>
+        <el-menu-item index="announcement" :route="{ name: 'announcement' }">
+          <el-icon><Bell /></el-icon>
+          網站公告
+        </el-menu-item>
+        <el-menu-item index="role-list" :route="{ name: 'role-list' }">
+          <el-icon><Lock /></el-icon>
+          角色權限
+        </el-menu-item>
+        <el-menu-item index="user-list" :route="{ name: 'user-list' }">
+          <el-icon><User /></el-icon>
+          後台人員
+        </el-menu-item>
       </el-menu>
       <a
         :href="storefrontUrl"
@@ -146,67 +169,77 @@ function closeMobileMenu() {
       <nav v-if="mobileMenuOpen" class="flex flex-col gap-1 border-b border-beige bg-white px-4 py-3 text-sm sm:hidden">
           <RouterLink
             :to="{ name: 'product-list' }"
-            class="rounded-lg px-2 py-2 text-taupe transition hover:bg-beige/40 hover:text-terracotta"
+            class="flex items-center gap-2 rounded-lg px-2 py-2 text-taupe transition hover:bg-beige/40 hover:text-terracotta"
             active-class="font-medium text-terracotta"
             @click="closeMobileMenu"
           >
+            <el-icon><Goods /></el-icon>
             商品管理
           </RouterLink>
           <RouterLink
             :to="{ name: 'ready-stock-list' }"
-            class="flex items-center justify-between rounded-lg px-2 py-2 text-taupe transition hover:bg-beige/40 hover:text-terracotta"
+            class="flex items-center justify-between gap-2 rounded-lg px-2 py-2 text-taupe transition hover:bg-beige/40 hover:text-terracotta"
             active-class="font-medium text-terracotta"
             @click="closeMobileMenu"
           >
-            現貨管理
+            <span class="flex items-center gap-2">
+              <el-icon><Box /></el-icon>
+              現貨管理
+            </span>
             <el-tag v-if="lowStockCount > 0" type="warning" size="small" round>{{ lowStockCount }}</el-tag>
           </RouterLink>
           <RouterLink
             :to="{ name: 'category-list' }"
-            class="rounded-lg px-2 py-2 text-taupe transition hover:bg-beige/40 hover:text-terracotta"
+            class="flex items-center gap-2 rounded-lg px-2 py-2 text-taupe transition hover:bg-beige/40 hover:text-terracotta"
             active-class="font-medium text-terracotta"
             @click="closeMobileMenu"
           >
+            <el-icon><MenuIcon /></el-icon>
             分類管理
           </RouterLink>
           <RouterLink
             :to="{ name: 'material-list' }"
-            class="rounded-lg px-2 py-2 text-taupe transition hover:bg-beige/40 hover:text-terracotta"
+            class="flex items-center gap-2 rounded-lg px-2 py-2 text-taupe transition hover:bg-beige/40 hover:text-terracotta"
             active-class="font-medium text-terracotta"
             @click="closeMobileMenu"
           >
+            <el-icon><Scissor /></el-icon>
             原材料管理
           </RouterLink>
           <RouterLink
             :to="{ name: 'order-list' }"
-            class="rounded-lg px-2 py-2 text-taupe transition hover:bg-beige/40 hover:text-terracotta"
+            class="flex items-center gap-2 rounded-lg px-2 py-2 text-taupe transition hover:bg-beige/40 hover:text-terracotta"
             active-class="font-medium text-terracotta"
             @click="closeMobileMenu"
           >
+            <el-icon><List /></el-icon>
             訂單管理
           </RouterLink>
           <RouterLink
             :to="{ name: 'announcement' }"
-            class="rounded-lg px-2 py-2 text-taupe transition hover:bg-beige/40 hover:text-terracotta"
+            class="flex items-center gap-2 rounded-lg px-2 py-2 text-taupe transition hover:bg-beige/40 hover:text-terracotta"
             active-class="font-medium text-terracotta"
             @click="closeMobileMenu"
           >
+            <el-icon><Bell /></el-icon>
             網站公告
           </RouterLink>
           <RouterLink
             :to="{ name: 'role-list' }"
-            class="rounded-lg px-2 py-2 text-taupe transition hover:bg-beige/40 hover:text-terracotta"
+            class="flex items-center gap-2 rounded-lg px-2 py-2 text-taupe transition hover:bg-beige/40 hover:text-terracotta"
             active-class="font-medium text-terracotta"
             @click="closeMobileMenu"
           >
+            <el-icon><Lock /></el-icon>
             角色權限
           </RouterLink>
           <RouterLink
             :to="{ name: 'user-list' }"
-            class="rounded-lg px-2 py-2 text-taupe transition hover:bg-beige/40 hover:text-terracotta"
+            class="flex items-center gap-2 rounded-lg px-2 py-2 text-taupe transition hover:bg-beige/40 hover:text-terracotta"
             active-class="font-medium text-terracotta"
             @click="closeMobileMenu"
           >
+            <el-icon><User /></el-icon>
             後台人員
           </RouterLink>
       </nav>
