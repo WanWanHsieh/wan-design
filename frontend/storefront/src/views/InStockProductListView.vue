@@ -18,7 +18,7 @@ const addedFlash = reactive<Record<number, boolean>>({})
 const nav = useCategoryNav(categories)
 
 function availableStock(product: ProductListItem): number {
-  return Math.max(0, product.stock_quantity - cart.quantityOf(product.id))
+  return product.stock_quantity
 }
 
 function isSoldOut(product: ProductListItem): boolean {
