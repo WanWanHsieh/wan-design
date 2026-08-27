@@ -74,11 +74,9 @@ onMounted(async () => {
 
 <template>
   <main class="mx-auto max-w-6xl px-4 py-10">
-    <div class="mb-8 rounded-2xl bg-terracotta-light px-6 py-8 text-center">
-      <h1 class="flex items-center justify-center gap-2 text-2xl font-bold text-terracotta-dark">
-        <span aria-hidden="true">💛</span>本週主打商品
-      </h1>
-    </div>
+    <h1 class="mb-6 flex items-center gap-2 text-2xl font-bold text-brown">
+      <span aria-hidden="true">💛</span>本週主打商品
+    </h1>
 
     <p v-if="loading" class="text-taupe">載入中...</p>
     <p v-else-if="error" class="text-red-600">{{ error }}</p>
