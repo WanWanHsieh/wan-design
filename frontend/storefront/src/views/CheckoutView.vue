@@ -63,6 +63,16 @@ watch(minDeliveryDate, (newMin) => {
   }
 })
 
+// Some mobile browsers' native date picker doesn't strictly enforce the
+// `min` attribute, so re-validate whenever the picked date itself changes
+// (not just when the minimum shifts) and reject anything too early.
+watch(expectedDeliveryDate, (newDate) => {
+  if (newDate && newDate < minDeliveryDate.value) {
+    expectedDeliveryDate.value = ''
+    toast.show('該日期早於最早可選日期，請重新選擇')
+  }
+})
+
 const WEEKDAY_LABELS = ['日', '一', '二', '三', '四', '五', '六']
 function formatDateLabel(dateStr: string): string {
   const date = new Date(`${dateStr}T00:00:00`)
