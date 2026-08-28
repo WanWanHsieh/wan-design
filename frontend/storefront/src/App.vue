@@ -167,21 +167,6 @@ onMounted(async () => {
           布料列表
         </RouterLink>
         <RouterLink
-          to="/order"
-          class="flex items-center gap-1 rounded-lg px-2 py-2 text-taupe transition hover:bg-beige/40 hover:text-terracotta"
-          active-class="font-medium text-terracotta"
-          @click="closeMobileMenu"
-        >
-          <span aria-hidden="true">🛒</span>
-          訂購清單
-          <span
-            v-if="checkoutCount > 0"
-            class="rounded-full bg-terracotta px-1.5 py-0.5 text-xs font-medium text-white"
-          >
-            {{ checkoutCount }}
-          </span>
-        </RouterLink>
-        <RouterLink
           to="/order-lookup"
           class="rounded-lg px-2 py-2 text-taupe transition hover:bg-beige/40 hover:text-terracotta"
           active-class="font-medium text-terracotta"
