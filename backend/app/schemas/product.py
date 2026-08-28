@@ -115,6 +115,7 @@ class ProductListItemOut(BaseModel):
     stock_quantity: int
     is_featured: bool
     requires_material: bool = True
+    has_reference_images: bool = False
     sale_price: float | None = None
     sale_starts_at: date | None = None
     sale_ends_at: date | None = None

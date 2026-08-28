@@ -90,7 +90,7 @@ onMounted(async () => {
         class="group flex flex-col overflow-hidden rounded-3xl border border-beige bg-white shadow-[0_4px_14px_rgba(180,140,110,0.14)] transition duration-300 hover:-translate-y-1 hover:rotate-1 hover:shadow-[0_10px_24px_rgba(180,140,110,0.24)]"
       >
         <RouterLink :to="{ name: 'product-detail', params: { slug: product.slug } }" class="block">
-          <div class="aspect-square bg-cream-dark">
+          <div class="relative aspect-square bg-cream-dark">
             <img
               v-if="product.primary_thumbnail || product.primary_image"
               :src="imageUrl(product.primary_thumbnail ?? product.primary_image!)"
@@ -99,6 +99,12 @@ onMounted(async () => {
               class="h-full w-full object-cover"
             />
             <div v-else class="flex h-full items-center justify-center text-taupe">無圖片</div>
+            <span
+              v-if="product.has_reference_images"
+              class="absolute right-2 top-2 rounded-full bg-sage/90 px-2 py-0.5 text-xs font-medium text-white shadow"
+            >
+              有參考圖
+            </span>
           </div>
         </RouterLink>
         <div class="border-t-2 border-dashed border-terracotta/25"></div>

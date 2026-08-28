@@ -29,6 +29,7 @@ def list_products(track_stock: bool = False, db: Session = Depends(get_db)):
                 stock_quantity=p.stock_quantity,
                 is_featured=p.is_featured,
                 requires_material=p.requires_material,
+                has_reference_images=any(img.image_type == "reference" for img in p.images),
                 sale_price=p.sale_price,
                 sale_starts_at=p.sale_starts_at,
                 sale_ends_at=p.sale_ends_at,
