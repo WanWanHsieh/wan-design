@@ -1,0 +1,15 @@
+{
+  "name": "Wan's Design 丸藝手作坊",
+  "short_name": "Wan's Design",
+  "description": "手作圍兜、飾品、平安符等客製化商品，可自選布料花色。",
+  "lang": "zh-Hant",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#fbf6ef",
+  "theme_color": "#c97b63",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
