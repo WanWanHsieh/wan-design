@@ -24,6 +24,7 @@ app.mount("/uploads", StaticFiles(directory=str(upload_path)), name="uploads")
 app.include_router(api_router)
 
 
-@app.get("/health")
+# 也接受 HEAD：UptimeRobot 免費版只能用 HEAD 檢查，只接受 GET 會一直回 405 被當成故障
+@app.api_route("/health", methods=["GET", "HEAD"])
 def health() -> dict[str, str]:
     return {"status": "ok"}
