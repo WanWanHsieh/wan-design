@@ -250,8 +250,11 @@ async function handleSubmit() {
         throw err
       }
     }
-  } catch {
-    ElMessage.error('儲存失敗,請確認 SKU / Slug 是否重複')
+  } catch (err: any) {
+    // 後端 400 的 detail 為繁體中文字串時直接顯示;409(SKU/Slug 重複,detail 為英文)、422 陣列或無回應則用預設訊息
+    const detail = err?.response?.data?.detail
+    const showDetail = err?.response?.status !== 409 && typeof detail === 'string' && detail
+    ElMessage.error(showDetail ? detail : '儲存失敗,請確認 SKU / Slug 是否重複')
   } finally {
     saving.value = false
   }
