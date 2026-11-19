@@ -54,6 +54,8 @@ interface PendingImage {
   imageType: 'main' | 'reference'
 }
 
+// 載入時的庫存快照;儲存時庫存沒被使用者改過就不送,避免用舊值覆寫期間被客人下單扣掉的庫存
+let stockSnapshot: number | null = null
 const images = ref<ProductImage[]>([])
 const pendingImages = ref<PendingImage[]>([])
 const categories = ref<Category[]>([])
@@ -105,6 +107,7 @@ async function loadProduct() {
     sale_starts_at: data.sale_starts_at,
     sale_ends_at: data.sale_ends_at,
   }
+  stockSnapshot = data.stock_quantity
   saleEnabled.value = data.sale_price !== null
   images.value = data.images
 }
@@ -138,7 +141,13 @@ async function flushPendingImages(targetProductId: number) {
 async function submitOnce() {
   const payload = { ...form.value, track_stock: true, custom_attributes: {} }
   if (isEdit.value) {
-    await apiClient.put(`/api/v1/admin/products/${productId.value}`, payload)
+    // 編輯:庫存與載入時相同(或尚未載入完成)就不送 stock_quantity
+    const { stock_quantity: _stock, ...editPayload } = payload
+    const stockChanged = stockSnapshot !== null && form.value.stock_quantity !== stockSnapshot
+    await apiClient.put(
+      `/api/v1/admin/products/${productId.value}`,
+      stockChanged ? payload : editPayload,
+    )
     ElMessage.success('已更新')
     router.push({ name: 'ready-stock-list' })
     return

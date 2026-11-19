@@ -56,6 +56,8 @@ interface PendingImage {
 
 const customAttributePairs = ref<{ key: string; value: string }[]>([])
 const variants = ref<ProductVariant[]>([])
+// 載入時的規格快照(深拷貝),儲存時用來判斷哪些欄位真的被使用者改過
+let variantsSnapshot: ProductVariant[] = []
 const images = ref<ProductImage[]>([])
 const pendingImages = ref<PendingImage[]>([])
 const categories = ref<Category[]>([])
@@ -113,7 +115,40 @@ async function loadProduct() {
     value: String(value),
   }))
   variants.value = data.variants.map((v) => ({ ...v }))
+  variantsSnapshot = data.variants.map((v) => ({ ...v }))
   images.value = data.images
+}
+
+const VARIANT_FIELDS = ['sku', 'name', 'price', 'track_stock', 'stock_quantity', 'sort_order', 'is_active'] as const
+
+function sameVariant(a: ProductVariant, b: ProductVariant): boolean {
+  return a.id === b.id && VARIANT_FIELDS.every((f) => a[f] === b[f])
+}
+
+// 編輯模式組出 variants:與快照完全相同回傳 undefined(整個省略);
+// 否則回傳完整清單,既有規格帶 id 且只送必填(name、price)與有被改過的欄位,避免用舊庫存覆寫
+function buildVariantsPayload(): Record<string, unknown>[] | undefined {
+  const current = variants.value
+  if (
+    current.length === variantsSnapshot.length &&
+    current.every((v, i) => sameVariant(v, variantsSnapshot[i]))
+  ) {
+    return undefined
+  }
+  return current.map((v) => {
+    const snap = v.id !== undefined ? variantsSnapshot.find((s) => s.id === v.id) : undefined
+    if (v.id === undefined || !snap) {
+      // 新增規格:全部欄位照送,不帶 id
+      const { id: _id, ...rest } = v
+      return rest
+    }
+    const item: Record<string, unknown> = { id: v.id, name: v.name, price: v.price }
+    for (const f of VARIANT_FIELDS) {
+      if (f === 'name' || f === 'price') continue
+      if (v[f] !== snap[f]) item[f] = v[f]
+    }
+    return item
+  })
 }
 
 function addVariant() {
@@ -181,7 +216,13 @@ async function submitOnce() {
     variants: variants.value,
   }
   if (isEdit.value) {
-    await apiClient.put(`/api/v1/admin/products/${productId.value}`, payload)
+    // 編輯:variants 只在有變更時送(送時帶 id、只送改過的庫存欄位)
+    const { variants: _variants, ...editPayload } = payload
+    const variantsPayload = buildVariantsPayload()
+    await apiClient.put(
+      `/api/v1/admin/products/${productId.value}`,
+      variantsPayload === undefined ? editPayload : { ...editPayload, variants: variantsPayload },
+    )
     ElMessage.success('已更新')
     router.push({ name: 'product-list' })
     return

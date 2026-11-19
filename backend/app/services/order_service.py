@@ -1,5 +1,6 @@
 import uuid
 from datetime import datetime, timezone
+from decimal import ROUND_HALF_UP, Decimal
 
 from fastapi import HTTPException, status
 from sqlalchemy import func
@@ -67,6 +68,48 @@ def _decrement_stock_for_items(db: Session, items: list[OrderItem]) -> None:
             product.stock_quantity -= item.quantity
 
 
+def _item_key(
+    product_id: int | None,
+    variant_id: int | None,
+    material_id: int | None,
+    quantity: int,
+    custom_note: str | None,
+    extra_charge,
+) -> tuple:
+    # extra_charge 以數值(兩位小數)比較;custom_note 空字串視同 None
+    extra = Decimal(str(extra_charge or 0)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    return (product_id, variant_id, material_id, int(quantity), custom_note or None, extra)
+
+
+def _diff_order_items(
+    existing: list[OrderItem], incoming: list[OrderItemIn]
+) -> tuple[list[OrderItem], list[OrderItem], list[OrderItemIn]]:
+    """以多重集合比對,回傳 (保留的現有品項, 被移除的現有品項, 新增的傳入品項)。"""
+    pool: dict[tuple, list[OrderItem]] = {}
+    for item in existing:
+        key = _item_key(
+            item.product_id, item.variant_id, item.material_id,
+            item.quantity, item.custom_note, item.extra_charge,
+        )
+        pool.setdefault(key, []).append(item)
+
+    kept: list[OrderItem] = []
+    added: list[OrderItemIn] = []
+    for new in incoming:
+        key = _item_key(
+            new.product_id, new.variant_id, new.material_id,
+            new.quantity, getattr(new, "custom_note", None), getattr(new, "extra_charge", 0),
+        )
+        bucket = pool.get(key)
+        if bucket:
+            kept.append(bucket.pop(0))
+        else:
+            added.append(new)
+
+    removed = [item for bucket in pool.values() for item in bucket]
+    return kept, removed, added
+
+
 def _resolve_variant(db: Session, product: Product, variant_id: int | None) -> ProductVariant | None:
     if not product.has_variants:
         return None
@@ -107,6 +150,11 @@ def _build_order_items(
         stock_target = variant if variant is not None else product
         extra_charge = float(getattr(item, "extra_charge", 0) or 0)
         custom_note = getattr(item, "custom_note", None)
+
+        # 現貨商品(商品本身 track_stock)與加購商品不使用布料;帶布料會走訂製分支而繞過庫存檢查。
+        # 只看商品層級:訂製商品的規格可各自勾庫存追蹤,但仍須選布料,不能被擋
+        if item.material_id is not None and (product.track_stock or not product.requires_material):
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, f"商品「{product.name}」不需選擇布料")
 
         if item.material_id is None:
             if not stock_target.track_stock and product.requires_material:
@@ -235,15 +283,28 @@ def update_order(db: Session, order_id: int, data: OrderUpdate) -> Order:
 
     will_reserve = order.status != "cancelled"
 
+    # 把傳入品項與現有品項比對:相同的原樣保留(不重算價格、不動庫存),
+    # 只有被移除/新增的品項才影響庫存與金額
     if data.items is not None:
-        if stock_was_reserved:
-            _restore_stock_for_items(db, order.items)
-        order_items, _ = _build_order_items(db, data.items, adjust_stock=will_reserve)
-        order.items = order_items
-    elif stock_was_reserved and not will_reserve:
-        _restore_stock_for_items(db, order.items)
-    elif not stock_was_reserved and will_reserve:
-        _decrement_stock_for_items(db, order.items)
+        kept, removed, added_inputs = _diff_order_items(order.items, data.items)
+    else:
+        kept, removed, added_inputs = list(order.items), [], []
+
+    # 庫存不變式:訂單非 cancelled 時,所有現貨品項(material_id 為空且 track_stock)都已預留
+    if stock_was_reserved:
+        # 被移除的品項一定退回;若訂單同時改為取消,保留的品項也退回
+        _restore_stock_for_items(db, removed if will_reserve else removed + kept)
+    elif will_reserve:
+        # 從取消恢復:現有且保留的品項重新預留(被移除的本來就沒預留)
+        _decrement_stock_for_items(db, kept)
+
+    # 新增品項:才檢查商品/布料是否上架,並依 will_reserve 決定是否扣庫存
+    added_items: list[OrderItem] = []
+    if added_inputs:
+        added_items, _ = _build_order_items(db, added_inputs, adjust_stock=will_reserve)
+
+    if removed or added_items:
+        order.items = kept + added_items
 
     order.total_amount = round(
         sum(float(item.subtotal) for item in order.items) + float(order.adjustment_amount), 2

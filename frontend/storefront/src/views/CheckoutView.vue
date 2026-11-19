@@ -193,10 +193,12 @@ function productsForTopCategory(topId: number | null): ProductListItem[] {
 function handleTopCategoryChange(item: LineItem) {
   item.productId = null
   item.variantId = null
+  item.materialId = null
 }
 
 function handleProductChange(item: LineItem) {
   item.variantId = null
+  item.materialId = null
 }
 
 function variantsForProduct(productId: number | null) {
@@ -413,7 +415,7 @@ async function handleSubmit() {
         ...lineItems.value.map((item) => ({
           product_id: item.productId,
           variant_id: item.variantId,
-          material_id: item.materialId,
+          material_id: productRequiresMaterial(item.productId) ? item.materialId : null,
           quantity: item.quantity,
         })),
       ],

@@ -31,6 +31,8 @@ class AttributeValueOut(AttributeValueIn):
 
 
 class ProductVariantIn(BaseModel):
+    # 更新商品時帶現有規格的 id 代表就地更新(只套用有提供的欄位);不帶為新增規格
+    id: int | None = None
     sku: str | None = None
     name: str = Field(min_length=1, max_length=100)
     price: float
